@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                    colors: {
+                        background: "var(--background)",
+                        foreground: "var(--foreground)",
+                        card: {
+                            DEFAULT: "var(--card)",
+                            foreground: "var(--card-foreground)",
+                        },
+                        popover: {
+                            DEFAULT: "var(--popover)",
+                            foreground: "var(--popover-foreground)",
+                        },
+                        primary: {
+                            DEFAULT: "var(--primary)",
+                            foreground: "var(--primary-foreground)",
+                        },
+                        secondary: {
+                            DEFAULT: "var(--secondary)",
+                            foreground: "var(--secondary-foreground)",
+                        },
+                        muted: {
+                            DEFAULT: "var(--muted)",
+                            foreground: "var(--muted-foreground)",
+                        },
+                        accent: {
+                            DEFAULT: "var(--accent)",
+                            foreground: "var(--accent-foreground)",
+                        },
+                        destructive: {
+                            DEFAULT: "var(--destructive)",
+                            foreground: "var(--destructive-foreground)",
+                        },
+                        border: "var(--border)",
+                        input: "var(--input)",
+                        ring: "var(--ring)",
+                        chart: {
+                            "1": "var(--chart-1)",
+                            "2": "var(--chart-2)",
+                            "3": "var(--chart-3)",
+                            "4": "var(--chart-4)",
+                            "5": "var(--chart-5)",
+                        }
+                    },
+                    fontFamily: {
+                        sans: ["var(--font-sans)"],
+                        serif: ["var(--font-serif)"],
+                        mono: ["var(--font-mono)"],
+                    }
+                },
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --card: hsl(180 6.6667% 97.0588%);
+            --ring: hsl(166.76, 29.82%, 44.71%);
+            --input: hsl(35.29, 11.41%, 70.78%);
+            --muted: hsl(72, 12.82%, 84.71%);
+            --accent: hsl(292.13, 48.03%, 75.1%);
+            --border: hsl(35, 10.53%, 77.65%);
+            --radius: 0.875rem;
+            --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --chart-1: hsl(203.8863 88.2845% 53.1373%);
+            --chart-2: hsl(159.7826 100% 36.0784%);
+            --chart-3: hsl(42.0290 92.8251% 56.2745%);
+            --chart-4: hsl(147.1429 78.5047% 41.9608%);
+            --chart-5: hsl(341.4894 75.2000% 50.9804%);
+            --popover: hsl(0 0% 100%);
+            --primary: hsl(165.65, 26.44%, 65.88%);
+            --sidebar: hsl(180 6.6667% 97.0588%);
+            --spacing: 0.25rem;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --font-sans: 'Inter', sans-serif;
+            --secondary: hsl(0, 0%, 8.24%);
+            --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --background: hsl(70.91, 21.57%, 90%);
+            --font-serif: 'Source Serif Pro', serif;
+            --foreground: hsl(0, 0%, 8.24%);
+            --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --destructive: hsl(0.49, 54.19%, 55.49%);
+            --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+            --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
+            --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
+            --card-foreground: hsl(210 25% 7.8431%);
+            --sidebar-primary: hsl(203.8863 88.2845% 53.1373%);
+            --tracking-normal: 0em;
+            --muted-foreground: hsl(72, 2.39%, 40.98%);
+            --accent-foreground: hsl(0, 0%, 8.24%);
+            --popover-foreground: hsl(210 25% 7.8431%);
+            --primary-foreground: hsl(0, 0%, 8.24%);
+            --sidebar-foreground: hsl(210 25% 7.8431%);
+            --secondary-foreground: hsl(70.91, 21.57%, 90%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+            --sidebar-primary-foreground: hsl(0 0% 100%);
+        }
+
+        .dark {
+            --card: hsl(228 9.8039% 10%);
+            --ring: hsl(202.8169 89.1213% 53.1373%);
+            --input: hsl(207.6923 27.6596% 18.4314%);
+            --muted: hsl(0 0% 9.4118%);
+            --accent: hsl(205.7143 70% 7.8431%);
+            --border: hsl(210 5.2632% 14.9020%);
+            --radius: 1.3rem;
+            --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --chart-1: hsl(203.8863 88.2845% 53.1373%);
+            --chart-2: hsl(159.7826 100% 36.0784%);
+            --chart-3: hsl(42.0290 92.8251% 56.2745%);
+            --chart-4: hsl(147.1429 78.5047% 41.9608%);
+            --chart-5: hsl(341.4894 75.2000% 50.9804%);
+            --popover: hsl(0 0% 0%);
+            --primary: hsl(203.7736 87.6033% 52.5490%);
+            --sidebar: hsl(228 9.8039% 10%);
+            --spacing: 0.25rem;
+            --font-mono: Menlo, monospace;
+            --font-sans: Open Sans, sans-serif;
+            --secondary: hsl(195.0000 15.3846% 94.9020%);
+            --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --background: hsl(0 0% 0%);
+            --font-serif: Georgia, serif;
+            --foreground: hsl(200 6.6667% 91.1765%);
+            --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --destructive: hsl(356.3033 90.5579% 54.3137%);
+            --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+            --sidebar-accent: hsl(205.7143 70% 7.8431%);
+            --sidebar-border: hsl(205.7143 15.7895% 26.0784%);
+            --card-foreground: hsl(0 0% 85.0980%);
+            --sidebar-primary: hsl(202.8169 89.1213% 53.1373%);
+            --tracking-normal: 0em;
+            --muted-foreground: hsl(210 3.3898% 46.2745%);
+            --accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+            --popover-foreground: hsl(200 6.6667% 91.1765%);
+            --primary-foreground: hsl(0 0% 100%);
+            --sidebar-foreground: hsl(0 0% 85.0980%);
+            --secondary-foreground: hsl(210 25% 7.8431%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --sidebar-accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+            --sidebar-primary-foreground: hsl(0 0% 100%);
+        }
+
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .nav-item.active {
+            background-color: var(--accent);
+            color: var(--accent-foreground);
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: var(--muted);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .toggle-switch.active {
+            background-color: var(--primary);
+        }
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(20px);
+        }
+        .chat-bubble {
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .chat-bubble.user {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            margin-left: auto;
+        }
+        .chat-bubble.assistant {
+            background-color: var(--card);
+            color: var(--card-foreground);
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans">
+    <!-- @COMPONENT: ToastNotification -->
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ToastNotification -->
+
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="page active min-h-screen flex items-center justify-center bg-background">
+        <!-- @COMPONENT: LoginForm -->
+        <div class="w-full max-w-md p-8 bg-card rounded-xl shadow-lg border border-border">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 mx-auto mb-4 bg-primary rounded-xl flex items-center justify-center">
+                    <i class="fas fa-robot text-2xl text-primary-foreground"></i>
+                </div>
+                <h1 class="text-2xl font-semibold text-card-foreground">ChatBot Manager</h1>
+                <p class="text-muted-foreground mt-2">Sign in to your account</p>
+            </div>
+            
+            <form id="login-form" data-implementation="Should validate credentials and set JWT cookie">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-card-foreground mb-2">Email</label>
+                        <input 
+                            type="email" 
+                            data-mock="true"
+                            class="w-full px-3 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                            placeholder="admin@company.com"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-card-foreground mb-2">Password</label>
+                        <input 
+                            type="password"
+                            data-mock="true"
+                            class="w-full px-3 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                            placeholder="••••••••"
+                            required
+                        >
+                    </div>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    data-event="click:handleLogin"
+                    class="w-full mt-6 bg-primary text-primary-foreground py-2 px-4 rounded-lg hover:opacity-90 transition-opacity font-medium"
+                >
+                    Sign In
+                </button>
+            </form>
+        </div>
+        <!-- @END_COMPONENT: LoginForm -->
+    </div>
+
+    <!-- MAIN APPLICATION LAYOUT -->
+    <div id="app-layout" class="page flex h-screen bg-background">
+        <!-- @COMPONENT: Sidebar -->
+        <div class="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
+            <!-- Logo -->
+            <div class="p-6 border-b border-sidebar-border">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-sidebar-primary-foreground text-sm"></i>
+                    </div>
+                    <span class="font-semibold text-sidebar-foreground">ChatBot Manager</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors" onclick="showPage('dashboard')">
+                            <i class="fas fa-chart-line w-4"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors" onclick="showPage('contacts')">
+                            <i class="fas fa-address-book w-4"></i>
+                            Contacts
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors" onclick="showPage('prompt')" data-role-required="ADMIN,EDITOR">
+                            <i class="fas fa-code w-4"></i>
+                            System Prompt
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors" onclick="showPage('users')" data-role-required="ADMIN">
+                            <i class="fas fa-users w-4"></i>
+                            Team Users
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- User Info -->
+            <div class="p-4 border-t border-sidebar-border">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <span class="text-xs font-medium text-primary-foreground" data-bind="user.initials">JD</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-sidebar-foreground truncate" data-bind="user.name">John Doe</p>
+                        <p class="text-xs text-muted-foreground" data-bind="user.role">ADMIN</p>
+                    </div>
+                </div>
+                <div class="text-xs text-muted-foreground mb-2" data-bind="client.name">Acme Corporation</div>
+                <button class="w-full text-left text-xs text-muted-foreground hover:text-sidebar-foreground transition-colors" onclick="logout()">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Sign out
+                </button>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- @COMPONENT: Header -->
+            <header class="bg-card border-b border-border px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 id="page-title" class="text-xl font-semibold text-card-foreground">Dashboard</h1>
+                        <p class="text-sm text-muted-foreground mt-1" data-bind="client.name">Acme Corporation Bot Management</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div class="w-2 h-2 bg-chart-2 rounded-full"></div>
+                            <span>Bot Active</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+
+            <!-- Content Area -->
+            <main class="flex-1 overflow-auto p-6">
+                <!-- DASHBOARD PAGE -->
+                <div id="dashboard-content" class="content-page active">
+                    <!-- @COMPONENT: DashboardStats -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-card p-6 rounded-xl border border-border">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-muted-foreground">Total Contacts</p>
+                                    <p class="text-2xl font-semibold text-card-foreground" data-bind="stats.totalContacts">247</p>
+                                </div>
+                                <div class="w-12 h-12 bg-chart-1 bg-opacity-20 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-chart-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-xl border border-border">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-muted-foreground">Admin Required</p>
+                                    <p class="text-2xl font-semibold text-card-foreground" data-bind="stats.adminRequired">18</p>
+                                </div>
+                                <div class="w-12 h-12 bg-chart-3 bg-opacity-20 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-user-shield text-chart-3"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-xl border border-border">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-muted-foreground">Messages Today</p>
+                                    <p class="text-2xl font-semibold text-card-foreground" data-bind="stats.messagestoday">1,234</p>
+                                </div>
+                                <div class="w-12 h-12 bg-chart-2 bg-opacity-20 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-comments text-chart-2"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: DashboardStats -->
+
+                    <!-- @COMPONENT: RecentActivity -->
+                    <div class="bg-card p-6 rounded-xl border border-border">
+                        <h3 class="text-lg font-semibold text-card-foreground mb-4">Recent Activity</h3>
+                        <div class="space-y-4">
+                            <!-- @MAP: recentActivity.map(activity => ( -->
+                            <div class="flex items-center gap-4 py-3 border-b border-border last:border-b-0">
+                                <div class="w-10 h-10 bg-primary bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-message text-primary text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-card-foreground" data-mock="true">New message from +1234567890</p>
+                                    <p class="text-xs text-muted-foreground" data-mock="true">2 minutes ago</p>
+                                </div>
+                                <button class="text-primary hover:text-primary/80 text-sm" data-mock="true">View</button>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            <div class="flex items-center gap-4 py-3 border-b border-border last:border-b-0">
+                                <div class="w-10 h-10 bg-chart-3 bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-user-plus text-chart-3 text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-card-foreground" data-mock="true">Contact marked for admin review</p>
+                                    <p class="text-xs text-muted-foreground" data-mock="true">15 minutes ago</p>
+                                </div>
+                                <button class="text-primary hover:text-primary/80 text-sm" data-mock="true">Review</button>
+                            </div>
+                            <div class="flex items-center gap-4 py-3">
+                                <div class="w-10 h-10 bg-chart-2 bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-cog text-chart-2 text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-card-foreground" data-mock="true">System prompt updated</p>
+                                    <p class="text-xs text-muted-foreground" data-mock="true">1 hour ago</p>
+                                </div>
+                                <button class="text-primary hover:text-primary/80 text-sm" data-mock="true">View</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: RecentActivity -->
+                </div>
+
+                <!-- CONTACTS PAGE -->
+                <div id="contacts-content" class="content-page">
+                    <!-- @COMPONENT: ContactsFilter -->
+                    <div class="bg-card p-4 rounded-xl border border-border mb-6">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <input 
+                                    type="text" 
+                                    placeholder="Search contacts by name or phone..."
+                                    class="w-full px-4 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                                    data-implementation="Filter contacts list in real-time"
+                                >
+                            </div>
+                            <select class="px-4 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                                <option>All Contacts</option>
+                                <option>Admin Required</option>
+                                <option>Standard Contacts</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: ContactsFilter -->
+
+                    <!-- @COMPONENT: ContactsTable -->
+                    <div class="bg-card rounded-xl border border-border overflow-hidden">
+                        <div class="p-4 border-b border-border">
+                            <h3 class="text-lg font-semibold text-card-foreground">Contacts Management</h3>
+                            <p class="text-sm text-muted-foreground">Manage WhatsApp contacts and admin requirements</p>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-muted">
+                                    <tr>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Contact</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Phone Number</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Last Activity</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Admin Required</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border">
+                                    <!-- @MAP: contacts.map(contact => ( -->
+                                    <tr class="hover:bg-muted/50">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-xs font-medium text-primary-foreground" data-mock="true">JD</span>
+                                                </div>
+                                                <span class="font-medium text-card-foreground" data-mock="true" data-bind="contact.name">John Doe</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="font-mono text-sm text-card-foreground" data-mock="true" data-bind="contact.phoneNumber">+1234567890</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="text-sm text-muted-foreground" data-mock="true" data-bind="contact.lastActivity">2 hours ago</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="toggle-switch" onclick="toggleAdminRequired(this)" data-implementation="Should call API to update requireAdmin status">
+                                                <div class="toggle-slider"></div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex gap-2">
+                                                <button class="text-primary hover:text-primary/80" onclick="showPage('chat-history')" data-implementation="Navigate to chat history for this contact">
+                                                    <i class="fas fa-comments"></i>
+                                                </button>
+                                                <button class="text-muted-foreground hover:text-card-foreground">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                    <tr class="hover:bg-muted/50">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 bg-chart-3 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-xs font-medium text-white" data-mock="true">SM</span>
+                                                </div>
+                                                <span class="font-medium text-card-foreground" data-mock="true">Sarah Miller</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="font-mono text-sm text-card-foreground" data-mock="true">+1987654321</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="text-sm text-muted-foreground" data-mock="true">1 day ago</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="toggle-switch active" onclick="toggleAdminRequired(this)">
+                                                <div class="toggle-slider"></div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex gap-2">
+                                                <button class="text-primary hover:text-primary/80" onclick="showPage('chat-history')">
+                                                    <i class="fas fa-comments"></i>
+                                                </button>
+                                                <button class="text-muted-foreground hover:text-card-foreground">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: ContactsTable -->
+                </div>
+
+                <!-- SYSTEM PROMPT PAGE -->
+                <div id="prompt-content" class="content-page">
+                    <!-- @COMPONENT: PromptEditor -->
+                    <div class="bg-card p-6 rounded-xl border border-border">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-card-foreground mb-2">System Prompt Configuration</h3>
+                            <p class="text-sm text-muted-foreground">Configure how your chatbot responds to users. This affects all conversations.</p>
+                        </div>
+
+                        <form data-implementation="Should validate and save prompt changes">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-card-foreground mb-2">Current System Prompt</label>
+                                <textarea 
+                                    class="w-full h-64 px-4 py-3 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring resize-none font-mono text-sm"
+                                    data-bind="botsettings.promptSystem"
+                                    data-mock="true"
+                                    placeholder="Enter your system prompt..."
+                                >You are a helpful AI assistant for Acme Corporation. You should:
+1. Always be professional and courteous
+2. Provide accurate information about our products and services
+3. If you don't know something, admit it and offer to connect them with a human
+4. Keep responses concise but helpful
+5. Use a friendly tone while maintaining professionalism
+
+When a user asks about pricing, always direct them to our sales team.
+For technical support questions, gather their contact information and issue details.</textarea>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <button 
+                                    type="submit" 
+                                    class="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                    data-event="click:savePrompt"
+                                >
+                                    <i class="fas fa-save mr-2"></i>
+                                    Save Changes
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="bg-muted text-muted-foreground px-6 py-2 rounded-lg hover:bg-muted/80 transition-colors font-medium"
+                                    data-implementation="Reset to previous saved version"
+                                >
+                                    Reset
+                                </button>
+                            </div>
+                            
+                            <div class="mt-4 p-4 bg-accent/10 border border-accent/20 rounded-lg">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-info-circle text-accent mt-0.5"></i>
+                                    <div class="text-sm text-accent-foreground">
+                                        <p class="font-medium mb-1">Important Notes:</p>
+                                        <ul class="space-y-1 text-xs opacity-80">
+                                            <li>• Changes take effect immediately for new conversations</li>
+                                            <li>• Existing conversations will continue with the previous prompt until restarted</li>
+                                            <li>• Test your changes with a few contacts before widespread deployment</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- @END_COMPONENT: PromptEditor -->
+                </div>
+
+                <!-- TEAM USERS PAGE -->
+                <div id="users-content" class="content-page">
+                    <!-- @COMPONENT: UsersManagement -->
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-card-foreground">Team Users</h3>
+                                <p class="text-sm text-muted-foreground">Manage user access and permissions</p>
+                            </div>
+                            <button 
+                                class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                onclick="showAddUserModal()"
+                                data-implementation="Show modal for adding new user"
+                            >
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Add User
+                            </button>
+                        </div>
+
+                        <div class="bg-card rounded-xl border border-border overflow-hidden">
+                            <table class="w-full">
+                                <thead class="bg-muted">
+                                    <tr>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">User</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Role</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Last Login</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border">
+                                    <!-- @MAP: users.map(user => ( -->
+                                    <tr class="hover:bg-muted/50">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-xs font-medium text-primary-foreground" data-mock="true">JD</span>
+                                                </div>
+                                                <div>
+                                                    <p class="font-medium text-card-foreground" data-mock="true" data-bind="user.name">John Doe</p>
+                                                    <p class="text-sm text-muted-foreground" data-mock="true" data-bind="user.email">john@acme.com</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary" data-mock="true">
+                                                ADMIN
+                                            </span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="text-sm text-muted-foreground" data-mock="true" data-bind="user.lastLogin">2 hours ago</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-2 h-2 bg-chart-2 rounded-full"></div>
+                                                <span class="text-sm text-chart-2">Active</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex gap-2">
+                                                <button class="text-primary hover:text-primary/80" data-implementation="Edit user permissions">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-destructive hover:text-destructive/80" data-implementation="Remove user access">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                    <tr class="hover:bg-muted/50">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 bg-chart-3 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-xs font-medium text-white" data-mock="true">SM</span>
+                                                </div>
+                                                <div>
+                                                    <p class="font-medium text-card-foreground" data-mock="true">Sarah Miller</p>
+                                                    <p class="text-sm text-muted-foreground" data-mock="true">sarah@acme.com</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-chart-3/20 text-chart-3" data-mock="true">
+                                                EDITOR
+                                            </span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="text-sm text-muted-foreground" data-mock="true">1 day ago</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-2 h-2 bg-chart-2 rounded-full"></div>
+                                                <span class="text-sm text-chart-2">Active</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex gap-2">
+                                                <button class="text-primary hover:text-primary/80">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-destructive hover:text-destructive/80">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-muted/50">
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 bg-chart-5 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-xs font-medium text-white" data-mock="true">MJ</span>
+                                                </div>
+                                                <div>
+                                                    <p class="font-medium text-card-foreground" data-mock="true">Mike Johnson</p>
+                                                    <p class="text-sm text-muted-foreground" data-mock="true">mike@acme.com</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground" data-mock="true">
+                                                VIEWER
+                                            </span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="text-sm text-muted-foreground" data-mock="true">3 days ago</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                                                <span class="text-sm text-muted-foreground">Inactive</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex gap-2">
+                                                <button class="text-primary hover:text-primary/80">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-destructive hover:text-destructive/80">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: UsersManagement -->
+                </div>
+
+                <!-- CHAT HISTORY PAGE -->
+                <div id="chat-history-content" class="content-page">
+                    <!-- @COMPONENT: ChatHistory -->
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-4">
+                            <button onclick="showPage('contacts')" class="text-muted-foreground hover:text-card-foreground">
+                                <i class="fas fa-arrow-left mr-2"></i>Back to Contacts
+                            </button>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                                    <span class="text-sm font-medium text-primary-foreground" data-mock="true">JD</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-card-foreground" data-mock="true" data-bind="selectedContact.name">John Doe</h3>
+                                    <p class="text-sm text-muted-foreground font-mono" data-mock="true" data-bind="selectedContact.phoneNumber">+1234567890</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-card rounded-xl border border-border h-96 overflow-hidden flex flex-col">
+                            <div class="p-4 border-b border-border bg-muted/50">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-card-foreground">Chat History</span>
+                                    <span class="text-xs text-muted-foreground" data-mock="true">Last updated: 2 hours ago</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                                <!-- @MAP: chatMessages.map(message => ( -->
+                                <div class="flex justify-start">
+                                    <div class="chat-bubble assistant bg-card border border-border p-3 rounded-lg rounded-bl-none">
+                                        <p class="text-sm text-card-foreground" data-mock="true">Hello! How can I help you today?</p>
+                                        <span class="text-xs text-muted-foreground mt-1 block" data-mock="true">10:30 AM</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end">
+                                    <div class="chat-bubble user bg-primary p-3 rounded-lg rounded-br-none">
+                                        <p class="text-sm text-primary-foreground" data-mock="true">Hi, I'm interested in your pricing plans.</p>
+                                        <span class="text-xs text-primary-foreground/70 mt-1 block" data-mock="true">10:32 AM</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-start">
+                                    <div class="chat-bubble assistant bg-card border border-border p-3 rounded-lg rounded-bl-none">
+                                        <p class="text-sm text-card-foreground" data-mock="true">Great! I'd be happy to help you with pricing information. Let me connect you with our sales team who can provide you with detailed pricing based on your specific needs.</p>
+                                        <span class="text-xs text-muted-foreground mt-1 block" data-mock="true">10:33 AM</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end">
+                                    <div class="chat-bubble user bg-primary p-3 rounded-lg rounded-br-none">
+                                        <p class="text-sm text-primary-foreground" data-mock="true">That would be perfect, thanks!</p>
+                                        <span class="text-xs text-primary-foreground/70 mt-1 block" data-mock="true">10:34 AM</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-start">
+                                    <div class="chat-bubble assistant bg-card border border-border p-3 rounded-lg rounded-bl-none">
+                                        <p class="text-sm text-card-foreground" data-mock="true">I've notified our sales team. Someone will reach out to you within the next business day. Is there anything else I can help you with in the meantime?</p>
+                                        <span class="text-xs text-muted-foreground mt-1 block" data-mock="true">10:35 AM</span>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                        
+                        <div class="bg-accent/10 border border-accent/20 rounded-lg p-4">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-user-shield text-accent mt-0.5"></i>
+                                <div class="text-sm">
+                                    <p class="font-medium text-accent-foreground mb-1">Admin Review Required</p>
+                                    <p class="text-accent-foreground/80 text-xs">This contact has been marked for admin review. Future messages will be held for approval.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: ChatHistory -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // @STATE: currentPage:string = 'dashboard'
+        // @STATE: currentUser:object = null
+        // @STATE: isAuthenticated:boolean = false
+        
+        (function() {
+            // Navigation state management
+            let currentPage = 'dashboard';
+            let isAuthenticated = false;
+            
+            // Mock user data for demonstration
+            const mockUser = {
+                name: 'John Doe',
+                email: 'john@acme.com',
+                role: 'ADMIN',
+                initials: 'JD'
+            };
+
+            // Initialize application
+            function init() {
+                // Check authentication status
+                // TODO: Implement actual JWT validation from cookies
+                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                
+                if (isLoggedIn) {
+                    showMainApp();
+                } else {
+                    showLoginPage();
+                }
+                
+                setupEventListeners();
+            }
+
+            function setupEventListeners() {
+                // Login form submission
+                const loginForm = document.getElementById('login-form');
+                if (loginForm) {
+                    loginForm.addEventListener('submit', handleLogin);
+                }
+            }
+
+            function handleLogin(e) {
+                e.preventDefault();
+                // TODO: Implement actual authentication with backend
+                // For demo, simulate successful login
+                localStorage.setItem('isLoggedIn', 'true');
+                showToast('Login successful!');
+                showMainApp();
+            }
+
+            function logout() {
+                // TODO: Clear httpOnly cookies and invalidate JWT
+                localStorage.removeItem('isLoggedIn');
+                showToast('Logged out successfully');
+                showLoginPage();
+            }
+
+            function showLoginPage() {
+                document.getElementById('login-page').classList.add('active');
+                document.getElementById('app-layout').classList.remove('active');
+                isAuthenticated = false;
+            }
+
+            function showMainApp() {
+                document.getElementById('login-page').classList.remove('active');
+                document.getElementById('app-layout').classList.add('active');
+                isAuthenticated = true;
+                showPage('dashboard');
+            }
+
+            window.showPage = function(pageName) {
+                // Hide all content pages
+                const contentPages = document.querySelectorAll('.content-page');
+                contentPages.forEach(page => page.classList.remove('active'));
+                
+                // Show selected page
+                const targetPage = document.getElementById(pageName + '-content');
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                }
+                
+                // Update navigation
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(item => item.classList.remove('active'));
+                
+                const activeNavItem = document.querySelector(`[onclick="showPage('${pageName}')"]`);
+                if (activeNavItem) {
+                    activeNavItem.classList.add('active');
+                }
+                
+                // Update page title
+                const pageTitle = document.getElementById('page-title');
+                const titles = {
+                    'dashboard': 'Dashboard',
+                    'contacts': 'Contacts',
+                    'prompt': 'System Prompt',
+                    'users': 'Team Users',
+                    'chat-history': 'Chat History'
+                };
+                
+                if (pageTitle && titles[pageName]) {
+                    pageTitle.textContent = titles[pageName];
+                }
+                
+                currentPage = pageName;
+            };
+
+            window.toggleAdminRequired = function(toggleElement) {
+                // TODO: Implement API call to update contact requireAdmin status
+                toggleElement.classList.toggle('active');
+                const isActive = toggleElement.classList.contains('active');
+                const action = isActive ? 'enabled' : 'disabled';
+                showToast(`Admin requirement ${action} for contact`);
+            };
+
+            window.showAddUserModal = function() {
+                // TODO: Implement modal for adding new users
+                showToast('Add user functionality would open here');
+            };
+
+            window.logout = logout;
+
+            function showToast(message) {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toast-message');
+                
+                toastMessage.textContent = message;
+                toast.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 3000);
+            }
+
+            // Initialize app when DOM is loaded
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
+</body>
+</html>
