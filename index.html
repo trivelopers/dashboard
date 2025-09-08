@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'primary': '#1e40af',
+              'secondary': '#1d4ed8',
+              'accent': '#3b82f6',
+              'neutral': '#f5f5f5',
+              'base-100': '#ffffff',
+              'info': '#2563eb',
+              'success': '#16a34a',
+              'warning': '#facc15',
+              'error': '#dc2626',
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "@heroicons/react/": "https://aistudiocdn.com/@heroicons/react@^2.2.0/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.8.2",
+    "axios": "https://aistudiocdn.com/axios@^1.11.0",
+    "react-hook-form": "https://aistudiocdn.com/react-hook-form@^7.62.0",
+    "@hookform/resolvers/": "https://aistudiocdn.com/@hookform/resolvers@^5.2.1/",
+    "yup": "https://aistudiocdn.com/yup@^1.7.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-neutral">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

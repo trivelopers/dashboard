@@ -1,0 +1,111 @@
+{
+  "auth": {
+    "login": "Sign In",
+    "email": "Email Address",
+    "password": "Password",
+    "signingIn": "Signing In...",
+    "invalidCredentials": "Invalid credentials",
+    "welcome": "Welcome back!",
+    "adminPanel": "Admin Panel",
+    "signInToManage": "Sign in to manage your chatbot"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}!",
+    "clientId": "Client ID",
+    "totalContacts": "Total Contacts",
+    "lastInteraction": "Last Interaction",
+    "botStatus": "Bot Status",
+    "botStatusDescription": "The chatbot is currently active and responding to user messages. All systems are operational."
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "contacts": "Contacts",
+    "chats": "Chats",
+    "prompt": "Prompt",
+    "logout": "Logout"
+  },
+  "users": {
+    "title": "Team Management",
+    "addNewUser": "Add New User",
+    "fullName": "Full Name",
+    "email": "Email",
+    "password": "Password",
+    "role": "Role",
+    "viewer": "Viewer",
+    "editor": "Editor",
+    "admin": "Admin",
+    "cancel": "Cancel",
+    "createUser": "Create User",
+    "loading": "Loading users...",
+    "noUsers": "No users found"
+  },
+  "contacts": {
+    "title": "Contacts",
+    "name": "Name",
+    "phone": "Phone",
+    "lastMessage": "Last Message",
+    "requiresAdmin": "Requires Admin",
+    "yes": "Yes",
+    "no": "No",
+    "viewChat": "View Chat",
+    "loading": "Loading contacts...",
+    "noContacts": "No contacts found",
+    "filterPlaceholder": "Search contacts",
+    "noContactsFound": "No contacts found with that filter"
+  },
+  "chatHistory": {
+    "title": "Chat History",
+    "backToContacts": "Back to Contacts",
+    "loading": "Loading chat history...",
+    "noMessages": "No messages found"
+  },
+  "prompt": {
+    "title": "System Prompt Configuration",
+    "description": "Configure the behavior and personality of your chatbot using structured sections.",
+    "saving": "Saving...",
+    "save": "Save Configuration",
+    "successMessage": "System prompt updated successfully!",
+    "general": "General Configuration",
+    "role": "Assistant Role",
+    "rolePlaceholder": "Define what your assistant is (e.g., 'You are a customer service representative for...')",
+    "purpose": "Primary Purpose",
+    "purposePlaceholder": "Describe the main goal of your assistant (e.g., 'Help customers with inquiries about...')",
+    "rules": "Behavior Rules",
+    "rulesDescription": "Define the rules and guidelines that govern how your assistant should behave and respond.",
+    "rulesPlaceholder": "Enter behavior rules, one per paragraph:\\n\\nAlways be polite and professional\\n\\nIf you don't know something, admit it and offer to help find the answer\\n\\nKeep responses concise but helpful",
+    "contacts": "Contact Information",
+    "contactsDescription": "Define how users can contact different departments or services.",
+    "contactsPlaceholder": "Enter contact information in this format:\\n\\nPrincipal:\\n  Nombre: Main Contact\\n  Teléfono: +1234567890\\n  Email: info@company.com\\n\\nSoporte:\\n  Nombre: Technical Support\\n  Email: support@company.com",
+    "company": "Company Information",
+    "companyDescription": "Provide information about your company, services and locations.",
+    "companyPlaceholder": "Enter company information in this format:\\n\\nAcerca de:\\nWe are a leading provider of...\\n\\nServicios:\\n• Customer Service\\n• Technical Support\\n\\nUbicaciones:\\n• Main Office: Company Street 123",
+    "examples": "Interaction Examples",
+    "examplesDescription": "Provide examples of how the assistant should handle common questions.",
+    "examplesPlaceholder": "Enter examples in this format:\\n\\nEjemplo 1:\\nPregunta: What are your business hours?\\nRespuesta: We are open Monday to Friday 9AM to 5PM\\n\\nEjemplo 2:\\nPregunta: How can I contact support?\\nRespuesta: You can contact our support team at support@company.com"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "back": "Back",
+    "close": "Close"
+  },
+  "errors": {
+    "notFound": "Page Not Found",
+    "notFoundDescription": "The page you're looking for doesn't exist.",
+    "goHome": "Go to Dashboard",
+    "unauthorized": "Unauthorized access",
+    "serverError": "Server error occurred"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "Sorry, the page you are looking for does not exist.",
+    "goHome": "Go Home"
+  }
+}

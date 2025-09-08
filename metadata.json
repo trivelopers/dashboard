@@ -1,0 +1,5 @@
+
+{
+  "name": "Chatbot Admin Panel",
+  "description": "A frontend application for customers of a chatbot (with Django backend and MongoDB database) to manage contacts, system prompts, chat history, and team users with role-based access control."
+}

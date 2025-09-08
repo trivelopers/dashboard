@@ -1,0 +1,111 @@
+{
+  "auth": {
+    "login": "Iniciar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "signingIn": "Iniciando sesión...",
+    "invalidCredentials": "Credenciales inválidas",
+    "welcome": "¡Bienvenido de vuelta!",
+    "adminPanel": "Panel de Administración",
+    "signInToManage": "Inicia sesión para gestionar tu chatbot"
+  },
+  "dashboard": {
+    "welcome": "¡Bienvenido, {{name}}!",
+    "clientId": "ID del Cliente",
+    "totalContacts": "Contactos Totales",
+    "lastInteraction": "Última Interacción",
+    "botStatus": "Estado del Bot",
+    "botStatusDescription": "El chatbot está actualmente activo y respondiendo a los mensajes de los usuarios. Todos los sistemas están operativos."
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "users": "Usuarios",
+    "contacts": "Contactos",
+    "chats": "Chats",
+    "prompt": "Prompt",
+    "logout": "Cerrar Sesión"
+  },
+  "users": {
+    "title": "Gestión de Equipo",
+    "addNewUser": "Agregar Nuevo Usuario",
+    "fullName": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "role": "Rol",
+    "viewer": "Visualizador",
+    "editor": "Editor",
+    "admin": "Administrador",
+    "cancel": "Cancelar",
+    "createUser": "Crear Usuario",
+    "loading": "Cargando usuarios...",
+    "noUsers": "No se encontraron usuarios"
+  },
+  "contacts": {
+    "title": "Contactos",
+    "name": "Nombre",
+    "phone": "Teléfono",
+    "lastMessage": "Último Mensaje",
+    "requiresAdmin": "Requiere Admin",
+    "yes": "Sí",
+    "no": "No",
+    "viewChat": "Ver Chat",
+    "loading": "Cargando contactos...",
+    "noContacts": "No se encontraron contactos",
+    "filterPlaceholder": "Buscar contactos",
+    "noContactsFound": "No se encontraron contactos con ese filtro"
+  },
+  "chatHistory": {
+    "title": "Historial de Chat",
+    "backToContacts": "Volver a Contactos",
+    "loading": "Cargando historial de chat...",
+    "noMessages": "No se encontraron mensajes"
+  },
+  "prompt": {
+    "title": "Configuración del Prompt del Sistema",
+    "description": "Configura el comportamiento y personalidad de tu chatbot usando secciones estructuradas.",
+    "saving": "Guardando...",
+    "save": "Guardar Configuración",
+    "successMessage": "¡Prompt del sistema actualizado exitosamente!",
+    "general": "Configuración General",
+    "role": "Rol del Asistente",
+    "rolePlaceholder": "Define qué es tu asistente (ej., 'Eres un representante de atención al cliente para...')",
+    "purpose": "Propósito Principal",
+    "purposePlaceholder": "Describe el objetivo principal de tu asistente (ej., 'Ayudar a los clientes con consultas sobre...')",
+    "rules": "Reglas de Comportamiento",
+    "rulesDescription": "Define las reglas y pautas que rigen cómo debe comportarse y responder tu asistente.",
+    "rulesPlaceholder": "Ingresa reglas de comportamiento, una por párrafo:\\n\\nSiempre ser cortés y profesional\\n\\nSi no sabes algo, admítelo y ofrece ayuda para encontrar la respuesta\\n\\nMantén las respuestas concisas pero útiles",
+    "contacts": "Información de Contacto",
+    "contactsDescription": "Define cómo los usuarios pueden contactar diferentes departamentos o servicios.",
+    "contactsPlaceholder": "Ingresa información de contacto en este formato:\\n\\nPrincipal:\\n  Nombre: Contacto Principal\\n  Teléfono: +1234567890\\n  Email: info@empresa.com\\n\\nSoporte:\\n  Nombre: Soporte Técnico\\n  Email: soporte@empresa.com",
+    "company": "Información de la Empresa",
+    "companyDescription": "Proporciona información sobre tu empresa, servicios y ubicaciones.",
+    "companyPlaceholder": "Ingresa información de la empresa en este formato:\\n\\nAcerca de:\\nSomos un proveedor líder de...\\n\\nServicios:\\n• Atención al Cliente\\n• Asistencia Técnica\\n\\nUbicaciones:\\n• Oficina Principal: Calle Empresa 123",
+    "examples": "Ejemplos de Interacciones",
+    "examplesDescription": "Proporciona ejemplos de cómo el asistente debe manejar preguntas comunes.",
+    "examplesPlaceholder": "Ingresa ejemplos en este formato:\\n\\nEjemplo 1:\\nPregunta: ¿Cuáles son sus horarios de atención?\\nRespuesta: Estamos abiertos de lunes a viernes de 9AM a 5PM\\n\\nEjemplo 2:\\nPregunta: ¿Cómo puedo contactar soporte?\\nRespuesta: Puedes contactar a nuestro equipo de soporte en soporte@empresa.com"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "success": "Éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "back": "Volver",
+    "close": "Cerrar"
+  },
+  "errors": {
+    "notFound": "Página No Encontrada",
+    "notFoundDescription": "La página que buscas no existe.",
+    "goHome": "Ir al Panel",
+    "unauthorized": "Acceso no autorizado",
+    "serverError": "Ocurrió un error del servidor"
+  },
+  "notFound": {
+    "title": "Página No Encontrada",
+    "description": "Lo sentimos, la página que buscas no existe.",
+    "goHome": "Ir al Inicio"
+  }
+}
