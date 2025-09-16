@@ -1,0 +1,10 @@
+FROM node:20-bookworm-slim
+
+WORKDIR /app
+# Copiamos solo manifiestos para cachear deps
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+# El código lo montás por volumen con compose
+EXPOSE 3000
+CMD ["npm","run","dev"]
