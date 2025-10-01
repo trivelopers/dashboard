@@ -1,23 +1,25 @@
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+# Etapa 1: Build de la app con Vite
+FROM node:18 as build
+WORKDIR /app
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', ''); // mantiene tu forma de leer GEMINI_API_KEY
+# Copiar package.json y lock
+COPY package*.json ./
+RUN npm install
 
-  return {
-    define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-    },
-    resolve: {
-      alias: { '@': path.resolve(__dirname, '.') },
-    },
-    server: {
-      host: true,          // 0.0.0.0 dentro del contenedor
-      port: 5173,
-      strictPort: true,
-      hmr: { clientPort: 5173 },
-      watch: { usePolling: true }, // hot reload estable en Windows + Docker
-    },
-  };
-});
+# Copiar el resto del código
+COPY . .
+
+# Construir la app (carpeta /dist)
+RUN npm run build
+
+# Etapa 2: Servir archivos estáticos con nginx
+FROM nginx:alpine
+# Copiar el build al directorio público de nginx
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Exponer el puerto 80
+EXPOSE 80
+
+# Ejecutar nginx
+CMD ["nginx", "-g", "daemon off;"]
+
