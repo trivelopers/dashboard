@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/v1', // Make sure this matches your backend server port
+  baseURL: process.env.API_URL, // Make sure this matches your backend server port
   withCredentials: true, // Crucial for sending httpOnly cookies like refreshToken
   headers: {
     'Content-Type': 'application/json',
