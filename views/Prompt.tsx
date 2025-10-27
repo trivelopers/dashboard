@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BotSettings } from '../types';
+import { BotSettings, Role } from '../types';
 import Spinner from '../components/Spinner';
 import api from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 
 interface PromptData {
   role: string;
@@ -315,7 +316,8 @@ const generateXMLPrompt = (data: PromptData): string => {
 
 const Prompt: React.FC = () => {
   const { t } = useTranslation();
-  const userRole = 'admin';
+  const { user } = useAuth();
+  const userRole: 'editor' | 'admin' = user?.role === Role.ADMIN ? 'admin' : 'editor';
   const [promptData, setPromptData] = useState<PromptData>({
     role: '',
     purpose: '',
