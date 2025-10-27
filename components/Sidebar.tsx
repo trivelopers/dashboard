@@ -33,7 +33,7 @@ const Sidebar: React.FC = () => {
     <div className="flex flex-col w-64 bg-gray-800 text-gray-100 h-full">
       <div className="flex items-center justify-center h-20 border-b border-gray-700">
          <ChatBubbleLeftRightIcon className="h-8 w-8 text-blue-400 mr-3" />
-        <h1 className="text-2xl font-bold">Chatbot Panel</h1>
+        <h1 className="text-2xl font-bold">Tingo</h1>
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
         {navItems.map(item => (
