@@ -12,15 +12,21 @@
         theme: {
           extend: {
             colors: {
-              'primary': '#1e40af',
-              'secondary': '#1d4ed8',
-              'accent': '#3b82f6',
-              'neutral': '#f5f5f5',
-              'base-100': '#ffffff',
-              'info': '#2563eb',
-              'success': '#16a34a',
-              'warning': '#facc15',
-              'error': '#dc2626',
+              'brand-dark': '#023859',
+              'brand-primary': '#11BFBF',
+              'brand-primary-hover': '#0FA7A7',
+              'brand-accent': '#F2994B',
+              'brand-warm': '#F2836B',
+              'brand-info': '#F2B035',
+              'brand-background': '#F9FAFB',
+              'brand-surface': '#FFFFFF',
+              'brand-text': '#111827',
+              'brand-muted': '#6B7280',
+              'brand-border': '#E5E7EB',
+              'brand-disabled': '#CBD5E1'
+            },
+            boxShadow: {
+              'brand-soft': '0 10px 30px rgba(2, 56, 89, 0.08)'
             }
           }
         }
@@ -43,7 +49,7 @@
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-neutral">
+  <body class="bg-brand-background text-brand-text">
     <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>

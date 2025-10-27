@@ -55,40 +55,40 @@ const Contacts: React.FC = () => {
   }, [contacts, filter]);
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-md">
+    <div className="bg-brand-surface p-8 rounded-xl shadow-brand-soft border border-brand-border/60">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">{t('contacts.title')}</h1>
+        <h1 className="text-3xl font-bold text-brand-dark">{t('contacts.title')}</h1>
         <input
           type="text"
           placeholder={`${t('contacts.filterPlaceholder')}...`}
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md w-64 focus:ring-blue-500 focus:border-blue-500"
+          className="px-4 py-2 border border-brand-border rounded-md w-64 bg-white text-brand-dark focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary"
         />
       </div>
       
       <div className="overflow-x-auto">
         {isLoading ? <div className="flex justify-center p-10"><Spinner /></div> : filteredContacts.length === 0 ? (
-          <div className="text-center text-gray-500 py-10">
+          <div className="text-center text-brand-muted py-10">
             {filter ? t('contacts.noContactsFound') : t('contacts.noContacts')}
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-brand-border">
+            <thead className="bg-brand-background">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('contacts.name')}</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('contacts.phone')}</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('contacts.requiresAdmin')}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('contacts.name')}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('contacts.phone')}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('contacts.requiresAdmin')}</th>
                 <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-brand-surface divide-y divide-brand-border/70">
               {filteredContacts.map((contact) => (
                 <tr key={contact.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-dark">
                     {contact.username || 'Sin nombre'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-muted">
                     {contact.platformChatId || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -102,20 +102,20 @@ const Contacts: React.FC = () => {
                           onChange={() => handleToggle(contact.id, contact.requireAdmin || false)}
                           disabled={!canEdit}
                         />
-                        <div className={`block w-14 h-8 rounded-full ${contact.requireAdmin ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+                        <div className={`block w-14 h-8 rounded-full transition ${contact.requireAdmin ? 'bg-brand-primary' : 'bg-brand-border'}`}></div>
                         <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${contact.requireAdmin ? 'transform translate-x-6' : ''}`}></div>
                       </div>
                     </label>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link to={`/chats/${contact.id}`} className="text-blue-600 hover:text-blue-900">View Chat</Link>
+                    <Link to={`/chats/${contact.id}`} className="text-brand-primary hover:text-brand-primary-hover">View Chat</Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-        {filteredContacts.length === 0 && !isLoading && <p className="text-center text-gray-500 py-10">No contacts found.</p>}
+        {filteredContacts.length === 0 && !isLoading && <p className="text-center text-brand-muted py-10">No contacts found.</p>}
       </div>
     </div>
   );

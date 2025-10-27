@@ -47,10 +47,10 @@ const Sidebar: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col w-64 bg-gray-800 text-gray-100 h-full">
-      <div className="flex items-center justify-center h-20 border-b border-gray-700">
-         <ChatBubbleLeftRightIcon className="h-8 w-8 text-blue-400 mr-3" />
-        <h1 className="text-2xl font-bold">Tingo</h1>
+    <div className="flex flex-col w-64 bg-brand-dark text-[#E5E7EB] h-full shadow-brand-soft">
+      <div className="flex items-center justify-center h-20 border-b border-white/10">
+         <ChatBubbleLeftRightIcon className="h-8 w-8 text-brand-primary mr-3" />
+        <h1 className="text-2xl font-bold text-white">Tingo</h1>
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
         {navItems.map(item => (
@@ -59,31 +59,39 @@ const Sidebar: React.FC = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center px-4 py-2.5 text-sm font-medium rounded-md transition-colors duration-200 ${
-                  isActive ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                `group flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                  isActive
+                    ? 'bg-white/10 text-white border-l-4 border-brand-primary shadow-brand-soft'
+                    : 'text-[#E5E7EB] hover:text-white hover:bg-white/5'
                 }`
               }
             >
-              <item.icon className="h-5 w-5 mr-3" />
-              {item.label}
+              {({ isActive }) => (
+                <>
+                  <item.icon
+                    className={`h-5 w-5 mr-3 transition-colors duration-200 ${isActive ? 'text-brand-primary' : 'text-[#BBD6E5] group-hover:text-brand-primary group-focus:text-brand-primary'}`}
+                  />
+                  {item.label}
+                </>
+              )}
             </NavLink>
           )
         ))}
       </nav>
-      <div className="border-t border-gray-700 p-4">
+      <div className="border-t border-white/10 p-4">
         <div className="flex items-center justify-between mb-4">
           <LanguageSelector />
         </div>
         <div className="flex items-center mb-4">
-            <UserCircleIcon className="h-10 w-10 text-gray-400 mr-3"/>
+            <UserCircleIcon className="h-10 w-10 text-brand-primary/70 mr-3"/>
             <div>
                 <p className="font-semibold text-white">{user.name}</p>
-                <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">{user.role}</span>
+                <span className="text-xs bg-brand-primary text-brand-dark px-2 py-0.5 rounded-full">{user.role}</span>
             </div>
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-md text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200"
+          className="flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-lg text-[#E5E7EB] hover:bg-white/10 hover:text-brand-primary transition-colors duration-200"
         >
           <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-3" />
           {t('navigation.logout')}

@@ -48,41 +48,41 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">{t('dashboard.welcome', { name: user?.name })}</h1>
+      <h1 className="text-3xl font-bold text-brand-dark mb-6">{t('dashboard.welcome', { name: user?.name })}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
-            <div className="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+        <div className="bg-brand-surface p-6 rounded-xl shadow-brand-soft border border-brand-border/60 flex items-center">
+            <div className="p-3 rounded-full bg-brand-primary/10 text-brand-primary mr-4">
                 <InformationCircleIcon className="h-8 w-8"/>
             </div>
             <div>
-                <p className="text-sm text-gray-500">{t('dashboard.clientId')}</p>
-                <p className="text-2xl font-bold text-gray-800">{user?.clientId}</p>
+                <p className="text-sm text-brand-muted">{t('dashboard.clientId')}</p>
+                <p className="text-2xl font-bold text-brand-dark">{user?.clientId}</p>
             </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
-            <div className="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+        <div className="bg-brand-surface p-6 rounded-xl shadow-brand-soft border border-brand-border/60 flex items-center">
+            <div className="p-3 rounded-full bg-brand-accent/10 text-brand-accent mr-4">
                 <UserGroupIcon className="h-8 w-8"/>
             </div>
             <div>
-                <p className="text-sm text-gray-500">{t('dashboard.totalContacts')}</p>
-                <p className="text-2xl font-bold text-gray-800">{isLoading ? '...' : contactCount}</p>
+                <p className="text-sm text-brand-muted">{t('dashboard.totalContacts')}</p>
+                <p className="text-2xl font-bold text-brand-dark">{isLoading ? '...' : contactCount}</p>
             </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
-            <div className="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4">
+        <div className="bg-brand-surface p-6 rounded-xl shadow-brand-soft border border-brand-border/60 flex items-center">
+            <div className="p-3 rounded-full bg-brand-info/10 text-brand-info mr-4">
                 <ClockIcon className="h-8 w-8"/>
             </div>
             <div>
-                <p className="text-sm text-gray-500">{t('dashboard.lastInteraction')}</p>
-                <p className="text-2xl font-bold text-gray-800">{isLoading ? '...' : lastUpdate}</p>
+                <p className="text-sm text-brand-muted">{t('dashboard.lastInteraction')}</p>
+                <p className="text-2xl font-bold text-brand-dark">{isLoading ? '...' : lastUpdate}</p>
             </div>
         </div>
       </div>
 
-      <div className="mt-10 bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">{t('dashboard.botStatus')}</h2>
-        <p className="text-gray-600">{t('dashboard.botStatusDescription')}</p>
+      <div className="mt-10 bg-brand-surface p-6 rounded-xl shadow-brand-soft border border-brand-border/60">
+        <h2 className="text-2xl font-semibold text-brand-dark mb-4">{t('dashboard.botStatus')}</h2>
+        <p className="text-brand-muted">{t('dashboard.botStatusDescription')}</p>
       </div>
     </div>
   );

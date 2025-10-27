@@ -100,7 +100,7 @@ const ExpandableTextarea: React.FC<ExpandableTextareaProps> = ({
           <button
             type="button"
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="text-xs font-medium text-slate-600 transition hover:text-slate-500"
+            className="text-xs font-medium text-brand-muted transition hover:text-brand-muted"
           >
             {isExpanded ? 'Ver menos' : 'Ver mas'}
           </button>
@@ -707,9 +707,9 @@ const Prompt: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
-      <header className="rounded-2xl bg-white p-6 shadow-sm">
-        <h1 className="mt-2 text-3xl font-bold text-slate-900">Configuración del asistente</h1>
-        <p className="mt-3 max-w-3xl text-sm text-slate-600">
+      <header className="rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
+        <h1 className="mt-2 text-3xl font-bold text-brand-dark">Configuración del asistente</h1>
+        <p className="mt-3 max-w-3xl text-sm text-brand-muted">
           Administra el contenido que define el rol, las reglas y los ejemplos del asistente. Cada
           bloque es independiente para facilitar los ajustes sin arriesgar la estructura técnica.
         </p>
@@ -722,15 +722,15 @@ const Prompt: React.FC = () => {
       )}
 
       {success && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="rounded-xl border border-brand-warm bg-brand-warm/10 px-4 py-3 text-sm text-brand-warm">
           Cambios guardados correctamente.
         </div>
       )}
 
-      <section className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
   <div className="flex flex-wrap items-center justify-between gap-3">
-    <h2 className="text-2xl font-semibold text-slate-900">Encabezado general</h2>
-    <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+    <h2 className="text-2xl font-semibold text-brand-dark">Encabezado general</h2>
+    <span className="text-xs font-medium uppercase tracking-wide text-brand-muted">
       {userRole === 'admin'
         ? '✏️ Contenido editable'
         : '🧱 Estructura interna (solo lectura)'}
@@ -741,7 +741,7 @@ const Prompt: React.FC = () => {
   <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
     {/* Rol */}
     <label className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-slate-700">
+      <span className="text-sm font-medium text-brand-dark">
         Rol del agente
       </span>
       <ExpandableTextarea
@@ -755,8 +755,8 @@ const Prompt: React.FC = () => {
         collapsedRows={8}
         className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
           userRole === 'admin'
-            ? 'border-slate-200 bg-white text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100'
-            : 'border-slate-100 bg-slate-50 text-slate-500'
+            ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
+            : 'border-brand-border/60 bg-brand-background text-brand-muted'
         }`}
         placeholder="Describe el rol principal del agente."
       />
@@ -764,7 +764,7 @@ const Prompt: React.FC = () => {
 
     {/* Propósito */}
     <label className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-slate-700">
+      <span className="text-sm font-medium text-brand-dark">
         Propósito del agente
       </span>
       <ExpandableTextarea
@@ -778,8 +778,8 @@ const Prompt: React.FC = () => {
         collapsedRows={10}
         className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
           userRole === 'admin'
-            ? 'border-slate-200 bg-white text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100'
-            : 'border-slate-100 bg-slate-50 text-slate-500'
+            ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
+            : 'border-brand-border/60 bg-brand-background text-brand-muted'
         }`}
         placeholder="Explica la meta del asistente en esta organización."
       />
@@ -787,15 +787,15 @@ const Prompt: React.FC = () => {
   </div>
 </section>
 
-<section className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+<section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Reglas de comportamiento</h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <h2 className="text-2xl font-semibold text-brand-dark">Reglas de comportamiento</h2>
+            <p className="mt-1 text-sm text-brand-muted">
               Cambiar solo el texto visible al cliente. No modificar estructura interna.
             </p>
           </div>
-          <span className="text-xs font-medium uppercase tracking-wide text-emerald-600">
+          <span className="text-xs font-medium uppercase tracking-wide text-brand-primary">
             ✏️ Contenido editable
           </span>
         </div>
@@ -811,16 +811,16 @@ const Prompt: React.FC = () => {
             return (
               <article
                 key={rule.id}
-                className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 shadow-sm"
+                className="rounded-xl border border-brand-primary/40 bg-brand-primary/10 p-4 shadow-brand-soft"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="text-base font-semibold text-emerald-900">Regla {index + 1}</h3>
+                  <h3 className="text-base font-semibold text-brand-dark">Regla {index + 1}</h3>
                 </div>
                 <ExpandableTextarea
                   value={draftValue}
                   onChange={(event) => handleBehaviorRuleChange(rule.id, event.target.value)}
                   minRows={1}
-                  className="mt-3 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                  className="mt-3 w-full rounded-lg border border-brand-primary/40 bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                   placeholder="Describe el comportamiento esperado para esta regla."
                 />
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -828,7 +828,7 @@ const Prompt: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleCommitBehaviorRule(rule.id)}
-                      className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500"
+                      className="rounded-full bg-brand-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
                     >
                       Guardar
                     </button>
@@ -837,7 +837,7 @@ const Prompt: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleRestoreBehaviorRule(rule.id)}
-                      className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+                      className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
                     >
                       Restaurar
                     </button>
@@ -845,7 +845,7 @@ const Prompt: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleDeleteBehaviorRule(rule.id)}
-                    className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+                    className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
                   >
                     Eliminar
                   </button>
@@ -854,7 +854,7 @@ const Prompt: React.FC = () => {
             );
           })}
           {!promptData.behaviorRules.length && (
-            <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-6 text-center text-sm text-emerald-700">
+            <div className="rounded-xl border border-dashed border-brand-primary/40 bg-brand-primary/10 p-6 text-center text-sm text-brand-primary">
               No hay reglas de comportamiento registradas.
             </div>
           )}
@@ -864,22 +864,22 @@ const Prompt: React.FC = () => {
           <button
             type="button"
             onClick={handleAddBehaviorRule}
-            className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+            className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
           >
             Agregar nueva regla
           </button>
         </div>
       </section>
 
-      <section className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Reglas técnicas</h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <h2 className="text-2xl font-semibold text-brand-dark">Reglas técnicas</h2>
+            <p className="mt-1 text-sm text-brand-muted">
               ⚠️ No modificar sin validar con el equipo de desarrollo.
             </p>
           </div>
-          <span className="text-xs font-medium uppercase tracking-wide text-amber-600">
+          <span className="text-xs font-medium uppercase tracking-wide text-brand-info">
             🧱 Estructura interna (solo lectura)
           </span>
         </div>
@@ -890,14 +890,14 @@ const Prompt: React.FC = () => {
             return (
               <article
                 key={rule.id}
-                className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm"
+                className="rounded-xl border border-brand-info/60 bg-brand-info/15 p-4 shadow-brand-soft"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-info">
                       Regla tecnica
                     </p>
-                    <h3 className="mt-1 text-base font-semibold text-slate-900">
+                    <h3 className="mt-1 text-base font-semibold text-brand-dark">
                       Regla {index + 1}
                     </h3>
                   </div>
@@ -905,7 +905,7 @@ const Prompt: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => toggleCoreRule(rule.id)}
-                      className="text-sm font-medium text-amber-700 underline-offset-4 hover:underline"
+                      className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
                     >
                       {expanded ? 'Ver menos' : 'Ver mas'}
                     </button>
@@ -913,7 +913,7 @@ const Prompt: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleDeleteCoreRule(rule.id)}
-                        className="text-sm font-medium text-amber-700 underline-offset-4 hover:underline"
+                        className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
                       >
                         Eliminar
                       </button>
@@ -921,7 +921,7 @@ const Prompt: React.FC = () => {
                   </div>
                 </div>
                 {!expanded && (
-                  <p className="mt-3 whitespace-pre-line text-sm text-amber-900">
+                  <p className="mt-3 whitespace-pre-line text-sm text-brand-dark">
                     {previewRule(rule.texto)}
                   </p>
                 )}
@@ -933,8 +933,8 @@ const Prompt: React.FC = () => {
                     minRows={1}
                     className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${
                       userRole === 'admin'
-                        ? 'border-amber-200 bg-white text-slate-900 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100'
-                        : 'border-amber-100 bg-amber-50 text-amber-800'
+                        ? 'border-brand-info/60 bg-brand-surface text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25'
+                        : 'border-brand-info/40 bg-brand-info/10 text-brand-dark'
                     }`}
                     placeholder="Contenido de la regla tecnica."
                   />
@@ -943,7 +943,7 @@ const Prompt: React.FC = () => {
             );
           })}
           {!promptData.coreRules.length && (
-            <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/40 p-6 text-center text-sm text-amber-700">
+            <div className="rounded-xl border border-dashed border-brand-info/60 bg-brand-info/10/40 p-6 text-center text-sm text-brand-info">
               No hay reglas principales registradas.
             </div>
           )}
@@ -954,7 +954,7 @@ const Prompt: React.FC = () => {
             <button
               type="button"
               onClick={handleAddCoreRule}
-              className="rounded-full border border-amber-200 px-4 py-2 text-sm font-medium text-amber-700 transition hover:border-amber-300 hover:bg-amber-50"
+              className="rounded-full border border-brand-info/60 px-4 py-2 text-sm font-medium text-brand-info transition hover:border-brand-info/70 hover:bg-brand-info/10"
             >
               Agregar nueva regla tecnica
             </button>
@@ -964,23 +964,23 @@ const Prompt: React.FC = () => {
 
       
 
-      <section className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Informacion de la empresa</h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <h2 className="text-2xl font-semibold text-brand-dark">Informacion de la empresa</h2>
+            <p className="mt-1 text-sm text-brand-muted">
               Manten actualizada la descripcion, los servicios y las sucursales para reflejar la
               oferta vigente.
             </p>
           </div>
-          <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          <span className="text-xs font-medium uppercase tracking-wide text-brand-muted">
             ✏️ Contenido editable
           </span>
         </div>
 
         <div className="space-y-4">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-slate-700">Acerca de</span>
+            <span className="text-sm font-medium text-brand-dark">Acerca de</span>
             <ExpandableTextarea
               value={promptData.company.acerca}
               onChange={(event) =>
@@ -990,18 +990,18 @@ const Prompt: React.FC = () => {
                 }))
               }
               minRows={1}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
               placeholder="Resumen breve de la empresa, historia o propuesta de valor."
             />
           </label>
 
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-sm font-medium text-slate-700">Servicios</span>
+              <span className="text-sm font-medium text-brand-dark">Servicios</span>
               <button
                 type="button"
                 onClick={handleAddService}
-                className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                className="rounded-full border border-brand-border px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
               >
                 Agregar servicio
               </button>
@@ -1013,20 +1013,20 @@ const Prompt: React.FC = () => {
                     type="text"
                     value={servicio}
                     onChange={(event) => handleServiceChange(index, event.target.value)}
-                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    className="flex-1 rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                     placeholder={`Servicio ${index + 1}`}
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveService(index)}
-                    className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                    className="rounded-full border border-brand-border px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
                   >
                     Eliminar
                   </button>
                 </div>
               ))}
               {!promptData.company.servicios.length && (
-                <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500">
+                <p className="rounded-lg border border-dashed border-brand-border bg-brand-background p-4 text-center text-sm text-brand-muted">
                   Aun no se registraron servicios.
                 </p>
               )}
@@ -1035,11 +1035,11 @@ const Prompt: React.FC = () => {
 
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-sm font-medium text-slate-700">Sucursales</span>
+              <span className="text-sm font-medium text-brand-dark">Sucursales</span>
               <button
                 type="button"
                 onClick={handleAddBranch}
-                className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                className="rounded-full border border-brand-border px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
               >
                 Agregar sucursal
               </button>
@@ -1048,28 +1048,28 @@ const Prompt: React.FC = () => {
               {promptData.branches.map((branch, index) => (
                 <article
                   key={branch.id}
-                  className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm"
+                  className="rounded-xl border border-brand-border bg-brand-background/70 p-4 shadow-brand-soft"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-base font-semibold text-slate-900">
+                      <h3 className="text-base font-semibold text-brand-dark">
                         Sucursal {index + 1}
                       </h3>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-brand-muted">
                         🧱 Etiqueta interna: <span className="font-mono">{branch.tag}</span>
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleRemoveBranch(branch.id)}
-                      className="text-sm font-medium text-slate-600 underline-offset-4 hover:underline"
+                      className="text-sm font-medium text-brand-muted underline-offset-4 hover:underline"
                     >
                       Eliminar
                     </button>
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-slate-600">
+                      <span className="text-xs font-medium text-brand-muted">
                         Nombre visible de la sucursal
                       </span>
                       <input
@@ -1078,12 +1078,12 @@ const Prompt: React.FC = () => {
                         onChange={(event) =>
                           handleBranchChange(branch.id, 'etiqueta', event.target.value)
                         }
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                         placeholder="Ej.: Casa Central"
                       />
                     </label>
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-slate-600">
+                      <span className="text-xs font-medium text-brand-muted">
                         Responsable / Contacto
                       </span>
                       <input
@@ -1092,50 +1092,50 @@ const Prompt: React.FC = () => {
                         onChange={(event) =>
                           handleBranchChange(branch.id, 'responsable', event.target.value)
                         }
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                         placeholder="Nombre de la persona de contacto"
                       />
                     </label>
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-slate-600">Telefono</span>
+                      <span className="text-xs font-medium text-brand-muted">Telefono</span>
                       <input
                         type="text"
                         value={branch.telefono}
                         onChange={(event) =>
                           handleBranchChange(branch.id, 'telefono', event.target.value)
                         }
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                         placeholder="+54 11 0000 0000"
                       />
                     </label>
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-slate-600">Correo</span>
+                      <span className="text-xs font-medium text-brand-muted">Correo</span>
                       <input
                         type="email"
                         value={branch.email}
                         onChange={(event) =>
                           handleBranchChange(branch.id, 'email', event.target.value)
                         }
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                         placeholder="contacto@empresa.com"
                       />
                     </label>
                   </div>
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-slate-600">Sitio web</span>
+                      <span className="text-xs font-medium text-brand-muted">Sitio web</span>
                       <input
                         type="text"
                         value={branch.sitio}
                         onChange={(event) =>
                           handleBranchChange(branch.id, 'sitio', event.target.value)
                         }
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                         placeholder="https://empresa.com/sucursal"
                       />
                     </label>
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-slate-600">
+                      <span className="text-xs font-medium text-brand-muted">
                         Direccion y notas
                       </span>
                       <ExpandableTextarea
@@ -1144,7 +1144,7 @@ const Prompt: React.FC = () => {
                           handleBranchChange(branch.id, 'direccion', event.target.value)
                         }
                         minRows={1}
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                         placeholder="Direccion fisica, horarios o notas clave."
                       />
                     </label>
@@ -1152,7 +1152,7 @@ const Prompt: React.FC = () => {
                 </article>
               ))}
               {!promptData.branches.length && (
-                <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500">
+                <p className="rounded-lg border border-dashed border-brand-border bg-brand-background p-4 text-center text-sm text-brand-muted">
                   No hay sucursales registradas.
                 </p>
               )}
@@ -1161,10 +1161,10 @@ const Prompt: React.FC = () => {
         </div>
       </section>
 
-      <section className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-2xl font-semibold text-slate-900">Ejemplos</h2>
-          <span className="text-xs font-medium uppercase tracking-wide text-sky-600">
+          <h2 className="text-2xl font-semibold text-brand-dark">Ejemplos</h2>
+          <span className="text-xs font-medium uppercase tracking-wide text-brand-primary">
             ✏️ Contenido editable
           </span>
         </div>
@@ -1172,40 +1172,40 @@ const Prompt: React.FC = () => {
           {promptData.examples.map((example, index) => (
             <article
               key={example.id}
-              className="rounded-xl border border-sky-200 bg-sky-50/60 p-4 shadow-sm"
+              className="rounded-xl border border-brand-primary/40 bg-brand-primary/10 p-4 shadow-brand-soft"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-base font-semibold text-sky-900">Ejemplo {index + 1}</h3>
+                <h3 className="text-base font-semibold text-brand-dark">Ejemplo {index + 1}</h3>
                 <button
                   type="button"
                   onClick={() => handleRemoveExample(example.id)}
-                  className="text-sm font-medium text-sky-700 underline-offset-4 hover:underline"
+                  className="text-sm font-medium text-brand-primary underline-offset-4 hover:underline"
                 >
                   Eliminar ejemplo
                 </button>
               </div>
               <div className="mt-3 space-y-3">
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-slate-600">Consulta de cliente</span>
+                  <span className="text-xs font-medium text-brand-muted">Consulta de cliente</span>
                   <ExpandableTextarea
                     value={example.pregunta}
                     onChange={(event) =>
                       handleExampleChange(example.id, 'pregunta', event.target.value)
                     }
                     minRows={1}
-                    className="w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                    className="w-full rounded-lg border border-brand-primary/40 bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                     placeholder="Consulta del cliente que quieres cubrir con este ejemplo."
                   />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-slate-600">Comportamiento / Respuesta esperada</span>
+                  <span className="text-xs font-medium text-brand-muted">Comportamiento / Respuesta esperada</span>
                   <ExpandableTextarea
                     value={example.respuesta}
                     onChange={(event) =>
                       handleExampleChange(example.id, 'respuesta', event.target.value)
                     }
                     minRows={1}
-                    className="w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                    className="w-full rounded-lg border border-brand-primary/40 bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                     placeholder="Respuesta ideal del asistente para este caso."
                   />
                 </label>
@@ -1213,7 +1213,7 @@ const Prompt: React.FC = () => {
             </article>
           ))}
           {!promptData.examples.length && (
-            <p className="rounded-lg border border-dashed border-sky-200 bg-sky-50/60 p-4 text-center text-sm text-sky-700">
+            <p className="rounded-lg border border-dashed border-brand-primary/40 bg-brand-primary/10 p-4 text-center text-sm text-brand-primary">
               Aun no se registraron ejemplos de conversacion.
             </p>
           )}
@@ -1222,7 +1222,7 @@ const Prompt: React.FC = () => {
           <button
             type="button"
             onClick={handleAddExample}
-            className="rounded-full border border-sky-200 px-4 py-2 text-sm font-medium text-sky-700 transition hover:border-sky-300 hover:bg-sky-50"
+            className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
           >
             Agregar ejemplo nuevo
           </button>
@@ -1235,7 +1235,7 @@ const Prompt: React.FC = () => {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-blue-300"
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-brand-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-brand-primary/40 disabled:cursor-not-allowed disabled:bg-brand-disabled"
           >
             {isSaving && <Spinner />}
             {isSaving ? 'Guardando...' : 'Guardar cambios'}

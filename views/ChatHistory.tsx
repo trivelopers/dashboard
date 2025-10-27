@@ -49,37 +49,41 @@ const ChatHistory: React.FC = () => {
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
           <Spinner />
-          <p className="mt-2 text-gray-500">{t('chatHistory.loading')}</p>
+          <p className="mt-2 text-brand-muted">{t('chatHistory.loading')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md flex flex-col h-[calc(100vh-10rem)]">
-      <div className="p-4 border-b border-gray-200 flex items-center">
+    <div className="bg-brand-surface rounded-xl shadow-brand-soft border border-brand-border/60 flex flex-col h-[calc(100vh-10rem)]">
+      <div className="p-4 border-b border-brand-border flex items-center">
         <Link 
           to="/contacts" 
-          className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+          className="mr-4 p-2 text-brand-muted hover:text-brand-primary hover:bg-brand-primary/10 rounded-full transition"
         >
           <ArrowLeftIcon className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-gray-800">{t('chatHistory.title')}</h1>
-          <p className="text-sm text-gray-500">Contact ID: {contactId}</p>
+          <h1 className="text-xl font-bold text-brand-dark">{t('chatHistory.title')}</h1>
+          <p className="text-sm text-brand-muted">Contact ID: {contactId}</p>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-6 bg-gray-50 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 bg-brand-background space-y-4">
         {messages.length > 0 ? messages.map(msg => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-xl px-4 py-3 rounded-xl shadow ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
+            <div className={`max-w-xl px-4 py-3 rounded-xl shadow-sm ${
+              msg.role === 'user'
+                ? 'bg-brand-primary text-white'
+                : 'bg-brand-surface text-brand-dark border border-brand-border/70'
+            }`}>
               <p className="text-sm">{msg.text}</p>
-              <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-100' : 'text-gray-500'} text-right`}>
+              <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-white/80' : 'text-brand-muted'} text-right`}>
                 {new Date(msg.timestamp).toLocaleTimeString()}
               </p>
             </div>
           </div>
-        )) : <p className="text-center text-gray-500">{t('chatHistory.noMessages')}</p>}
+        )) : <p className="text-center text-brand-muted">{t('chatHistory.noMessages')}</p>}
         <div ref={chatEndRef} />
       </div>
     </div>

@@ -94,10 +94,13 @@ const Users: React.FC = () => {
   
   return (
     <>
-      <div className="bg-white p-8 rounded-lg shadow-md">
+      <div className="bg-brand-surface p-8 rounded-xl shadow-brand-soft border border-brand-border/60">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">{t('users.title')}</h1>
-          <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700">
+          <h1 className="text-3xl font-bold text-brand-dark">{t('users.title')}</h1>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-brand-primary text-white font-semibold rounded-md shadow-brand-soft hover:bg-brand-primary-hover transition"
+          >
             {t('users.addNewUser')}
           </button>
         </div>
@@ -108,27 +111,27 @@ const Users: React.FC = () => {
               <Spinner />
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center text-gray-500 py-10">
+            <div className="text-center text-brand-muted py-10">
               {t('users.noUsers')}
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-brand-border">
+              <thead className="bg-brand-background">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('users.fullName')}</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('users.email')}</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('users.role')}</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('users.fullName')}</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('users.email')}</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('users.role')}</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-brand-surface divide-y divide-brand-border/70">
                 {users.map((user) => (
                   <tr key={user.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-dark">{user.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-muted">{user.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                           user.role === Role.ADMIN ? 'bg-red-100 text-red-800' :
-                           user.role === Role.EDITOR ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                           user.role === Role.ADMIN ? 'bg-brand-primary text-brand-dark' :
+                           user.role === Role.EDITOR ? 'bg-brand-accent text-white' : 'bg-brand-info text-brand-dark'
                        }`}>
                            {user.role === Role.ADMIN ? t('users.admin') : 
                             user.role === Role.EDITOR ? t('users.editor') : t('users.viewer')}
@@ -143,37 +146,49 @@ const Users: React.FC = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-6">{t('users.addNewUser')}</h2>
+        <div className="fixed inset-0 bg-brand-dark/70 z-50 flex justify-center items-center backdrop-blur-sm">
+          <div className="bg-brand-surface rounded-xl shadow-brand-soft p-8 w-full max-w-md border border-brand-border/60">
+            <h2 className="text-2xl font-bold text-brand-dark mb-6">{t('users.addNewUser')}</h2>
             <form onSubmit={handleSubmit(handleAddUser)} className="space-y-4">
                <div>
-                  <label className="block text-sm font-medium text-gray-700">{t('users.fullName')}</label>
-                  <input type="text" {...register('name')} className={`mt-1 w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md`} />
+                  <label className="block text-sm font-medium text-brand-dark">{t('users.fullName')}</label>
+                  <input type="text" {...register('name')} className={`mt-1 w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-brand-border'} rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary`} />
                   {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">{t('users.email')}</label>
-                  <input type="email" {...register('email')} className={`mt-1 w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md`} />
+                  <label className="block text-sm font-medium text-brand-dark">{t('users.email')}</label>
+                  <input type="email" {...register('email')} className={`mt-1 w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-brand-border'} rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary`} />
                   {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">{t('users.password')}</label>
-                  <input type="password" {...register('password')} className={`mt-1 w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md`} />
+                  <label className="block text-sm font-medium text-brand-dark">{t('users.password')}</label>
+                  <input type="password" {...register('password')} className={`mt-1 w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-brand-border'} rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary`} />
                   {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">{t('users.role')}</label>
-                  <select {...register('role')} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                  <label className="block text-sm font-medium text-brand-dark">{t('users.role')}</label>
+                  <select {...register('role')} className="mt-1 w-full px-3 py-2 border border-brand-border rounded-md bg-brand-background focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary">
                       <option value={Role.VIEWER}>{t('users.viewer')}</option>
                       <option value={Role.EDITOR}>{t('users.editor')}</option>
                       <option value={Role.ADMIN}>{t('users.admin')}</option>
                   </select>
               </div>
-              {creationError && <p className="text-sm text-red-600 text-center">{creationError}</p>}
+              {creationError && <p className="text-sm text-brand-warm text-center">{creationError}</p>}
               <div className="flex justify-end space-x-4 pt-4">
-                <button type="button" onClick={() => { setIsModalOpen(false); setCreationError(null); reset(); }} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">{t('users.cancel')}</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300">{isSubmitting ? t('common.loading') : t('users.createUser')}</button>
+                <button
+                  type="button"
+                  onClick={() => { setIsModalOpen(false); setCreationError(null); reset(); }}
+                  className="px-4 py-2 rounded-md border border-brand-border text-brand-dark hover:bg-brand-background transition"
+                >
+                  {t('users.cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-primary-hover disabled:bg-brand-disabled disabled:text-white/80 transition"
+                >
+                  {isSubmitting ? t('common.loading') : t('users.createUser')}
+                </button>
               </div>
             </form>
           </div>
