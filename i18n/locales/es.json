@@ -1,20 +1,20 @@
 {
   "auth": {
-    "login": "Iniciar Sesión",
-    "email": "Correo Electrónico",
+    "login": "Iniciar sesión",
+    "email": "Correo electrónico",
     "password": "Contraseña",
     "signingIn": "Iniciando sesión...",
     "invalidCredentials": "Credenciales inválidas",
     "welcome": "¡Bienvenido de vuelta!",
-    "adminPanel": "Panel de Administración",
+    "adminPanel": "Tingo",
     "signInToManage": "Inicia sesión para gestionar tu chatbot"
   },
   "dashboard": {
     "welcome": "¡Bienvenido, {{name}}!",
-    "clientId": "ID del Cliente",
-    "totalContacts": "Contactos Totales",
-    "lastInteraction": "Última Interacción",
-    "botStatus": "Estado del Bot",
+    "clientId": "ID del cliente",
+    "totalContacts": "Contactos totales",
+    "lastInteraction": "Última interacción",
+    "botStatus": "Estado del asistente",
     "botStatusDescription": "El chatbot está actualmente activo y respondiendo a los mensajes de los usuarios. Todos los sistemas están operativos."
   },
   "navigation": {
@@ -23,20 +23,20 @@
     "contacts": "Contactos",
     "chats": "Chats",
     "prompt": "Prompt",
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar sesión"
   },
   "users": {
     "title": "Gestión de Equipo",
-    "addNewUser": "Agregar Nuevo Usuario",
-    "fullName": "Nombre Completo",
-    "email": "Correo Electrónico",
+    "addNewUser": "Agregar nuevo usuario",
+    "fullName": "Nombre completo",
+    "email": "Correo electrónico",
     "password": "Contraseña",
     "role": "Rol",
     "viewer": "Visualizador",
     "editor": "Editor",
     "admin": "Administrador",
     "cancel": "Cancelar",
-    "createUser": "Crear Usuario",
+    "createUser": "Crear usuario",
     "loading": "Cargando usuarios...",
     "noUsers": "No se encontraron usuarios"
   },
