@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Spinner from '../components/Spinner';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
@@ -43,6 +43,73 @@ interface PromptData {
 
 const createId = (): string => Math.random().toString(36).slice(2, 11);
 
+const createEmptyPromptData = (): PromptData => ({
+  role: '',
+  purpose: '',
+  coreRules: [],
+  behaviorRules: [],
+  company: {
+    acerca: '',
+    servicios: []
+  },
+  branches: [],
+  examples: []
+});
+
+interface ExpandableTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  minRows?: number;
+  collapsedRows?: number;
+}
+
+const ExpandableTextarea: React.FC<ExpandableTextareaProps> = ({
+  minRows = 1,
+  collapsedRows = 3,
+  value = '',
+  className = '',
+  ...rest
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const textValue =
+    typeof value === 'string' ? value : value === undefined || value === null ? '' : String(value);
+
+  const estimatedLines = useMemo(() => {
+    if (!textValue) return 1;
+    return textValue.split('\n').reduce((total, line) => {
+      const sanitized = line || '';
+      const lineLength = sanitized.length || 0;
+      const wrappedLength = Math.max(1, Math.ceil(lineLength / 90));
+      return total + wrappedLength;
+    }, 0);
+  }, [textValue]);
+
+  const collapsedRowCount = Math.max(minRows, Math.min(collapsedRows, estimatedLines));
+  const expandedRowCount = Math.max(collapsedRows, estimatedLines);
+  const displayRows = isExpanded ? expandedRowCount : collapsedRowCount;
+  const shouldShowToggle = expandedRowCount > collapsedRows;
+
+  return (
+    <div>
+      <textarea
+        {...rest}
+        value={textValue}
+        rows={displayRows}
+        className={`resize-none ${!isExpanded && shouldShowToggle ? 'overflow-hidden' : 'overflow-y-auto'} ${className}`}
+      />
+      {shouldShowToggle && (
+        <div className="mt-2 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="text-xs font-medium text-slate-600 transition hover:text-slate-500"
+          >
+            {isExpanded ? 'Ver menos' : 'Ver mas'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const slugify = (value: string, fallback: string): string => {
   const normalized = value
     .toLowerCase()
@@ -81,18 +148,7 @@ const parseRuleSection = (content: string | undefined): RuleItem[] => {
 };
 
 const parseXMLPrompt = (xmlString: string): PromptData => {
-  const data: PromptData = {
-    role: '',
-    purpose: '',
-    coreRules: [],
-    behaviorRules: [],
-    company: {
-      acerca: '',
-      servicios: []
-    },
-    branches: [],
-    examples: []
-  };
+  const data: PromptData = createEmptyPromptData();
 
   if (!xmlString) {
     return data;
@@ -344,24 +400,19 @@ const Prompt: React.FC = () => {
   const { user } = useAuth();
   const userRole: 'admin' | 'editor' = user?.role === Role.ADMIN ? 'admin' : 'editor';
 
-  const [promptData, setPromptData] = useState<PromptData>({
-    role: '',
-    purpose: '',
-    coreRules: [],
-    behaviorRules: [],
-    company: {
-      acerca: '',
-      servicios: []
-    },
-    branches: [],
-    examples: []
-  });
+  const [promptData, setPromptData] = useState<PromptData>(() => createEmptyPromptData());
   const [expandedCoreRules, setExpandedCoreRules] = useState<Record<string, boolean>>({});
   const [initialBehaviorRules, setInitialBehaviorRules] = useState<Record<string, string>>({});
+  const [behaviorRuleDrafts, setBehaviorRuleDrafts] = useState<Record<string, string>>({});
+  const [initialPromptSnapshot, setInitialPromptSnapshot] = useState<string>(() =>
+    JSON.stringify(createEmptyPromptData())
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const currentPromptSnapshot = useMemo(() => JSON.stringify(promptData), [promptData]);
+  const hasChanges = currentPromptSnapshot !== initialPromptSnapshot;
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -371,6 +422,13 @@ const Prompt: React.FC = () => {
         const xmlPrompt: string = response.data.botSettings?.prompt || '';
         const parsed = parseXMLPrompt(xmlPrompt);
         setPromptData(parsed);
+        setInitialPromptSnapshot(JSON.stringify(parsed));
+        setBehaviorRuleDrafts(
+          parsed.behaviorRules.reduce<Record<string, string>>((acc, rule) => {
+            acc[rule.id] = rule.texto;
+            return acc;
+          }, {})
+        );
         setInitialBehaviorRules(
           parsed.behaviorRules.reduce<Record<string, string>>((acc, rule) => {
             acc[rule.id] = rule.texto;
@@ -395,7 +453,14 @@ const Prompt: React.FC = () => {
       const xmlPrompt = generateXMLPrompt(promptData);
       await api.put('/dashboard/bot-settings', { prompt: xmlPrompt });
       setSuccess(true);
+      setInitialPromptSnapshot(JSON.stringify(promptData));
       setInitialBehaviorRules(
+        promptData.behaviorRules.reduce<Record<string, string>>((acc, rule) => {
+          acc[rule.id] = rule.texto;
+          return acc;
+        }, {})
+      );
+      setBehaviorRuleDrafts(
         promptData.behaviorRules.reduce<Record<string, string>>((acc, rule) => {
           acc[rule.id] = rule.texto;
           return acc;
@@ -458,19 +523,22 @@ const Prompt: React.FC = () => {
   };
 
   const handleBehaviorRuleChange = (id: string, value: string) => {
-    setPromptData((prev) => ({
+    setBehaviorRuleDrafts((prev) => ({
       ...prev,
-      behaviorRules: prev.behaviorRules.map((rule) =>
-        rule.id === id ? { ...rule, texto: value } : rule
-      )
+      [id]: value
     }));
   };
 
   const handleRestoreBehaviorRule = (id: string) => {
+    const initialValue = initialBehaviorRules[id] ?? '';
+    setBehaviorRuleDrafts((prev) => ({
+      ...prev,
+      [id]: initialValue
+    }));
     setPromptData((prev) => ({
       ...prev,
       behaviorRules: prev.behaviorRules.map((rule) =>
-        rule.id === id ? { ...rule, texto: initialBehaviorRules[id] || '' } : rule
+        rule.id === id ? { ...rule, texto: initialValue } : rule
       )
     }));
   };
@@ -485,6 +553,11 @@ const Prompt: React.FC = () => {
       delete nextState[id];
       return nextState;
     });
+    setBehaviorRuleDrafts((prev) => {
+      const nextState = { ...prev };
+      delete nextState[id];
+      return nextState;
+    });
   };
 
   const handleAddBehaviorRule = () => {
@@ -495,6 +568,23 @@ const Prompt: React.FC = () => {
     setPromptData((prev) => ({
       ...prev,
       behaviorRules: [...prev.behaviorRules, newRule]
+    }));
+    setBehaviorRuleDrafts((prev) => ({
+      ...prev,
+      [newRule.id]: ''
+    }));
+  };
+  const handleCommitBehaviorRule = (id: string) => {
+    const nextValue = behaviorRuleDrafts[id] ?? '';
+    setPromptData((prev) => ({
+      ...prev,
+      behaviorRules: prev.behaviorRules.map((rule) =>
+        rule.id === id ? { ...rule, texto: nextValue } : rule
+      )
+    }));
+    setBehaviorRuleDrafts((prev) => ({
+      ...prev,
+      [id]: nextValue
     }));
   };
 
@@ -641,51 +731,65 @@ const Prompt: React.FC = () => {
       )}
 
       <section className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-2xl font-semibold text-slate-900">Encabezado general</h2>
-          <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            {userRole === 'admin' ? '✏️ Contenido editable' : '🧱 Estructura interna (solo lectura)'}
-          </span>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-slate-700">Rol del agente</span>
-            <textarea
-              value={promptData.role}
-              onChange={(event) => {
-                if (userRole !== 'admin') return;
-                setPromptData((prev) => ({ ...prev, role: event.target.value }));
-              }}
-              readOnly={userRole !== 'admin'}
-              rows={4}
-              className={`min-h-[144px] rounded-xl border px-4 py-3 text-sm leading-relaxed ${
-                userRole === 'admin'
-                  ? 'border-slate-200 bg-white text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100'
-                  : 'border-slate-100 bg-slate-50 text-slate-500'
-              }`}
-              placeholder="Describe el rol principal del agente."
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-slate-700">Proposito del agente</span>
-            <textarea
-              value={promptData.purpose}
-              onChange={(event) => {
-                if (userRole !== 'admin') return;
-                setPromptData((prev) => ({ ...prev, purpose: event.target.value }));
-              }}
-              readOnly={userRole !== 'admin'}
-              rows={4}
-              className={`min-h-[144px] rounded-xl border px-4 py-3 text-sm leading-relaxed ${
-                userRole === 'admin'
-                  ? 'border-slate-200 bg-white text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100'
-                  : 'border-slate-100 bg-slate-50 text-slate-500'
-              }`}
-              placeholder="Explica la meta del asistente en esta organizacion."
-            />
-          </label>
-        </div>
-      </section>
+  <div className="flex flex-wrap items-center justify-between gap-3">
+    <h2 className="text-2xl font-semibold text-slate-900">Encabezado general</h2>
+    <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+      {userRole === 'admin'
+        ? '✏️ Contenido editable'
+        : '🧱 Estructura interna (solo lectura)'}
+    </span>
+  </div>
+
+  {/* Cambié a grid fluido con columnas proporcionales y altura controlada */}
+  <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
+    {/* Rol */}
+    <label className="flex flex-col gap-2">
+      <span className="text-sm font-medium text-slate-700">
+        Rol del agente
+      </span>
+      <ExpandableTextarea
+        value={promptData.role}
+        onChange={(event) => {
+          if (userRole !== 'admin') return;
+          setPromptData((prev) => ({ ...prev, role: event.target.value }));
+        }}
+        readOnly={userRole !== 'admin'}
+        minRows={4}
+        collapsedRows={8}
+        className={`min-h-[100px] w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
+          userRole === 'admin'
+            ? 'border-slate-200 bg-white text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100'
+            : 'border-slate-100 bg-slate-50 text-slate-500'
+        }`}
+        placeholder="Describe el rol principal del agente."
+      />
+    </label>
+
+    {/* Propósito */}
+    <label className="flex flex-col gap-2">
+      <span className="text-sm font-medium text-slate-700">
+        Propósito del agente
+      </span>
+      <ExpandableTextarea
+        value={promptData.purpose}
+        onChange={(event) => {
+          if (userRole !== 'admin') return;
+          setPromptData((prev) => ({ ...prev, purpose: event.target.value }));
+        }}
+        readOnly={userRole !== 'admin'}
+        minRows={6}
+        collapsedRows={10}
+        className={`min-h-[150px] w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
+          userRole === 'admin'
+            ? 'border-slate-200 bg-white text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100'
+            : 'border-slate-100 bg-slate-50 text-slate-500'
+        }`}
+        placeholder="Explica la meta del asistente en esta organización."
+      />
+    </label>
+  </div>
+</section>
+
 <section className="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -700,48 +804,58 @@ const Prompt: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          {promptData.behaviorRules.map((rule, index) => (
-            <article
-              key={rule.id}
-              className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 shadow-sm"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-base font-semibold text-emerald-900">Regla {index + 1}</h3>
-                <span className="text-xs font-medium text-emerald-700">✏️ Contenido editable</span>
-              </div>
-              <textarea
-                value={rule.texto}
-                onChange={(event) => handleBehaviorRuleChange(rule.id, event.target.value)}
-                rows={6}
-                className="mt-3 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                placeholder="Describe el comportamiento esperado para esta regla."
-              />
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:bg-emerald-300"
-                >
-                  Guardar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRestoreBehaviorRule(rule.id)}
-                  className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
-                >
-                  Restaurar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteBehaviorRule(rule.id)}
-                  className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
-                >
-                  Eliminar
-                </button>
-              </div>
-            </article>
-          ))}
+          {promptData.behaviorRules.map((rule, index) => {
+            const draftValue = behaviorRuleDrafts[rule.id] ?? rule.texto;
+            const initialValue = initialBehaviorRules[rule.id] ?? '';
+            const isDirty = draftValue !== rule.texto;
+            const hasCommittedDifference = rule.texto !== initialValue;
+            const showRestore = isDirty || hasCommittedDifference;
+
+            return (
+              <article
+                key={rule.id}
+                className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 shadow-sm"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-base font-semibold text-emerald-900">Regla {index + 1}</h3>
+                </div>
+                <ExpandableTextarea
+                  value={draftValue}
+                  onChange={(event) => handleBehaviorRuleChange(rule.id, event.target.value)}
+                  minRows={1}
+                  className="mt-3 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                  placeholder="Describe el comportamiento esperado para esta regla."
+                />
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {isDirty && (
+                    <button
+                      type="button"
+                      onClick={() => handleCommitBehaviorRule(rule.id)}
+                      className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500"
+                    >
+                      Guardar
+                    </button>
+                  )}
+                  {showRestore && (
+                    <button
+                      type="button"
+                      onClick={() => handleRestoreBehaviorRule(rule.id)}
+                      className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+                    >
+                      Restaurar
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteBehaviorRule(rule.id)}
+                    className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </article>
+            );
+          })}
           {!promptData.behaviorRules.length && (
             <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-6 text-center text-sm text-emerald-700">
               No hay reglas de comportamiento registradas.
@@ -815,11 +929,11 @@ const Prompt: React.FC = () => {
                   </p>
                 )}
                 {expanded && (
-                  <textarea
+                  <ExpandableTextarea
                     value={rule.texto}
                     onChange={(event) => handleCoreRuleChange(rule.id, event.target.value)}
                     readOnly={userRole !== 'admin'}
-                    rows={8}
+                    minRows={1}
                     className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${
                       userRole === 'admin'
                         ? 'border-amber-200 bg-white text-slate-900 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100'
@@ -870,7 +984,7 @@ const Prompt: React.FC = () => {
         <div className="space-y-4">
           <label className="flex flex-col gap-2">
             <span className="text-sm font-medium text-slate-700">Acerca de</span>
-            <textarea
+            <ExpandableTextarea
               value={promptData.company.acerca}
               onChange={(event) =>
                 setPromptData((prev) => ({
@@ -878,7 +992,7 @@ const Prompt: React.FC = () => {
                   company: { ...prev.company, acerca: event.target.value }
                 }))
               }
-              rows={4}
+              minRows={1}
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
               placeholder="Resumen breve de la empresa, historia o propuesta de valor."
             />
@@ -1027,12 +1141,12 @@ const Prompt: React.FC = () => {
                       <span className="text-xs font-medium text-slate-600">
                         Direccion y notas
                       </span>
-                      <textarea
+                      <ExpandableTextarea
                         value={branch.direccion}
                         onChange={(event) =>
                           handleBranchChange(branch.id, 'direccion', event.target.value)
                         }
-                        rows={3}
+                        minRows={1}
                         className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         placeholder="Direccion fisica, horarios o notas clave."
                       />
@@ -1076,24 +1190,24 @@ const Prompt: React.FC = () => {
               <div className="mt-3 space-y-3">
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium text-slate-600">Consulta de cliente</span>
-                  <textarea
+                  <ExpandableTextarea
                     value={example.pregunta}
                     onChange={(event) =>
                       handleExampleChange(example.id, 'pregunta', event.target.value)
                     }
-                    rows={1}
+                    minRows={1}
                     className="w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
                     placeholder="Consulta del cliente que quieres cubrir con este ejemplo."
                   />
                 </label>
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium text-slate-600">Comportamiento / Respuesta esperada</span>
-                  <textarea
+                  <ExpandableTextarea
                     value={example.respuesta}
                     onChange={(event) =>
                       handleExampleChange(example.id, 'respuesta', event.target.value)
                     }
-                    rows={2}
+                    minRows={1}
                     className="w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
                     placeholder="Respuesta ideal del asistente para este caso."
                   />
@@ -1118,17 +1232,19 @@ const Prompt: React.FC = () => {
         </div>
       </section>
 
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-blue-300"
-        >
-          {isSaving && <Spinner />}
-          {isSaving ? 'Guardando...' : 'Guardar cambios'}
-        </button>
-      </div>
+      {hasChanges && (
+        <div className="pointer-events-none fixed bottom-6 right-6 z-20 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-blue-300"
+          >
+            {isSaving && <Spinner />}
+            {isSaving ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
