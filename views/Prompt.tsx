@@ -9,6 +9,7 @@ interface PromptData {
   role: string;
   purpose: string;
   rules: string;
+  behaviorRules: string;
   contacts: string;
   companyInfo: string;
   examples: string;
@@ -19,6 +20,7 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
     role: '',
     purpose: '',
     rules: '',
+    behaviorRules: '',
     contacts: '',
     companyInfo: '',
     examples: ''
@@ -35,17 +37,46 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
     const purposeMatch = xmlString.match(/<purpose>([\s\S]*?)<\/purpose>/);
     if (purposeMatch) data.purpose = purposeMatch[1].trim();
 
-    // Extract and format rules
-    const rulesMatch = xmlString.match(/<rules>([\s\S]*?)<\/rules>/);
-    if (rulesMatch) {
-      const rulesContent = rulesMatch[1];
-      const ruleItems = rulesContent.match(/<rule>([\s\S]*?)<\/rule>/g);
-      if (ruleItems) {
-        data.rules = ruleItems.map(rule => 
-          rule.replace(/<rule>([\s\S]*?)<\/rule>/, '$1').trim()
-        ).join('\n\n');
+    // Extract and format core rules
+    const coreRulesMatch = xmlString.match(/<core_rules>([\s\S]*?)<\/core_rules>/);
+    if (coreRulesMatch) {
+      const coreRulesContent = coreRulesMatch[1];
+      const coreRuleItems = coreRulesContent.match(/<rule>([\s\S]*?)<\/rule>/g);
+      if (coreRuleItems) {
+        data.rules = coreRuleItems
+          .map(rule => rule.replace(/<rule>([\s\S]*?)<\/rule>/, '$1').trim())
+          .join('\n\n');
       } else {
-        data.rules = rulesContent.trim();
+        data.rules = coreRulesContent.trim();
+      }
+    }
+
+    if (!data.rules) {
+      const legacyRulesMatch = xmlString.match(/<rules>([\s\S]*?)<\/rules>/);
+      if (legacyRulesMatch) {
+        const legacyRulesContent = legacyRulesMatch[1];
+        const legacyRuleItems = legacyRulesContent.match(/<rule>([\s\S]*?)<\/rule>/g);
+        if (legacyRuleItems) {
+          data.rules = legacyRuleItems
+            .map(rule => rule.replace(/<rule>([\s\S]*?)<\/rule>/, '$1').trim())
+            .join('\n\n');
+        } else {
+          data.rules = legacyRulesContent.trim();
+        }
+      }
+    }
+
+    // Extract and format behavior rules
+    const behaviorRulesMatch = xmlString.match(/<behavior_rules>([\s\S]*?)<\/behavior_rules>/);
+    if (behaviorRulesMatch) {
+      const behaviorRulesContent = behaviorRulesMatch[1];
+      const behaviorRuleItems = behaviorRulesContent.match(/<rule>([\s\S]*?)<\/rule>/g);
+      if (behaviorRuleItems) {
+        data.behaviorRules = behaviorRuleItems
+          .map(rule => rule.replace(/<rule>([\s\S]*?)<\/rule>/, '$1').trim())
+          .join('\n\n');
+      } else {
+        data.behaviorRules = behaviorRulesContent.trim();
       }
     }
 
@@ -159,15 +190,24 @@ const generateXMLPrompt = (data: PromptData): string => {
     xmlString += `  <purpose>${data.purpose}</purpose>\n`;
   }
 
-  // Add rules
+  // Add core rules
   if (data.rules) {
-    xmlString += '  <rules>\n';
-    // Split by double newlines to get individual rules
+    xmlString += '  <core_rules>\n';
     const rules = data.rules.split('\n\n').filter(rule => rule.trim());
     rules.forEach(rule => {
       xmlString += `    <rule>${rule.trim()}</rule>\n`;
     });
-    xmlString += '  </rules>\n';
+    xmlString += '  </core_rules>\n';
+  }
+
+  // Add behavior rules
+  if (data.behaviorRules) {
+    xmlString += '  <behavior_rules>\n';
+    const behaviorRules = data.behaviorRules.split('\n\n').filter(rule => rule.trim());
+    behaviorRules.forEach(rule => {
+      xmlString += `    <rule>${rule.trim()}</rule>\n`;
+    });
+    xmlString += '  </behavior_rules>\n';
   }
 
   // Add contacts
@@ -275,10 +315,12 @@ const generateXMLPrompt = (data: PromptData): string => {
 
 const Prompt: React.FC = () => {
   const { t } = useTranslation();
+  const userRole = 'admin';
   const [promptData, setPromptData] = useState<PromptData>({
     role: '',
     purpose: '',
     rules: '',
+    behaviorRules: '',
     contacts: '',
     companyInfo: '',
     examples: ''
@@ -325,110 +367,134 @@ const Prompt: React.FC = () => {
   const updateField = (field: keyof PromptData, value: string) => {
     setPromptData(prev => ({ ...prev, [field]: value }));
   };
-
+  
   if (isLoading) {
     return <div className="flex justify-center mt-10"><Spinner /></div>;
   }
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">{t('prompt.title')}</h1>
-      <p className="text-gray-500 mb-6">{t('prompt.description')}</p>
-      
-      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
-      {success && <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">{t('prompt.successMessage')}</div>}
+    <div className="max-w-3xl mx-auto space-y-6 p-4 sm:p-6">
+      <header className="space-y-2 bg-white rounded-xl shadow-sm p-6">
+        <h1 className="text-2xl font-semibold text-gray-800">{t('prompt.title')}</h1>
+        <p className="text-sm text-gray-600">{t('prompt.description')}</p>
+      </header>
 
-      <div className="space-y-6">
-        {/* General Section */}
-        <div className="border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('prompt.general')}</h2>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('prompt.role')}</label>
-              <textarea
-                value={promptData.role}
-                onChange={(e) => updateField('role', e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                rows={3}
-                placeholder={t('prompt.rolePlaceholder')}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('prompt.purpose')}</label>
-              <textarea
-                value={promptData.purpose}
-                onChange={(e) => updateField('purpose', e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                rows={3}
-                placeholder={t('prompt.purposePlaceholder')}
-              />
-            </div>
-          </div>
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+          {error}
         </div>
+      )}
+      {success && (
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700" role="alert">
+          {t('prompt.successMessage')}
+        </div>
+      )}
 
-        {/* Rules Section */}
-        <div className="border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('prompt.rules')}</h2>
-          <p className="text-sm text-gray-600 mb-3">{t('prompt.rulesDescription')}</p>
-          
+      <section className="space-y-5 bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-800">{t('prompt.general')}</h2>
+        <label className="block space-y-2">
+          <span className="text-sm text-gray-700">{t('prompt.role')}</span>
           <textarea
-            value={promptData.rules}
-            onChange={(e) => updateField('rules', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            value={promptData.role}
+            onChange={(e) => updateField('role', e.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            rows={3}
+            placeholder={t('prompt.rolePlaceholder')}
+          />
+        </label>
+        <label className="block space-y-2">
+          <span className="text-sm text-gray-700">{t('prompt.purpose')}</span>
+          <textarea
+            value={promptData.purpose}
+            onChange={(e) => updateField('purpose', e.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            rows={3}
+            placeholder={t('prompt.purposePlaceholder')}
+          />
+        </label>
+      </section>
+
+      <section className="space-y-3 bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-800">
+          {t('prompt.coreRules', { defaultValue: 'Core rules' })}
+        </h2>
+        <p className="text-sm text-gray-600">{t('prompt.rulesDescription')}</p>
+        <textarea
+          value={promptData.rules}
+          onChange={(e) => {
+            if (userRole === "admin") {
+              updateField('rules', e.target.value);
+            }
+          }}
+          className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          rows={8}
+          placeholder={t('prompt.rulesPlaceholder')}
+          readOnly={userRole !== 'admin'}
+        />
+        {userRole !== 'admin' && (
+          <p className="text-xs text-gray-500">{t('prompt.rulesReadOnlyNotice', { defaultValue: 'Solo un administrador puede editar estas reglas.' })}</p>
+        )}
+      </section>
+
+      {userRole === 'admin' && (
+        <section className="space-y-3 bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-800">
+            {t('prompt.behaviorRules', { defaultValue: 'Behavior rules' })}
+          </h2>
+          <p className="text-sm text-gray-600">
+            {t('prompt.behaviorRulesDescription', { defaultValue: t('prompt.rulesDescription') })}
+          </p>
+          <textarea
+            value={promptData.behaviorRules}
+            onChange={(e) => updateField('behaviorRules', e.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
             rows={8}
-            placeholder={t('prompt.rulesPlaceholder')}
+            placeholder={t('prompt.behaviorRulesPlaceholder', { defaultValue: t('prompt.rulesPlaceholder') })}
           />
-        </div>
+        </section>
+      )}
 
-        {/* Contacts Section */}
-        <div className="border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('prompt.contacts')}</h2>
-          <p className="text-sm text-gray-600 mb-3">{t('prompt.contactsDescription')}</p>
-          
-          <textarea
-            value={promptData.contacts}
-            onChange={(e) => updateField('contacts', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            rows={8}
-            placeholder={t('prompt.contactsPlaceholder')}
-          />
-        </div>
+      <section className="space-y-3 bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-800">{t('prompt.contacts')}</h2>
+        <p className="text-sm text-gray-600">{t('prompt.contactsDescription')}</p>
+        <textarea
+          value={promptData.contacts}
+          onChange={(e) => updateField('contacts', e.target.value)}
+          className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          rows={8}
+          placeholder={t('prompt.contactsPlaceholder')}
+        />
+      </section>
 
-        {/* Company Information Section */}
-        <div className="border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('prompt.company')}</h2>
-          <p className="text-sm text-gray-600 mb-3">{t('prompt.companyDescription')}</p>
-          
-          <textarea
-            value={promptData.companyInfo}
-            onChange={(e) => updateField('companyInfo', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            rows={8}
-            placeholder={t('prompt.companyPlaceholder')}
-          />
-        </div>
+      <section className="space-y-3 bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-800">{t('prompt.company')}</h2>
+        <p className="text-sm text-gray-600">{t('prompt.companyDescription')}</p>
+        <textarea
+          value={promptData.companyInfo}
+          onChange={(e) => updateField('companyInfo', e.target.value)}
+          className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          rows={8}
+          placeholder={t('prompt.companyPlaceholder')}
+        />
+      </section>
 
-        {/* Examples Section */}
-        <div className="border border-gray-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('prompt.examples')}</h2>
-          <p className="text-sm text-gray-600 mb-3">{t('prompt.examplesDescription')}</p>
-          
-          <textarea
-            value={promptData.examples}
-            onChange={(e) => updateField('examples', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            rows={10}
-            placeholder={t('prompt.examplesPlaceholder')}
-          />
-        </div>
-      </div>
+      <section className="space-y-3 bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-800">{t('prompt.examples')}</h2>
+        <p className="text-sm text-gray-600">{t('prompt.examplesDescription')}</p>
+        <textarea
+          value={promptData.examples}
+          onChange={(e) => updateField('examples', e.target.value)}
+          className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          rows={10}
+          placeholder={t('prompt.examplesPlaceholder')}
+        />
+      </section>
 
-      <div className="mt-8 flex justify-end">
+      <div className="flex justify-end">
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 flex items-center"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-blue-300"
         >
           {isSaving && <Spinner />}
           {isSaving ? t('prompt.saving') : t('prompt.save')}
