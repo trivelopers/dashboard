@@ -708,13 +708,10 @@ const Prompt: React.FC = () => {
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
       <header className="rounded-2xl bg-white p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Configuracion del agente
-        </p>
-        <h1 className="mt-2 text-3xl font-bold text-slate-900">Prompt del asistente</h1>
+        <h1 className="mt-2 text-3xl font-bold text-slate-900">Configuración del asistente</h1>
         <p className="mt-3 max-w-3xl text-sm text-slate-600">
           Administra el contenido que define el rol, las reglas y los ejemplos del asistente. Cada
-          bloque es independiente para facilitar los ajustes sin arriesgar la estructura tecnica.
+          bloque es independiente para facilitar los ajustes sin arriesgar la estructura técnica.
         </p>
       </header>
 
@@ -754,9 +751,9 @@ const Prompt: React.FC = () => {
           setPromptData((prev) => ({ ...prev, role: event.target.value }));
         }}
         readOnly={userRole !== 'admin'}
-        minRows={4}
+        minRows={1}
         collapsedRows={8}
-        className={`min-h-[100px] w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
+        className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
           userRole === 'admin'
             ? 'border-slate-200 bg-white text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100'
             : 'border-slate-100 bg-slate-50 text-slate-500'
@@ -777,9 +774,9 @@ const Prompt: React.FC = () => {
           setPromptData((prev) => ({ ...prev, purpose: event.target.value }));
         }}
         readOnly={userRole !== 'admin'}
-        minRows={6}
+        minRows={3}
         collapsedRows={10}
-        className={`min-h-[150px] w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
+        className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
           userRole === 'admin'
             ? 'border-slate-200 bg-white text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100'
             : 'border-slate-100 bg-slate-50 text-slate-500'
