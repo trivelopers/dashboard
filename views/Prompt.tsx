@@ -14,10 +14,11 @@ interface BranchInfo {
   tag: string;
   etiqueta: string;
   responsable: string;
-  telefono: string;
-  email: string;
+  telefonos: string[];
+  emails: string[];
   sitio: string;
   direccion: string;
+  horario: string;
 }
 
 interface CompanyInfo {
@@ -183,6 +184,44 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
     }
 
     const branches: BranchInfo[] = [];
+
+    const locationsMatch = xmlString.match(/<locations>([\s\S]*?)<\/locations>/);
+    if (locationsMatch) {
+      const locationsContent = locationsMatch[1];
+      const locationRegex = /<location>([\s\S]*?)<\/location>/g;
+      let locationMatch;
+      while ((locationMatch = locationRegex.exec(locationsContent)) !== null) {
+        const body = locationMatch[1];
+        const rawName = body.match(/<location_name>([\s\S]*?)<\/location_name>/)?.[1]?.trim() || '';
+        const direccion =
+          body.match(/<location_address>([\s\S]*?)<\/location_address>/)?.[1]?.trim() || '';
+        const horario =
+          body.match(/<location_hours>([\s\S]*?)<\/location_hours>/)?.[1]?.trim() || '';
+        const phoneMatches = body.match(/<location_phone>([\s\S]*?)<\/location_phone>/g) || [];
+        const mailMatches = body.match(/<location_mail>([\s\S]*?)<\/location_mail>/g) || [];
+
+        const telefonos = phoneMatches
+          .map((phone) => phone.replace(/<location_phone>([\s\S]*?)<\/location_phone>/, '$1').trim())
+          .filter(Boolean);
+        const emails = mailMatches
+          .map((mail) => mail.replace(/<location_mail>([\s\S]*?)<\/location_mail>/, '$1').trim())
+          .filter(Boolean);
+
+        const etiqueta = rawName || formatLabel(`sucursal_${branches.length + 1}`);
+        branches.push({
+          id: createId(),
+          tag: slugify(rawName, `sucursal_${branches.length + 1}`),
+          etiqueta,
+          responsable: '',
+          telefonos: telefonos.length ? telefonos : [''],
+          emails: emails.length ? emails : [''],
+          sitio: '',
+          direccion,
+          horario
+        });
+      }
+    }
+
     const contactsMatch = xmlString.match(/<contacts>([\s\S]*?)<\/contacts>/);
     if (contactsMatch) {
       const contactsContent = contactsMatch[1];
@@ -196,16 +235,39 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
         const email = body.match(/<email>([\s\S]*?)<\/email>/)?.[1]?.trim() || '';
         const sitio = body.match(/<website>([\s\S]*?)<\/website>/)?.[1]?.trim() || '';
 
-        branches.push({
-          id: createId(),
-          tag,
-          etiqueta: formatLabel(tag),
-          responsable,
-          telefono,
-          email,
-          sitio,
-          direccion: ''
-        });
+        const existingBranch = branches.find((branch) => branch.tag === tag);
+        if (existingBranch) {
+          existingBranch.responsable = responsable || existingBranch.responsable;
+          existingBranch.sitio = sitio || existingBranch.sitio;
+          if (telefono) {
+            const nextPhones = existingBranch.telefonos.filter(Boolean);
+            if (!nextPhones.length) {
+              existingBranch.telefonos = [telefono];
+            } else if (!nextPhones.includes(telefono)) {
+              existingBranch.telefonos = [...nextPhones, telefono];
+            }
+          }
+          if (email) {
+            const nextEmails = existingBranch.emails.filter(Boolean);
+            if (!nextEmails.length) {
+              existingBranch.emails = [email];
+            } else if (!nextEmails.includes(email)) {
+              existingBranch.emails = [...nextEmails, email];
+            }
+          }
+        } else {
+          branches.push({
+            id: createId(),
+            tag,
+            etiqueta: formatLabel(tag),
+            responsable,
+            telefonos: telefono ? [telefono] : [''],
+            emails: email ? [email] : [''],
+            sitio,
+            direccion: '',
+            horario: ''
+          });
+        }
       }
     }
 
@@ -233,17 +295,18 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
           }
 
           if (branches[index]) {
-            branches[index].direccion = texto;
+            branches[index].direccion = branches[index].direccion || texto;
           } else {
             branches.push({
               id: createId(),
               tag: slugify(texto, `sucursal_${index + 1}`),
               etiqueta: texto,
               responsable: '',
-              telefono: '',
-              email: '',
+              telefonos: [''],
+              emails: [''],
               sitio: '',
-              direccion: texto
+              direccion: texto,
+              horario: ''
             });
           }
         });
@@ -309,13 +372,16 @@ const generateXMLPrompt = (data: PromptData): string => {
     xmlString += '  </behavior_rules>\n';
   }
 
-  const contactBranches = data.branches.filter(
-    (branch) =>
+  const contactBranches = data.branches.filter((branch) => {
+    const hasPhones = branch.telefonos.some((phone) => phone.trim());
+    const hasEmails = branch.emails.some((email) => email.trim());
+    return (
       branch.responsable.trim() ||
-      branch.telefono.trim() ||
-      branch.email.trim() ||
+      hasPhones ||
+      hasEmails ||
       branch.sitio.trim()
-  );
+    );
+  });
 
   if (contactBranches.length) {
     xmlString += '  <contacts>\n';
@@ -327,11 +393,13 @@ const generateXMLPrompt = (data: PromptData): string => {
       if (branch.responsable.trim()) {
         xmlString += `      <name>${branch.responsable.trim()}</name>\n`;
       }
-      if (branch.telefono.trim()) {
-        xmlString += `      <phone>${branch.telefono.trim()}</phone>\n`;
+      const firstPhone = branch.telefonos.find((phone) => phone.trim());
+      if (firstPhone) {
+        xmlString += `      <phone>${firstPhone.trim()}</phone>\n`;
       }
-      if (branch.email.trim()) {
-        xmlString += `      <email>${branch.email.trim()}</email>\n`;
+      const firstEmail = branch.emails.find((email) => email.trim());
+      if (firstEmail) {
+        xmlString += `      <email>${firstEmail.trim()}</email>\n`;
       }
       if (branch.sitio.trim()) {
         xmlString += `      <website>${branch.sitio.trim()}</website>\n`;
@@ -339,6 +407,46 @@ const generateXMLPrompt = (data: PromptData): string => {
       xmlString += `    </${tag}>\n`;
     });
     xmlString += '  </contacts>\n';
+  }
+
+  const detailedLocations = data.branches.filter((branch) => {
+    const hasPhones = branch.telefonos.some((phone) => phone.trim());
+    const hasEmails = branch.emails.some((email) => email.trim());
+    return (
+      branch.etiqueta.trim() ||
+      branch.direccion.trim() ||
+      hasPhones ||
+      hasEmails ||
+      branch.horario.trim()
+    );
+  });
+
+  if (detailedLocations.length) {
+    xmlString += '  <locations>\n';
+    detailedLocations.forEach((branch) => {
+      xmlString += '    <location>\n';
+      if (branch.etiqueta.trim()) {
+        xmlString += `      <location_name>${branch.etiqueta.trim()}</location_name>\n`;
+      }
+      if (branch.direccion.trim()) {
+        xmlString += `      <location_address>${branch.direccion.trim()}</location_address>\n`;
+      }
+      branch.telefonos.forEach((phone) => {
+        if (phone.trim()) {
+          xmlString += `      <location_phone>${phone.trim()}</location_phone>\n`;
+        }
+      });
+      branch.emails.forEach((email) => {
+        if (email.trim()) {
+          xmlString += `      <location_mail>${email.trim()}</location_mail>\n`;
+        }
+      });
+      if (branch.horario.trim()) {
+        xmlString += `      <location_hours>${branch.horario.trim()}</location_hours>\n`;
+      }
+      xmlString += '    </location>\n';
+    });
+    xmlString += '  </locations>\n';
   }
 
   const about = data.company.acerca.trim();
@@ -394,7 +502,7 @@ const generateXMLPrompt = (data: PromptData): string => {
   return xmlString;
 };
 
-type BranchEditableField = 'etiqueta' | 'responsable' | 'telefono' | 'email' | 'sitio' | 'direccion';
+type BranchEditableField = 'etiqueta' | 'horario' | 'direccion';
 
 const Prompt: React.FC = () => {
   const { user } = useAuth();
@@ -641,6 +749,66 @@ const Prompt: React.FC = () => {
     }));
   };
 
+  const handleBranchArrayChange = (
+    id: string,
+    field: 'telefonos' | 'emails',
+    itemIndex: number,
+    value: string
+  ) => {
+    setPromptData((prev) => ({
+      ...prev,
+      branches: prev.branches.map((branch) => {
+        if (branch.id !== id) return branch;
+        const currentItems = field === 'telefonos' ? [...branch.telefonos] : [...branch.emails];
+        currentItems[itemIndex] = value;
+        const normalized = currentItems.length ? currentItems : [''];
+        return {
+          ...branch,
+          [field]: normalized
+        } as BranchInfo;
+      })
+    }));
+  };
+
+  const handleAddBranchArrayItem = (id: string, field: 'telefonos' | 'emails') => {
+    setPromptData((prev) => ({
+      ...prev,
+      branches: prev.branches.map((branch) => {
+        if (branch.id !== id) return branch;
+        const currentItems = field === 'telefonos' ? branch.telefonos : branch.emails;
+        return {
+          ...branch,
+          [field]: [...currentItems, '']
+        } as BranchInfo;
+      })
+    }));
+  };
+
+  const handleRemoveBranchArrayItem = (
+    id: string,
+    field: 'telefonos' | 'emails',
+    itemIndex: number
+  ) => {
+    setPromptData((prev) => ({
+      ...prev,
+      branches: prev.branches.map((branch) => {
+        if (branch.id !== id) return branch;
+        const currentItems = field === 'telefonos' ? [...branch.telefonos] : [...branch.emails];
+        if (currentItems.length <= 1) {
+          return {
+            ...branch,
+            [field]: ['']
+          } as BranchInfo;
+        }
+        const nextItems = currentItems.filter((_, index) => index !== itemIndex);
+        return {
+          ...branch,
+          [field]: nextItems.length ? nextItems : ['']
+        } as BranchInfo;
+      })
+    }));
+  };
+
   const handleAddBranch = () => {
     setPromptData((prev) => {
       const index = prev.branches.length + 1;
@@ -650,10 +818,11 @@ const Prompt: React.FC = () => {
         tag: slugify(etiqueta, `sucursal_${index}`),
         etiqueta,
         responsable: '',
-        telefono: '',
-        email: '',
+        telefonos: [''],
+        emails: [''],
         sitio: '',
-        direccion: ''
+        direccion: '',
+        horario: ''
       };
       return {
         ...prev,
@@ -808,7 +977,7 @@ const Prompt: React.FC = () => {
               <button
                 type="button"
                 onClick={handleAddService}
-                className="rounded-full border border-brand-border px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
+                className="rounded-full border border-brand-border bg-brand-primary/10 px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
               >
                 Agregar servicio
               </button>
@@ -828,7 +997,7 @@ const Prompt: React.FC = () => {
                     onClick={() => handleRemoveService(index)}
                     className="rounded-full border border-brand-border px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
                   >
-                    Eliminar
+                    Eliminar servicio
                   </button>
                 </div>
               ))}
@@ -846,7 +1015,7 @@ const Prompt: React.FC = () => {
               <button
                 type="button"
                 onClick={handleAddBranch}
-                className="rounded-full border border-brand-border px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
+                className="rounded-full border border-brand-border bg-brand-primary/10 px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
               >
                 Agregar sucursal
               </button>
@@ -859,19 +1028,13 @@ const Prompt: React.FC = () => {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-base font-semibold text-brand-dark">
-                        Sucursal {index + 1}
-                      </h3>
-                      <p className="text-xs text-brand-muted">
-                        🧱 Etiqueta interna: <span className="font-mono">{branch.tag}</span>
-                      </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleRemoveBranch(branch.id)}
-                      className="text-sm font-medium text-brand-muted underline-offset-4 hover:underline"
+                      className="text-sm font-small text-brand-muted underline-offset-4 hover:underline"
                     >
-                      Eliminar
+                      Eliminar sucursal
                     </button>
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -890,71 +1053,117 @@ const Prompt: React.FC = () => {
                       />
                     </label>
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-brand-muted">
-                        Responsable / Contacto
-                      </span>
+                      <span className="text-xs font-medium text-brand-muted">Horarios</span>
                       <input
                         type="text"
-                        value={branch.responsable}
+                        value={branch.horario}
                         onChange={(event) =>
-                          handleBranchChange(branch.id, 'responsable', event.target.value)
+                          handleBranchChange(branch.id, 'horario', event.target.value)
                         }
                         className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                        placeholder="Nombre de la persona de contacto"
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-brand-muted">Telefono</span>
-                      <input
-                        type="text"
-                        value={branch.telefono}
-                        onChange={(event) =>
-                          handleBranchChange(branch.id, 'telefono', event.target.value)
-                        }
-                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                        placeholder="+54 11 0000 0000"
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-brand-muted">Correo</span>
-                      <input
-                        type="email"
-                        value={branch.email}
-                        onChange={(event) =>
-                          handleBranchChange(branch.id, 'email', event.target.value)
-                        }
-                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                        placeholder="contacto@empresa.com"
+                        placeholder="Ej.: Lunes a viernes de 9 a 18 hs"
                       />
                     </label>
                   </div>
+                  <label className="mt-3 flex w-full flex-col gap-1.5">
+                    <span className="text-xs font-medium text-brand-muted">Dirección</span>
+                    <ExpandableTextarea
+                      value={branch.direccion}
+                      onChange={(event) =>
+                        handleBranchChange(branch.id, 'direccion', event.target.value)
+                      }
+                      minRows={1}
+                      className="w-full rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                      placeholder="Dirección física, referencias o datos clave."
+                    />
+                  </label>
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-brand-muted">Sitio web</span>
-                      <input
-                        type="text"
-                        value={branch.sitio}
-                        onChange={(event) =>
-                          handleBranchChange(branch.id, 'sitio', event.target.value)
-                        }
-                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                        placeholder="https://empresa.com/sucursal"
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-brand-muted">
-                        Direccion y notas
-                      </span>
-                      <ExpandableTextarea
-                        value={branch.direccion}
-                        onChange={(event) =>
-                          handleBranchChange(branch.id, 'direccion', event.target.value)
-                        }
-                        minRows={1}
-                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                        placeholder="Direccion fisica, horarios o notas clave."
-                      />
-                    </label>
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-xs font-medium text-brand-muted">Teléfonos</span>
+                      <div className="space-y-2">
+                        {branch.telefonos.map((telefono, telefonoIndex) => (
+                          <div
+                            key={`${branch.id}-telefono-${telefonoIndex}`}
+                            className="flex items-center gap-2"
+                          >
+                            <input
+                              type="text"
+                              value={telefono}
+                              onChange={(event) =>
+                                handleBranchArrayChange(
+                                  branch.id,
+                                  'telefonos',
+                                  telefonoIndex,
+                                  event.target.value
+                                )
+                              }
+                              className="flex-1 rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                              placeholder="+54 11 0000 0000"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleRemoveBranchArrayItem(branch.id, 'telefonos', telefonoIndex)
+                              }
+                              className="rounded-full border border-brand-border px-2.5 py-1 text-[11px] font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background disabled:cursor-not-allowed disabled:opacity-60"
+                              disabled={branch.telefonos.length === 1}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAddBranchArrayItem(branch.id, 'telefonos')}
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-muted transition hover:text-brand-dark"
+                      >
+                        <span>+ Agregar telefono</span>
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-xs font-medium text-brand-muted">Correos</span>
+                      <div className="space-y-2">
+                        {branch.emails.map((correo, correoIndex) => (
+                          <div
+                            key={`${branch.id}-correo-${correoIndex}`}
+                            className="flex items-center gap-2"
+                          >
+                            <input
+                              type="email"
+                              value={correo}
+                              onChange={(event) =>
+                                handleBranchArrayChange(
+                                  branch.id,
+                                  'emails',
+                                  correoIndex,
+                                  event.target.value
+                                )
+                              }
+                              className="flex-1 rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                              placeholder="contacto@empresa.com"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleRemoveBranchArrayItem(branch.id, 'emails', correoIndex)
+                              }
+                              className="rounded-full border border-brand-border px-2.5 py-1 text-[11px] font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background disabled:cursor-not-allowed disabled:opacity-60"
+                              disabled={branch.emails.length === 1}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAddBranchArrayItem(branch.id, 'emails')}
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-muted transition hover:text-brand-dark"
+                      >
+                        <span>+ Agregar correo</span>
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}
