@@ -7,7 +7,7 @@
     "invalidCredentials": "Credenciales inválidas",
     "welcome": "¡Bienvenido de vuelta!",
     "adminPanel": "Tingo",
-    "signInToManage": "Inicia sesión para gestionar tu chatbot"
+    "signInToManage": "Inicia sesión para gestionar tu asistente virtual"
   },
   "dashboard": {
     "welcome": "¡Bienvenido, {{name}}!",
@@ -26,7 +26,7 @@
     "logout": "Cerrar sesión"
   },
   "users": {
-    "title": "Gestión de Equipo",
+    "title": "Gestión de equipo",
     "addNewUser": "Agregar nuevo usuario",
     "fullName": "Nombre completo",
     "email": "Correo electrónico",
@@ -44,24 +44,24 @@
     "title": "Contactos",
     "name": "Nombre",
     "phone": "Teléfono",
-    "lastMessage": "Último Mensaje",
-    "requiresAdmin": "Requiere Admin",
+    "lastMessage": "Último mensaje",
+    "requiresAdmin": "Atención manual",
     "yes": "Sí",
     "no": "No",
-    "viewChat": "Ver Chat",
+    "viewChat": "Ver conversación",
     "loading": "Cargando contactos...",
     "noContacts": "No se encontraron contactos",
     "filterPlaceholder": "Buscar contactos",
     "noContactsFound": "No se encontraron contactos con ese filtro"
   },
   "chatHistory": {
-    "title": "Historial de Chat",
+    "title": "Historial de conversación",
     "backToContacts": "Volver a Contactos",
     "loading": "Cargando historial de chat...",
     "noMessages": "No se encontraron mensajes"
   },
   "prompt": {
-    "title": "Configuración del Prompt del Sistema",
+    "title": "Configuración del prompt del sistema",
     "description": "Configura el comportamiento y personalidad de tu chatbot usando secciones estructuradas.",
     "saving": "Guardando...",
     "save": "Guardar Configuración",

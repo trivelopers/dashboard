@@ -6,9 +6,10 @@ import { Role } from '../types';
 import LanguageSelector from './LanguageSelector';
 
 import { 
-    ChartPieIcon, PhoneIcon, ChatBubbleLeftRightIcon, UserGroupIcon, 
+    ChartPieIcon, PhoneIcon, UserGroupIcon, 
     ArrowLeftOnRectangleIcon, UserCircleIcon 
 } from '@heroicons/react/24/solid';
+import TingoLogo from './TingoLogo';
 
 const NeuralChipIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
@@ -49,8 +50,7 @@ const Sidebar: React.FC = () => {
   return (
     <div className="flex flex-col w-64 bg-brand-dark text-[#E5E7EB] h-full shadow-brand-soft">
       <div className="flex items-center justify-center h-20 border-b border-white/10">
-         <ChatBubbleLeftRightIcon className="h-8 w-8 text-brand-primary mr-3" />
-        <h1 className="text-2xl font-bold text-white">Tingo</h1>
+        <TingoLogo />
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
         {navItems.map(item => (
