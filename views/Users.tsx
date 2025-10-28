@@ -11,7 +11,7 @@ import { useAuth } from '../hooks/useAuth';
 // MOCK SERVICE for fetching users.
 // TODO: Replace with a real API call once the backend endpoint is available.
 let mockTeamUsers: User[] = [
-    { id: '1', email: 'admin@example.com', name: 'Admin User', role: Role.ADMIN, clientId: 'awesome-inc-client-id' },
+    { id: '1', email: 'admin@example.com', name: 'Admin (mock)', role: Role.ADMIN, clientId: 'awesome-inc-client-id' },
     { id: '2', email: 'editor@example.com', name: 'Editor User', role: Role.EDITOR, clientId: 'awesome-inc-client-id' },
     { id: '3', email: 'viewer@example.com', name: 'Viewer User', role: Role.VIEWER, clientId: 'awesome-inc-client-id' },
 ];
