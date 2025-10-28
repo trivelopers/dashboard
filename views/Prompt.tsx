@@ -1349,9 +1349,6 @@ const Prompt: React.FC = () => {
               formato de las respuestas del asistente.
             </p>
           </div>
-          <span className="text-xs font-medium uppercase tracking-wide text-brand-info">
-            🧱 Estructura interna (solo lectura)
-          </span>
         </div>
 
         <div className="space-y-4">
@@ -1374,7 +1371,7 @@ const Prompt: React.FC = () => {
                       onClick={() => toggleCoreRule(rule.id)}
                       className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
                     >
-                      {expanded ? 'Cancelar edición' : 'Editar'}
+                      {expanded ? 'Contraer regla' : 'Expandir regla'}
                     </button>
                     {userRole === 'admin' && (
                       <button
