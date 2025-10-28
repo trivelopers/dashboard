@@ -11,6 +11,24 @@ const Dashboard: React.FC = () => {
   const [contactCount, setContactCount] = useState(0);
   const [lastUpdate, setLastUpdate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCompanyName = async () => {
+      try {
+        if (!user?.clientId) return;
+        const response = await fetch(`/api/v1/companies/${user.clientId}`);
+        if (!response.ok) throw new Error('Error al obtener la empresa');
+        const data = await response.json();
+        setCompanyName(data?.name || 'Empresa desconocida');
+      } catch (error) {
+        console.error(error);
+        setCompanyName('Empresa no encontrada');
+      }
+    };
+
+    fetchCompanyName();
+  }, [user?.clientId]);
 
   useEffect(() => {
     const getDashboardData = async () => {
@@ -56,8 +74,10 @@ const Dashboard: React.FC = () => {
                 <InformationCircleIcon className="h-8 w-8"/>
             </div>
             <div>
-                <p className="text-sm text-brand-muted">{t('dashboard.clientId')}</p>
-                <p className="text-2xl font-bold text-brand-dark">{user?.clientId}</p>
+                <p className="text-sm text-brand-muted">Empresa</p>
+                <p className="text-2xl font-bold text-brand-dark">
+                  {companyName || 'Cargando...'}
+                </p>
             </div>
         </div>
         <div className="bg-brand-surface p-6 rounded-xl shadow-brand-soft border border-brand-border/60 flex items-center">
