@@ -19,6 +19,7 @@ interface BranchInfo {
   sitio: string;
   direccion: string;
   horario: string;
+  enlace: string;
 }
 
 interface CompanyInfo {
@@ -199,6 +200,8 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
           body.match(/<location_hours>([\s\S]*?)<\/location_hours>/)?.[1]?.trim() || '';
         const phoneMatches = body.match(/<location_phone>([\s\S]*?)<\/location_phone>/g) || [];
         const mailMatches = body.match(/<location_mail>([\s\S]*?)<\/location_mail>/g) || [];
+        const enlace =
+          body.match(/<location_link>([\s\S]*?)<\/location_link>/)?.[1]?.trim() || '';
 
         const telefonos = phoneMatches
           .map((phone) => phone.replace(/<location_phone>([\s\S]*?)<\/location_phone>/, '$1').trim())
@@ -217,7 +220,8 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
           emails: emails.length ? emails : [''],
           sitio: '',
           direccion,
-          horario
+          horario,
+          enlace
         });
       }
     }
@@ -234,11 +238,13 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
         const telefono = body.match(/<phone>([\s\S]*?)<\/phone>/)?.[1]?.trim() || '';
         const email = body.match(/<email>([\s\S]*?)<\/email>/)?.[1]?.trim() || '';
         const sitio = body.match(/<website>([\s\S]*?)<\/website>/)?.[1]?.trim() || '';
+        const enlace = body.match(/<link>([\s\S]*?)<\/link>/)?.[1]?.trim() || '';
 
         const existingBranch = branches.find((branch) => branch.tag === tag);
         if (existingBranch) {
           existingBranch.responsable = responsable || existingBranch.responsable;
           existingBranch.sitio = sitio || existingBranch.sitio;
+          existingBranch.enlace = enlace || existingBranch.enlace;
           if (telefono) {
             const nextPhones = existingBranch.telefonos.filter(Boolean);
             if (!nextPhones.length) {
@@ -265,7 +271,8 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
             emails: email ? [email] : [''],
             sitio,
             direccion: '',
-            horario: ''
+            horario: '',
+            enlace: ''
           });
         }
       }
@@ -306,7 +313,8 @@ const parseXMLPrompt = (xmlString: string): PromptData => {
               emails: [''],
               sitio: '',
               direccion: texto,
-              horario: ''
+              horario: '',
+              enlace: ''
             });
           }
         });
@@ -417,7 +425,8 @@ const generateXMLPrompt = (data: PromptData): string => {
       branch.direccion.trim() ||
       hasPhones ||
       hasEmails ||
-      branch.horario.trim()
+      branch.horario.trim() ||
+      branch.enlace.trim()
     );
   });
 
@@ -441,6 +450,9 @@ const generateXMLPrompt = (data: PromptData): string => {
           xmlString += `      <location_mail>${email.trim()}</location_mail>\n`;
         }
       });
+      if (branch.enlace.trim()) {
+        xmlString += `      <location_link>${branch.enlace.trim()}</location_link>\n`;
+      }
       if (branch.horario.trim()) {
         xmlString += `      <location_hours>${branch.horario.trim()}</location_hours>\n`;
       }
@@ -502,7 +514,7 @@ const generateXMLPrompt = (data: PromptData): string => {
   return xmlString;
 };
 
-type BranchEditableField = 'etiqueta' | 'horario' | 'direccion';
+type BranchEditableField = 'etiqueta' | 'horario' | 'direccion' | 'enlace';
 
 const Prompt: React.FC = () => {
   const { user } = useAuth();
@@ -822,7 +834,8 @@ const Prompt: React.FC = () => {
         emails: [''],
         sitio: '',
         direccion: '',
-        horario: ''
+        horario: '',
+        enlace: ''
       };
       return {
         ...prev,
@@ -1165,6 +1178,18 @@ const Prompt: React.FC = () => {
                       </button>
                     </div>
                   </div>
+                  <label className="mt-3 flex w-full flex-col gap-1.5">
+                    <span className="text-xs font-medium text-brand-muted">Link de ubicación</span>
+                    <input
+                      type="text"
+                      value={branch.enlace}
+                      onChange={(event) =>
+                        handleBranchChange(branch.id, 'enlace', event.target.value)
+                      }
+                      className="w-full rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                      placeholder="https://maps.google.com/?q=tu+sucursal"
+                    />
+                  </label>
                 </article>
               ))}
               {!promptData.branches.length && (
