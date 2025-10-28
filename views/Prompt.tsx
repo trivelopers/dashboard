@@ -60,17 +60,16 @@ const createEmptyPromptData = (): PromptData => ({
 
 interface ExpandableTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   minRows?: number;
-  collapsedRows?: number;
+  maxRows?: number;
 }
 
 const ExpandableTextarea: React.FC<ExpandableTextareaProps> = ({
   minRows = 1,
-  collapsedRows = 3,
+  maxRows = 10,
   value = '',
   className = '',
   ...rest
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const textValue =
     typeof value === 'string' ? value : value === undefined || value === null ? '' : String(value);
 
@@ -84,31 +83,16 @@ const ExpandableTextarea: React.FC<ExpandableTextareaProps> = ({
     }, 0);
   }, [textValue]);
 
-  const collapsedRowCount = Math.max(minRows, Math.min(collapsedRows, estimatedLines));
-  const expandedRowCount = Math.max(collapsedRows, estimatedLines);
-  const displayRows = isExpanded ? expandedRowCount : collapsedRowCount;
-  const shouldShowToggle = expandedRowCount > collapsedRows;
+  const displayRows = Math.min(maxRows, Math.max(minRows, estimatedLines));
+  const shouldAllowScroll = estimatedLines > maxRows;
 
   return (
-    <div>
-      <textarea
-        {...rest}
-        value={textValue}
-        rows={displayRows}
-        className={`resize-none ${!isExpanded && shouldShowToggle ? 'overflow-hidden' : 'overflow-y-auto'} ${className}`}
-      />
-      {shouldShowToggle && (
-        <div className="mt-2 flex justify-end">
-          <button
-            type="button"
-            onClick={() => setIsExpanded((prev) => !prev)}
-            className="text-xs font-medium text-brand-muted transition hover:text-brand-muted"
-          >
-            {isExpanded ? 'Ver menos' : 'Ver mas'}
-          </button>
-        </div>
-      )}
-    </div>
+    <textarea
+      {...rest}
+      value={textValue}
+      rows={displayRows}
+      className={`resize-none ${shouldAllowScroll ? 'overflow-y-auto' : 'overflow-hidden'} ${className}`}
+    />
   );
 };
 
@@ -911,7 +895,7 @@ const Prompt: React.FC = () => {
               }}
               readOnly={userRole !== 'admin'}
               minRows={3}
-              collapsedRows={8}
+              maxRows={8}
               className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
                 userRole === 'admin'
                   ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
@@ -931,7 +915,7 @@ const Prompt: React.FC = () => {
               }}
               readOnly={userRole !== 'admin'}
               minRows={3}
-              collapsedRows={10}
+              maxRows={10}
               className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
                 userRole === 'admin'
                   ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
@@ -1131,7 +1115,7 @@ const Prompt: React.FC = () => {
                         onClick={() => handleAddBranchArrayItem(branch.id, 'telefonos')}
                         className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-muted transition hover:text-brand-dark"
                       >
-                        <span>+ Agregar telefono</span>
+                        <span>+ Agregar teléfono</span>
                       </button>
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -1384,7 +1368,7 @@ const Prompt: React.FC = () => {
                       onClick={() => toggleCoreRule(rule.id)}
                       className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
                     >
-                      {expanded ? 'Ver menos' : 'Ver mas'}
+                      {expanded ? 'Cancelar edición' : 'Editar'}
                     </button>
                     {userRole === 'admin' && (
                       <button
