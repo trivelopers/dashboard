@@ -707,12 +707,58 @@ const Prompt: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
-      <header className="rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
-        <h1 className="mt-2 text-3xl font-bold text-brand-dark">Configuración del asistente</h1>
-        <p className="mt-3 max-w-3xl text-sm text-brand-muted">
-          Administra el contenido que define el rol, las reglas y los ejemplos del asistente. Cada
-          bloque es independiente para facilitar los ajustes sin arriesgar la estructura técnica.
-        </p>
+      <header className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="mt-2 text-3xl font-bold text-brand-dark">Configuración del asistente</h1>
+            <p className="mt-3 max-w-3xl text-sm text-brand-muted">
+              Administra el contenido que define el rol, las reglas y los ejemplos del asistente. Cada
+              bloque es independiente para facilitar los ajustes sin arriesgar la estructura técnica.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
+          <label className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-brand-dark">Rol del agente</span>
+            <ExpandableTextarea
+              value={promptData.role}
+              onChange={(event) => {
+                if (userRole !== 'admin') return;
+                setPromptData((prev) => ({ ...prev, role: event.target.value }));
+              }}
+              readOnly={userRole !== 'admin'}
+              minRows={3}
+              collapsedRows={8}
+              className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
+                userRole === 'admin'
+                  ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
+                  : 'border-brand-border/60 bg-brand-background text-brand-muted'
+              }`}
+              placeholder="Describe el rol principal del agente."
+            />
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-brand-dark">Propósito del agente</span>
+            <ExpandableTextarea
+              value={promptData.purpose}
+              onChange={(event) => {
+                if (userRole !== 'admin') return;
+                setPromptData((prev) => ({ ...prev, purpose: event.target.value }));
+              }}
+              readOnly={userRole !== 'admin'}
+              minRows={3}
+              collapsedRows={10}
+              className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
+                userRole === 'admin'
+                  ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
+                  : 'border-brand-border/60 bg-brand-background text-brand-muted'
+              }`}
+              placeholder="Explica el objetivo general del agente."
+            />
+          </label>
+        </div>
       </header>
 
       {error && (
@@ -727,255 +773,16 @@ const Prompt: React.FC = () => {
         </div>
       )}
 
-      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
-  <div className="flex flex-wrap items-center justify-between gap-3">
-    <h2 className="text-2xl font-semibold text-brand-dark">Encabezado general</h2>
-    <span className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-      {userRole === 'admin'
-        ? '✏️ Contenido editable'
-        : '🧱 Estructura interna (solo lectura)'}
-    </span>
-  </div>
-
-  {/* Cambié a grid fluido con columnas proporcionales y altura controlada */}
-  <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
-    {/* Rol */}
-    <label className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-brand-dark">
-        Rol del agente
-      </span>
-      <ExpandableTextarea
-        value={promptData.role}
-        onChange={(event) => {
-          if (userRole !== 'admin') return;
-          setPromptData((prev) => ({ ...prev, role: event.target.value }));
-        }}
-        readOnly={userRole !== 'admin'}
-        minRows={1}
-        collapsedRows={8}
-        className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
-          userRole === 'admin'
-            ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
-            : 'border-brand-border/60 bg-brand-background text-brand-muted'
-        }`}
-        placeholder="Describe el rol principal del agente."
-      />
-    </label>
-
-    {/* Propósito */}
-    <label className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-brand-dark">
-        Propósito del agente
-      </span>
-      <ExpandableTextarea
-        value={promptData.purpose}
-        onChange={(event) => {
-          if (userRole !== 'admin') return;
-          setPromptData((prev) => ({ ...prev, purpose: event.target.value }));
-        }}
-        readOnly={userRole !== 'admin'}
-        minRows={3}
-        collapsedRows={10}
-        className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
-          userRole === 'admin'
-            ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
-            : 'border-brand-border/60 bg-brand-background text-brand-muted'
-        }`}
-        placeholder="Explica la meta del asistente en esta organización."
-      />
-    </label>
-  </div>
-</section>
-
-<section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold text-brand-dark">Reglas de comportamiento</h2>
-            <p className="mt-1 text-sm text-brand-muted">
-              Cambiar solo el texto visible al cliente. No modificar estructura interna.
-            </p>
-          </div>
-          <span className="text-xs font-medium uppercase tracking-wide text-brand-primary">
-            ✏️ Contenido editable
-          </span>
-        </div>
-
-        <div className="space-y-4">
-          {promptData.behaviorRules.map((rule, index) => {
-            const draftValue = behaviorRuleDrafts[rule.id] ?? rule.texto;
-            const initialValue = initialBehaviorRules[rule.id] ?? '';
-            const isDirty = draftValue !== rule.texto;
-            const hasCommittedDifference = rule.texto !== initialValue;
-            const showRestore = isDirty || hasCommittedDifference;
-
-            return (
-              <article
-                key={rule.id}
-                className="rounded-xl border border-brand-primary/40 bg-brand-primary/10 p-4 shadow-brand-soft"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="text-base font-semibold text-brand-dark">Regla {index + 1}</h3>
-                </div>
-                <ExpandableTextarea
-                  value={draftValue}
-                  onChange={(event) => handleBehaviorRuleChange(rule.id, event.target.value)}
-                  minRows={1}
-                  className="mt-3 w-full rounded-lg border border-brand-primary/40 bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                  placeholder="Describe el comportamiento esperado para esta regla."
-                />
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {isDirty && (
-                    <button
-                      type="button"
-                      onClick={() => handleCommitBehaviorRule(rule.id)}
-                      className="rounded-full bg-brand-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
-                    >
-                      Guardar
-                    </button>
-                  )}
-                  {showRestore && (
-                    <button
-                      type="button"
-                      onClick={() => handleRestoreBehaviorRule(rule.id)}
-                      className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
-                    >
-                      Restaurar
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteBehaviorRule(rule.id)}
-                    className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            );
-          })}
-          {!promptData.behaviorRules.length && (
-            <div className="rounded-xl border border-dashed border-brand-primary/40 bg-brand-primary/10 p-6 text-center text-sm text-brand-primary">
-              No hay reglas de comportamiento registradas.
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={handleAddBehaviorRule}
-            className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
-          >
-            Agregar nueva regla
-          </button>
-        </div>
-      </section>
 
       <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold text-brand-dark">Reglas técnicas</h2>
-            <p className="mt-1 text-sm text-brand-muted">
-              ⚠️ No modificar sin validar con el equipo de desarrollo.
-            </p>
-          </div>
-          <span className="text-xs font-medium uppercase tracking-wide text-brand-info">
-            🧱 Estructura interna (solo lectura)
-          </span>
-        </div>
-
-        <div className="space-y-4">
-          {promptData.coreRules.map((rule, index) => {
-            const expanded = expandedCoreRules[rule.id] || false;
-            return (
-              <article
-                key={rule.id}
-                className="rounded-xl border border-brand-info/60 bg-brand-info/15 p-4 shadow-brand-soft"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-info">
-                      Regla técnica
-                    </p>
-                    <h3 className="mt-1 text-base font-semibold text-brand-dark">
-                      Regla {index + 1}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => toggleCoreRule(rule.id)}
-                      className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
-                    >
-                      {expanded ? 'Ver menos' : 'Ver mas'}
-                    </button>
-                    {userRole === 'admin' && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCoreRule(rule.id)}
-                        className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
-                      >
-                        Eliminar
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {!expanded && (
-                  <p className="mt-3 whitespace-pre-line text-sm text-brand-dark">
-                    {previewRule(rule.texto)}
-                  </p>
-                )}
-                {expanded && (
-                  <ExpandableTextarea
-                    value={rule.texto}
-                    onChange={(event) => handleCoreRuleChange(rule.id, event.target.value)}
-                    readOnly={userRole !== 'admin'}
-                    minRows={1}
-                    className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${
-                      userRole === 'admin'
-                        ? 'border-brand-info/60 bg-brand-surface text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25'
-                        : 'border-brand-info/40 bg-brand-info/10 text-brand-dark'
-                    }`}
-                    placeholder="Contenido de la regla técnica."
-                  />
-                )}
-              </article>
-            );
-          })}
-          {!promptData.coreRules.length && (
-            <div className="rounded-xl border border-dashed border-brand-info/60 bg-brand-info/10/40 p-6 text-center text-sm text-brand-info">
-              No hay reglas principales registradas.
-            </div>
-          )}
-        </div>
-
-        {userRole === 'admin' && (
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={handleAddCoreRule}
-              className="rounded-full border border-brand-info/60 px-4 py-2 text-sm font-medium text-brand-info transition hover:border-brand-info/70 hover:bg-brand-info/10"
-            >
-              Agregar nueva regla técnica
-            </button>
-          </div>
-        )}
-      </section>
-
-      
-
-      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold text-brand-dark">Informacion de la empresa</h2>
+            <h2 className="text-2xl font-semibold text-brand-dark">Información de la empresa</h2>
             <p className="mt-1 text-sm text-brand-muted">
               Manten actualizada la descripción, los servicios y las sucursales para reflejar la
               oferta vigente.
             </p>
           </div>
-          <span className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-            ✏️ Contenido editable
-          </span>
         </div>
 
         <div className="space-y-4">
@@ -1164,9 +971,6 @@ const Prompt: React.FC = () => {
       <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-2xl font-semibold text-brand-dark">Ejemplos</h2>
-          <span className="text-xs font-medium uppercase tracking-wide text-brand-primary">
-            ✏️ Contenido editable
-          </span>
         </div>
         <div className="space-y-4">
           {promptData.examples.map((example, index) => (
@@ -1228,6 +1032,181 @@ const Prompt: React.FC = () => {
           </button>
         </div>
       </section>
+
+<section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold text-brand-dark">Reglas de comportamiento</h2>
+            <p className="mt-1 text-sm text-brand-muted">
+              Cambiar solo el texto visible al cliente. No modificar estructura interna.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {promptData.behaviorRules.map((rule, index) => {
+            const draftValue = behaviorRuleDrafts[rule.id] ?? rule.texto;
+            const initialValue = initialBehaviorRules[rule.id] ?? '';
+            const isDirty = draftValue !== rule.texto;
+            const hasCommittedDifference = rule.texto !== initialValue;
+            const showRestore = isDirty || hasCommittedDifference;
+
+            return (
+              <article
+                key={rule.id}
+                className="rounded-xl border border-brand-info/40 bg-brand-info/10 p-4 shadow-brand-soft"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-base font-semibold text-brand-dark">Regla {index + 1}</h3>
+                </div>
+                <ExpandableTextarea
+                  value={draftValue}
+                  onChange={(event) => handleBehaviorRuleChange(rule.id, event.target.value)}
+                  minRows={1}
+                  className="mt-3 w-full rounded-lg border border-brand-info/40 bg-brand-info/10 px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25"
+                  placeholder="Describe el comportamiento esperado para esta regla."
+                />
+                <div className="flex flex-wrap gap-2">
+                  {isDirty && (
+                    <button
+                      type="button"
+                      onClick={() => handleCommitBehaviorRule(rule.id)}
+                      className="rounded-full bg-brand-info px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-info-hover"
+                    >
+                      Guardar
+                    </button>
+                  )}
+                  {showRestore && (
+                    <button
+                      type="button"
+                      onClick={() => handleRestoreBehaviorRule(rule.id)}
+                      className="rounded-full border border-brand-info/40 px-4 py-2 text-sm font-medium text-brand-info transition hover:border-brand-info/70 hover:bg-brand-info/10"
+                    >
+                      Restaurar
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteBehaviorRule(rule.id)}
+                    className="rounded-full border border-brand-info/40 px-4 py-2 text-sm font-medium text-brand-info transition hover:border-brand-info/70 hover:bg-brand-info/10"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+          {!promptData.behaviorRules.length && (
+            <div className="rounded-xl border border-dashed border-brand-primary/40 bg-brand-primary/10 p-6 text-center text-sm text-brand-primary">
+              No hay reglas de comportamiento registradas.
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleAddBehaviorRule}
+            className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
+          >
+            Agregar nueva regla
+          </button>
+        </div>
+      </section>
+
+      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold text-brand-dark">Reglas técnicas</h2>
+            <p className="mt-1 text-sm text-brand-muted">
+              ⚠️ No modificar sin validar con el equipo de desarrollo.
+            </p>
+          </div>
+          <span className="text-xs font-medium uppercase tracking-wide text-brand-info">
+            🧱 Estructura interna (solo lectura)
+          </span>
+        </div>
+
+        <div className="space-y-4">
+          {promptData.coreRules.map((rule, index) => {
+            const expanded = expandedCoreRules[rule.id] || false;
+            return (
+              <article
+                key={rule.id}
+                className="rounded-xl border border-brand-muted/60 bg-brand-muted/15 p-4 shadow-brand-soft"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-info">
+                      Regla técnica
+                    </p>
+                    <h3 className="mt-1 text-base font-semibold text-brand-dark">
+                      Regla {index + 1}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleCoreRule(rule.id)}
+                      className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
+                    >
+                      {expanded ? 'Ver menos' : 'Ver mas'}
+                    </button>
+                    {userRole === 'admin' && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCoreRule(rule.id)}
+                        className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
+                      >
+                        Eliminar
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {!expanded && (
+                  <p className="mt-3 whitespace-pre-line text-sm text-brand-dark">
+                    {previewRule(rule.texto)}
+                  </p>
+                )}
+                {expanded && (
+                  <ExpandableTextarea
+                    value={rule.texto}
+                    onChange={(event) => handleCoreRuleChange(rule.id, event.target.value)}
+                    readOnly={userRole !== 'admin'}
+                    minRows={1}
+                    className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${
+                      userRole === 'admin'
+                        ? 'border-brand-info/60 bg-brand-surface text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25'
+                        : 'border-brand-info/40 bg-brand-info/10 text-brand-dark'
+                    }`}
+                    placeholder="Contenido de la regla técnica."
+                  />
+                )}
+              </article>
+            );
+          })}
+          {!promptData.coreRules.length && (
+            <div className="rounded-xl border border-dashed border-brand-info/60 bg-brand-info/10/40 p-6 text-center text-sm text-brand-info">
+              No hay reglas principales registradas.
+            </div>
+          )}
+        </div>
+
+        {userRole === 'admin' && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleAddCoreRule}
+              className="rounded-full border border-brand-info/60 px-4 py-2 text-sm font-medium text-brand-info transition hover:border-brand-info/70 hover:bg-brand-info/10"
+            >
+              Agregar nueva regla técnica
+            </button>
+          </div>
+        )}
+      </section>
+
+      
+
 
       {hasChanges && (
         <div className="pointer-events-none fixed bottom-6 right-6 z-20 flex justify-end">
