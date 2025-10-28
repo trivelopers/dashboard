@@ -980,11 +980,12 @@ const Prompt: React.FC = () => {
             <div className="space-y-3">
               {promptData.company.servicios.map((servicio, index) => (
                 <div key={`servicio-${index}`} className="flex items-center gap-3">
-                  <input
-                    type="text"
+                  <ExpandableTextarea
                     value={servicio}
                     onChange={(event) => handleServiceChange(index, event.target.value)}
-                    className="flex-1 rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                    minRows={2}
+                    maxRows={8}
+                    className="flex-1 rounded-lg border border-brand-border bg-brand-surface shadow-brand-soft px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                     placeholder={`Servicio ${index + 1}`}
                   />
                   <button
