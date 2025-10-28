@@ -895,7 +895,7 @@ const Prompt: React.FC = () => {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-brand-info">
-                      Regla tecnica
+                      Regla técnica
                     </p>
                     <h3 className="mt-1 text-base font-semibold text-brand-dark">
                       Regla {index + 1}
@@ -936,7 +936,7 @@ const Prompt: React.FC = () => {
                         ? 'border-brand-info/60 bg-brand-surface text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25'
                         : 'border-brand-info/40 bg-brand-info/10 text-brand-dark'
                     }`}
-                    placeholder="Contenido de la regla tecnica."
+                    placeholder="Contenido de la regla técnica."
                   />
                 )}
               </article>
@@ -956,7 +956,7 @@ const Prompt: React.FC = () => {
               onClick={handleAddCoreRule}
               className="rounded-full border border-brand-info/60 px-4 py-2 text-sm font-medium text-brand-info transition hover:border-brand-info/70 hover:bg-brand-info/10"
             >
-              Agregar nueva regla tecnica
+              Agregar nueva regla técnica
             </button>
           </div>
         )}
@@ -969,7 +969,7 @@ const Prompt: React.FC = () => {
           <div>
             <h2 className="text-2xl font-semibold text-brand-dark">Informacion de la empresa</h2>
             <p className="mt-1 text-sm text-brand-muted">
-              Manten actualizada la descripcion, los servicios y las sucursales para reflejar la
+              Manten actualizada la descripción, los servicios y las sucursales para reflejar la
               oferta vigente.
             </p>
           </div>
