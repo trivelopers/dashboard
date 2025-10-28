@@ -896,11 +896,10 @@ const Prompt: React.FC = () => {
               readOnly={userRole !== 'admin'}
               minRows={3}
               maxRows={8}
-              className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
-                userRole === 'admin'
+              className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${userRole === 'admin'
                   ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
                   : 'border-brand-border/60 bg-brand-background text-brand-muted'
-              }`}
+                }`}
               placeholder="Describe el rol principal del agente."
             />
           </label>
@@ -916,11 +915,10 @@ const Prompt: React.FC = () => {
               readOnly={userRole !== 'admin'}
               minRows={3}
               maxRows={10}
-              className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${
-                userRole === 'admin'
+              className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${userRole === 'admin'
                   ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
                   : 'border-brand-border/60 bg-brand-background text-brand-muted'
-              }`}
+                }`}
               placeholder="Explica el objetivo general del agente."
             />
           </label>
@@ -943,7 +941,7 @@ const Prompt: React.FC = () => {
       <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold text-brand-dark">Información de la empresa</h2>
+            <h2 className="text-2xl font-semibold text-brand-dark">Información de tu empresa</h2>
             <p className="mt-1 text-sm text-brand-muted">
               Manten actualizada la descripción, los servicios y las sucursales para reflejar la
               oferta vigente.
@@ -1025,6 +1023,9 @@ const Prompt: React.FC = () => {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
+                        Sucursal #{index + 1}
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -1188,7 +1189,12 @@ const Prompt: React.FC = () => {
 
       <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-2xl font-semibold text-brand-dark">Ejemplos</h2>
+          <div>
+            <h2 className="text-2xl font-semibold text-brand-dark">Ejemplos de interacciones</h2>
+            <p className="mt-1 text-sm text-brand-muted">
+              Proporciona ejemplos claros de preguntas y respuestas para guiar el comportamiento del asistente.
+            </p>
+          </div>
         </div>
         <div className="space-y-4">
           {promptData.examples.map((example, index) => (
@@ -1197,7 +1203,7 @@ const Prompt: React.FC = () => {
               className="rounded-xl border border-brand-primary/40 bg-brand-primary/10 p-4 shadow-brand-soft"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-base font-semibold text-brand-dark">Ejemplo {index + 1}</h3>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">Ejemplo #{index + 1}</p>
                 <button
                   type="button"
                   onClick={() => handleRemoveExample(example.id)}
@@ -1251,12 +1257,12 @@ const Prompt: React.FC = () => {
         </div>
       </section>
 
-<section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
+      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-2xl font-semibold text-brand-dark">Reglas de comportamiento</h2>
             <p className="mt-1 text-sm text-brand-muted">
-              Cambiar solo el texto visible al cliente. No modificar estructura interna.
+              Define las reglas que guían el comportamiento del asistente durante las interacciones.
             </p>
           </div>
         </div>
@@ -1275,13 +1281,15 @@ const Prompt: React.FC = () => {
                 className="rounded-xl border border-brand-info/40 bg-brand-info/10 p-4 shadow-brand-soft"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="text-base font-semibold text-brand-dark">Regla {index + 1}</h3>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
+                    Regla de comportamiento #{index + 1}
+                  </p>
                 </div>
                 <ExpandableTextarea
                   value={draftValue}
                   onChange={(event) => handleBehaviorRuleChange(rule.id, event.target.value)}
                   minRows={1}
-                  className="mt-3 w-full rounded-lg border border-brand-info/40 bg-brand-info/10 px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25"
+                  className="mt-3 w-full rounded-lg border border-brand-info/40 px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25"
                   placeholder="Describe el comportamiento esperado para esta regla."
                 />
                 <div className="flex flex-wrap gap-2">
@@ -1337,7 +1345,8 @@ const Prompt: React.FC = () => {
           <div>
             <h2 className="text-2xl font-semibold text-brand-dark">Reglas técnicas</h2>
             <p className="mt-1 text-sm text-brand-muted">
-              ⚠️ No modificar sin validar con el equipo de desarrollo.
+              ⚠️ Modificables solo por el equipo técnico. Estas reglas definen la estructura y el
+              formato de las respuestas del asistente.
             </p>
           </div>
           <span className="text-xs font-medium uppercase tracking-wide text-brand-info">
@@ -1355,12 +1364,9 @@ const Prompt: React.FC = () => {
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-info">
-                      Regla técnica
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
+                      Regla técnica #{index + 1}
                     </p>
-                    <h3 className="mt-1 text-base font-semibold text-brand-dark">
-                      Regla {index + 1}
-                    </h3>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1392,11 +1398,10 @@ const Prompt: React.FC = () => {
                     onChange={(event) => handleCoreRuleChange(rule.id, event.target.value)}
                     readOnly={userRole !== 'admin'}
                     minRows={1}
-                    className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${
-                      userRole === 'admin'
+                    className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${userRole === 'admin'
                         ? 'border-brand-info/60 bg-brand-surface text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25'
                         : 'border-brand-info/40 bg-brand-info/10 text-brand-dark'
-                    }`}
+                      }`}
                     placeholder="Contenido de la regla técnica."
                   />
                 )}
@@ -1423,7 +1428,7 @@ const Prompt: React.FC = () => {
         )}
       </section>
 
-      
+
 
 
       {hasChanges && (
