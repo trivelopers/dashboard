@@ -872,21 +872,30 @@ const Prompt: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
-      <header className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="mt-2 text-3xl font-bold text-brand-dark">Configuración del asistente</h1>
-            <p className="mt-3 max-w-3xl text-sm text-brand-muted">
-              Administra el contenido que define el rol, las reglas y los ejemplos del asistente. Cada
-              bloque es independiente para facilitar los ajustes sin arriesgar la estructura técnica.
+    <div className="mx-auto max-w-6xl space-y-8 p-6 sm:p-10">
+      <header className="relative overflow-hidden rounded-3xl border border-brand-primary/25 bg-gradient-to-br from-brand-background via-brand-surface to-white p-8 shadow-lg">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-20 -right-16 hidden h-64 w-64 rounded-full bg-brand-primary/15 blur-3xl md:block"
+        />
+        <div className="relative space-y-6">
+          <div className="max-w-3xl space-y-4">
+            <p className="inline-flex rounded-full border border-brand-primary/30 bg-brand-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-primary/80">
+              Centro de control
+            </p>
+            <h1 className="text-3xl font-semibold tracking-tight text-brand-dark sm:text-4xl">
+              Configuración del asistente
+            </h1>
+            <p className="text-sm leading-relaxed text-brand-muted">
+              Ajusta el ADN del agente sin perder el hilo. Cada bloque está pensado para editar rápido,
+              validar cambios y mantener una narrativa consistente con tu marca.
             </p>
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
+        <div className="relative mt-8 grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-brand-dark">Rol del agente</span>
+            <span className="text-sm font-medium text-brand-dark/90">Rol del agente</span>
             <ExpandableTextarea
               value={promptData.role}
               onChange={(event) => {
@@ -896,16 +905,16 @@ const Prompt: React.FC = () => {
               readOnly={userRole !== 'admin'}
               minRows={3}
               maxRows={8}
-              className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${userRole === 'admin'
-                  ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
-                  : 'border-brand-border/60 bg-brand-background text-brand-muted'
+              className={`w-full rounded-2xl border px-4 py-3 text-sm leading-relaxed transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-brand-surface ${userRole === 'admin'
+                  ? 'border-brand-primary/30 bg-white/80 text-brand-dark shadow-sm focus:border-brand-primary focus:ring-brand-primary/30'
+                  : 'cursor-not-allowed border-brand-border/60 bg-brand-background/80 text-brand-muted'
                 }`}
               placeholder="Describe el rol principal del agente."
             />
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-brand-dark">Propósito del agente</span>
+            <span className="text-sm font-medium text-brand-dark/90">Propósito del agente</span>
             <ExpandableTextarea
               value={promptData.purpose}
               onChange={(event) => {
@@ -915,9 +924,9 @@ const Prompt: React.FC = () => {
               readOnly={userRole !== 'admin'}
               minRows={3}
               maxRows={10}
-              className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed ${userRole === 'admin'
-                  ? 'border-brand-border bg-brand-surface text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25'
-                  : 'border-brand-border/60 bg-brand-background text-brand-muted'
+              className={`w-full rounded-2xl border px-4 py-3 text-sm leading-relaxed transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-brand-surface ${userRole === 'admin'
+                  ? 'border-brand-primary/30 bg-white/80 text-brand-dark shadow-sm focus:border-brand-primary focus:ring-brand-primary/30'
+                  : 'cursor-not-allowed border-brand-border/60 bg-brand-background/80 text-brand-muted'
                 }`}
               placeholder="Explica el objetivo general del agente."
             />
@@ -926,24 +935,24 @@ const Prompt: React.FC = () => {
       </header>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200/70 bg-red-50/80 px-4 py-3 text-sm text-red-700 shadow-sm">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-xl border border-brand-warm bg-brand-warm/10 px-4 py-3 text-sm text-brand-warm">
+        <div className="rounded-2xl border border-brand-warm/40 bg-brand-warm/10 px-4 py-3 text-sm text-brand-warm shadow-sm">
           Cambios guardados correctamente.
         </div>
       )}
 
 
-      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
+      <section className="space-y-6 rounded-3xl border border-brand-border/50 bg-brand-surface/95 p-8 shadow-md backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-2xl font-semibold text-brand-dark">Información de tu empresa</h2>
             <p className="mt-1 text-sm text-brand-muted">
-              Manten actualizada la descripción, los servicios y las sucursales para reflejar la
+              Mantén actualizada la descripción, los servicios y las sucursales para reflejar la
               oferta vigente.
             </p>
           </div>
@@ -951,7 +960,7 @@ const Prompt: React.FC = () => {
 
         <div className="space-y-4">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-brand-dark">Acerca de</span>
+            <span className="text-sm font-medium text-brand-dark/90">Acerca de</span>
             <ExpandableTextarea
               value={promptData.company.acerca}
               onChange={(event) =>
@@ -961,18 +970,18 @@ const Prompt: React.FC = () => {
                 }))
               }
               minRows={1}
-              className="w-full rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+              className="w-full rounded-2xl border border-brand-border/40 bg-white/80 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
               placeholder="Resumen breve de la empresa, historia o propuesta de valor."
             />
           </label>
 
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-sm font-medium text-brand-dark">Servicios</span>
+              <span className="text-sm font-medium text-brand-dark/90">Servicios</span>
               <button
                 type="button"
                 onClick={handleAddService}
-                className="rounded-full border border-brand-border bg-brand-primary/10 px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
+                className="inline-flex items-center gap-2 rounded-full border border-brand-primary/40 bg-brand-primary/10 px-4 py-1.5 text-xs font-semibold text-brand-primary transition hover:border-brand-primary/60 hover:bg-brand-primary/15"
               >
                 Agregar servicio
               </button>
@@ -985,21 +994,21 @@ const Prompt: React.FC = () => {
                     onChange={(event) => handleServiceChange(index, event.target.value)}
                     minRows={2}
                     maxRows={8}
-                    className="flex-1 rounded-lg border border-brand-border bg-brand-surface shadow-brand-soft px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                    className="flex-1 rounded-2xl border border-brand-border/40 bg-white/85 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                     placeholder={`Servicio ${index + 1}`}
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveService(index)}
-                    className="rounded-full border border-brand-border px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
+                    className="rounded-full border border-brand-border/50 px-3 py-1.5 text-xs font-semibold text-brand-muted transition hover:border-brand-border hover:bg-brand-background/60"
                   >
                     Eliminar servicio
                   </button>
                 </div>
               ))}
               {!promptData.company.servicios.length && (
-                <p className="rounded-lg border border-dashed border-brand-border bg-brand-background p-4 text-center text-sm text-brand-muted">
-                  Aun no se registraron servicios.
+                <p className="rounded-2xl border border-dashed border-brand-border/50 bg-brand-background/80 p-5 text-center text-sm text-brand-muted">
+                  Aún no se registraron servicios.
                 </p>
               )}
             </div>
@@ -1007,11 +1016,11 @@ const Prompt: React.FC = () => {
 
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-sm font-medium text-brand-dark">Sucursales</span>
+              <span className="text-sm font-medium text-brand-dark/90">Sucursales</span>
               <button
                 type="button"
                 onClick={handleAddBranch}
-                className="rounded-full border border-brand-border bg-brand-primary/10 px-3 py-1.5 text-xs font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background"
+                className="inline-flex items-center gap-2 rounded-full border border-brand-primary/40 bg-brand-primary/10 px-4 py-1.5 text-xs font-semibold text-brand-primary transition hover:border-brand-primary/60 hover:bg-brand-primary/15"
               >
                 Agregar sucursal
               </button>
@@ -1020,18 +1029,18 @@ const Prompt: React.FC = () => {
               {promptData.branches.map((branch, index) => (
                 <article
                   key={branch.id}
-                  className="rounded-xl border border-brand-border bg-brand-background/70 p-4 shadow-brand-soft"
+                  className="rounded-2xl border border-brand-border/40 bg-brand-background/90 p-5 shadow-sm"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/80">
                         Sucursal #{index + 1}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleRemoveBranch(branch.id)}
-                      className="text-sm font-small text-brand-muted underline-offset-4 hover:underline"
+                      className="text-sm font-medium text-brand-primary underline-offset-4 hover:underline"
                     >
                       Eliminar sucursal
                     </button>
@@ -1047,7 +1056,7 @@ const Prompt: React.FC = () => {
                         onChange={(event) =>
                           handleBranchChange(branch.id, 'etiqueta', event.target.value)
                         }
-                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                        className="rounded-2xl border border-brand-border/40 bg-white/85 px-4 py-2.5 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                         placeholder="Ej.: Casa Central"
                       />
                     </label>
@@ -1059,7 +1068,7 @@ const Prompt: React.FC = () => {
                         onChange={(event) =>
                           handleBranchChange(branch.id, 'horario', event.target.value)
                         }
-                        className="rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                        className="rounded-2xl border border-brand-border/40 bg-white/85 px-4 py-2.5 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                         placeholder="Ej.: Lunes a viernes de 9 a 18 hs"
                       />
                     </label>
@@ -1072,7 +1081,7 @@ const Prompt: React.FC = () => {
                         handleBranchChange(branch.id, 'direccion', event.target.value)
                       }
                       minRows={1}
-                      className="w-full rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                      className="w-full rounded-2xl border border-brand-border/40 bg-white/85 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                       placeholder="Dirección física, referencias o datos clave."
                     />
                   </label>
@@ -1096,7 +1105,7 @@ const Prompt: React.FC = () => {
                                   event.target.value
                                 )
                               }
-                              className="flex-1 rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                              className="flex-1 rounded-2xl border border-brand-border/40 bg-white/85 px-4 py-2.5 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                               placeholder="+54 11 0000 0000"
                             />
                             <button
@@ -1104,7 +1113,7 @@ const Prompt: React.FC = () => {
                               onClick={() =>
                                 handleRemoveBranchArrayItem(branch.id, 'telefonos', telefonoIndex)
                               }
-                              className="rounded-full border border-brand-border px-2.5 py-1 text-[11px] font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background disabled:cursor-not-allowed disabled:opacity-60"
+                              className="rounded-full border border-brand-border/50 px-2.5 py-1 text-[11px] font-semibold text-brand-muted transition hover:border-brand-border hover:bg-brand-background/60 disabled:cursor-not-allowed disabled:opacity-60"
                               disabled={branch.telefonos.length === 1}
                             >
                               Quitar
@@ -1115,7 +1124,7 @@ const Prompt: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleAddBranchArrayItem(branch.id, 'telefonos')}
-                        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-muted transition hover:text-brand-dark"
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-primary transition hover:text-brand-dark"
                       >
                         <span>+ Agregar teléfono</span>
                       </button>
@@ -1139,15 +1148,15 @@ const Prompt: React.FC = () => {
                                   event.target.value
                                 )
                               }
-                              className="flex-1 rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                              className="flex-1 rounded-2xl border border-brand-border/40 bg-white/85 px-4 py-2.5 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                               placeholder="contacto@empresa.com"
                             />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleRemoveBranchArrayItem(branch.id, 'emails', correoIndex)
-                              }
-                              className="rounded-full border border-brand-border px-2.5 py-1 text-[11px] font-medium text-brand-muted transition hover:border-brand-border hover:bg-brand-background disabled:cursor-not-allowed disabled:opacity-60"
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleRemoveBranchArrayItem(branch.id, 'emails', correoIndex)
+                            }
+                            className="rounded-full border border-brand-border/50 px-2.5 py-1 text-[11px] font-semibold text-brand-muted transition hover:border-brand-border hover:bg-brand-background/60 disabled:cursor-not-allowed disabled:opacity-60"
                               disabled={branch.emails.length === 1}
                             >
                               Quitar
@@ -1158,7 +1167,7 @@ const Prompt: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleAddBranchArrayItem(branch.id, 'emails')}
-                        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-muted transition hover:text-brand-dark"
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-primary transition hover:text-brand-dark"
                       >
                         <span>+ Agregar correo</span>
                       </button>
@@ -1172,14 +1181,14 @@ const Prompt: React.FC = () => {
                       onChange={(event) =>
                         handleBranchChange(branch.id, 'enlace', event.target.value)
                       }
-                      className="w-full rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                      className="w-full rounded-2xl border border-brand-border/40 bg-white/85 px-4 py-2.5 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                       placeholder="https://maps.google.com/?q=tu+sucursal"
                     />
                   </label>
                 </article>
               ))}
               {!promptData.branches.length && (
-                <p className="rounded-lg border border-dashed border-brand-border bg-brand-background p-4 text-center text-sm text-brand-muted">
+                <p className="rounded-2xl border border-dashed border-brand-border/50 bg-brand-background/80 p-5 text-center text-sm text-brand-muted">
                   No hay sucursales registradas.
                 </p>
               )}
@@ -1188,11 +1197,11 @@ const Prompt: React.FC = () => {
         </div>
       </section>
 
-      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
+      <section className="space-y-6 rounded-3xl border border-brand-border/50 bg-brand-surface/95 p-8 shadow-md backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold text-brand-dark">Ejemplos de interacciones</h2>
-            <p className="mt-1 text-sm text-brand-muted">
+            <h2 className="text-2xl font-semibold tracking-tight text-brand-dark">Ejemplos de interacciones</h2>
+            <p className="mt-1 text-sm leading-relaxed text-brand-muted">
               Proporciona ejemplos claros de preguntas y respuestas para guiar el comportamiento del asistente.
             </p>
           </div>
@@ -1201,10 +1210,10 @@ const Prompt: React.FC = () => {
           {promptData.examples.map((example, index) => (
             <article
               key={example.id}
-              className="rounded-xl border border-brand-primary/40 bg-brand-primary/10 p-4 shadow-brand-soft"
+              className="rounded-2xl border border-brand-primary/40 bg-brand-primary/10 p-5 shadow-sm"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">Ejemplo #{index + 1}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/80">Ejemplo #{index + 1}</p>
                 <button
                   type="button"
                   onClick={() => handleRemoveExample(example.id)}
@@ -1222,7 +1231,7 @@ const Prompt: React.FC = () => {
                       handleExampleChange(example.id, 'pregunta', event.target.value)
                     }
                     minRows={1}
-                    className="w-full rounded-lg border border-brand-primary/40 bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                    className="w-full rounded-2xl border border-brand-primary/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                     placeholder="Consulta del cliente que quieres cubrir con este ejemplo."
                   />
                 </label>
@@ -1234,7 +1243,7 @@ const Prompt: React.FC = () => {
                       handleExampleChange(example.id, 'respuesta', event.target.value)
                     }
                     minRows={1}
-                    className="w-full rounded-lg border border-brand-primary/40 bg-brand-surface px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
+                    className="w-full rounded-2xl border border-brand-primary/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
                     placeholder="Respuesta ideal del asistente para este caso."
                   />
                 </label>
@@ -1242,8 +1251,8 @@ const Prompt: React.FC = () => {
             </article>
           ))}
           {!promptData.examples.length && (
-            <p className="rounded-lg border border-dashed border-brand-primary/40 bg-brand-primary/10 p-4 text-center text-sm text-brand-primary">
-              Aun no se registraron ejemplos de conversacion.
+            <p className="rounded-2xl border border-dashed border-brand-primary/40 bg-brand-primary/10 p-5 text-center text-sm text-brand-primary">
+              Aún no se registraron ejemplos de conversación.
             </p>
           )}
         </div>
@@ -1251,7 +1260,7 @@ const Prompt: React.FC = () => {
           <button
             type="button"
             onClick={handleAddExample}
-            className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
+            className="inline-flex items-center gap-2 rounded-full border border-brand-primary/40 bg-brand-primary/5 px-5 py-2 text-sm font-semibold text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
           >
             Agregar ejemplo nuevo
           </button>
