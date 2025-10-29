@@ -116,11 +116,11 @@ const Users: React.FC = () => {
             </div>
           ) : (
             <table className="min-w-full divide-y divide-brand-border">
-              <thead className="bg-brand-background">
+              <thead className="bg-brand-muted">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('users.fullName')}</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('users.email')}</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('users.role')}</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-surface uppercase tracking-wider">{t('users.fullName')}</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-surface uppercase tracking-wider">{t('users.email')}</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-surface uppercase tracking-wider">{t('users.role')}</th>
                 </tr>
               </thead>
               <tbody className="bg-brand-surface divide-y divide-brand-border/70">

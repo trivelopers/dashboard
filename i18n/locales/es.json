@@ -23,7 +23,9 @@
     "contacts": "Contactos",
     "chats": "Chats",
     "prompt": "Asistente",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Cerrar menu"
   },
   "users": {
     "title": "Gestión de equipo",

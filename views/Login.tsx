@@ -6,7 +6,7 @@ import * as yup from 'yup';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
+import tingoLogo from '../tingo-el-asistente-blanco.png';
 
 // Fix: Use yup.object({...}) instead of yup.object().shape({...}) to ensure correct type inference.
 const schema = yup.object({
@@ -41,48 +41,59 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-background flex items-center justify-center">
-      <div className="max-w-md w-full bg-brand-surface rounded-xl shadow-brand-soft p-8 m-4 border border-brand-border/60">
-        <div className="text-center mb-8">
-            <ChatBubbleLeftRightIcon className="h-12 w-12 text-brand-primary mx-auto mb-3" />
-            <h2 className="text-3xl font-bold text-brand-dark">{t('auth.adminPanel')}</h2>
-            <p className="text-brand-muted">{t('auth.signInToManage')}</p>
+    <div className="min-h-screen bg-brand-dark sm:bg-brand-background flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md rounded-none sm:rounded-3xl bg-brand-dark sm:bg-brand-dark/90 p-8 sm:p-10 shadow-none sm:shadow-brand-soft sm:border sm:border-white/15">
+        <div className="text-center mb-10">
+          <img
+            src={tingoLogo}
+            alt="Tingo el Asistente"
+            className="mx-auto mb-4 h-28 w-auto drop-shadow-lg"
+          />
+          <p className="text-sm text-white/70">{t('auth.signInToManage')}</p>
         </div>
-        
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-brand-dark">{t('auth.email')}</label>
-            <div className="mt-1">
+            <label htmlFor="email" className="block text-sm font-semibold text-white/80 tracking-wide">
+              {t('auth.email')}
+            </label>
+            <div className="mt-2">
               <input
                 id="email"
                 type="email"
                 {...register('email')}
-                className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-brand-border'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary`}
+                className={`w-full rounded-xl border px-4 py-3 text-white placeholder-white/50 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-brand-primary/60 ${
+                  errors.email ? 'border-brand-warm/80 bg-brand-dark/60' : 'border-white/15 bg-white/10 focus:border-brand-primary'
+                }`}
               />
-              {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
+              {errors.email && <p className="mt-2 text-sm text-brand-warm">{errors.email.message}</p>}
             </div>
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-brand-dark">{t('auth.password')}</label>
-            <div className="mt-1">
+            <label htmlFor="password" className="block text-sm font-semibold text-white/80 tracking-wide">
+              {t('auth.password')}
+            </label>
+            <div className="mt-2">
               <input
                 id="password"
                 type="password"
                 {...register('password')}
-                className={`w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-brand-border'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary`}
+                className={`w-full rounded-xl border px-4 py-3 text-white placeholder-white/50 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-brand-primary/60 ${
+                  errors.password ? 'border-brand-warm/80 bg-brand-dark/60' : 'border-white/15 bg-white/10 focus:border-brand-primary'
+                }`}
               />
-              {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>}
+              {errors.password && <p className="mt-2 text-sm text-brand-warm">{errors.password.message}</p>}
             </div>
           </div>
-          
-          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+
+          {error && <p className="text-sm text-brand-warm text-center">{error}</p>}
 
           <div>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-semibold text-white bg-brand-primary hover:bg-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary/50 disabled:bg-brand-disabled disabled:text-white disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center rounded-xl border border-brand-primary/30 bg-brand-primary py-3 px-4 text-sm font-semibold text-brand-dark shadow-brand-soft transition hover:bg-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-brand-primary/60 focus:ring-offset-2 focus:ring-offset-brand-dark disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-white/60"
             >
               {isSubmitting ? t('auth.signingIn') : t('auth.login')}
             </button>

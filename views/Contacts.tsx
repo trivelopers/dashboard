@@ -99,11 +99,11 @@ const Contacts: React.FC = () => {
           </div>
         ) : (
           <table className="min-w-full divide-y divide-brand-border">
-            <thead className="bg-brand-background">
+            <thead className="bg-brand-muted">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('contacts.name')}</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('contacts.phone')}</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">{t('contacts.requiresAdmin')}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-surface uppercase tracking-wider">{t('contacts.name')}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-surface uppercase tracking-wider">{t('contacts.phone')}</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-surface uppercase tracking-wider">{t('contacts.requiresAdmin')}</th>
                 <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>

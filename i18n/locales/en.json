@@ -23,7 +23,9 @@
     "contacts": "Contacts",
     "chats": "Chats",
     "prompt": "Assistant",
-    "logout": "Logout"
+    "logout": "Logout",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "users": {
     "title": "Team Management",
