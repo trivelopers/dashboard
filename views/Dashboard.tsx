@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { Contact } from '../types';
 import { UserGroupIcon, ClockIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import api from '../services/api';
+import GradientSection from '../components/GradientSection';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -64,48 +65,65 @@ const Dashboard: React.FC = () => {
     getDashboardData();
   }, []);
 
+  const heroDescription = useMemo(() => {
+    if (companyName) {
+      return t('dashboard.companySummary', {
+        company: companyName,
+        defaultValue: `Información general de ${companyName}`
+      });
+    }
+    return t('dashboard.heroDescription', 'Monitorea el pulso general del asistente.');
+  }, [companyName, t]);
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-brand-dark mb-6">{t('dashboard.welcome', { name: user?.name })}</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-brand-surface p-6 rounded-xl shadow-brand-soft border border-brand-border/60 flex items-center">
-            <div className="p-3 rounded-full bg-brand-primary/10 text-brand-primary mr-4">
-                <InformationCircleIcon className="h-8 w-8"/>
+    <div className="space-y-6">
+      <GradientSection
+        title={t('dashboard.welcome', { name: user?.name })}
+        description={heroDescription}
+        
+      >
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="flex items-center rounded-2xl border border-brand-border/60 bg-white/85 p-6 shadow-brand-soft backdrop-blur">
+            <div className="mr-4 rounded-full bg-brand-primary/10 p-3 text-brand-primary">
+              <InformationCircleIcon className="h-8 w-8" />
             </div>
             <div>
-                <p className="text-sm text-brand-muted">Empresa</p>
-                <p className="text-2xl font-bold text-brand-dark">
-                  {companyName || 'Cargando...'}
-                </p>
+              <p className="text-sm text-brand-muted">Empresa</p>
+              <p className="text-2xl font-bold text-brand-dark">{companyName || 'Cargando...'}</p>
             </div>
-        </div>
-        <div className="bg-brand-surface p-6 rounded-xl shadow-brand-soft border border-brand-border/60 flex items-center">
-            <div className="p-3 rounded-full bg-brand-accent/10 text-brand-accent mr-4">
-                <UserGroupIcon className="h-8 w-8"/>
+          </div>
+          <div className="flex items-center rounded-2xl border border-brand-border/60 bg-white/85 p-6 shadow-brand-soft backdrop-blur">
+            <div className="mr-4 rounded-full bg-brand-accent/10 p-3 text-brand-accent">
+              <UserGroupIcon className="h-8 w-8" />
             </div>
             <div>
-                <p className="text-sm text-brand-muted">{t('dashboard.totalContacts')}</p>
-                <p className="text-2xl font-bold text-brand-dark">{isLoading ? '...' : contactCount}</p>
+              <p className="text-sm text-brand-muted">{t('dashboard.totalContacts')}</p>
+              <p className="text-2xl font-bold text-brand-dark">{isLoading ? '...' : contactCount}</p>
             </div>
-        </div>
-        <div className="bg-brand-surface p-6 rounded-xl shadow-brand-soft border border-brand-border/60 flex items-center">
-            <div className="p-3 rounded-full bg-brand-info/10 text-brand-info mr-4">
-                <ClockIcon className="h-8 w-8"/>
+          </div>
+          <div className="flex items-center rounded-2xl border border-brand-border/60 bg-white/85 p-6 shadow-brand-soft backdrop-blur">
+            <div className="mr-4 rounded-full bg-brand-info/10 p-3 text-brand-info">
+              <ClockIcon className="h-8 w-8" />
             </div>
             <div>
-                <p className="text-sm text-brand-muted">{t('dashboard.lastInteraction')}</p>
-                <p className="text-2xl font-bold text-brand-dark">{isLoading ? '...' : lastUpdate}</p>
+              <p className="text-sm text-brand-muted">{t('dashboard.lastInteraction')}</p>
+              <p className="text-2xl font-bold text-brand-dark">{isLoading ? '...' : lastUpdate}</p>
             </div>
+          </div>
         </div>
-      </div>
+      </GradientSection>
 
-      <div className="mt-10 bg-brand-surface p-6 rounded-xl shadow-brand-soft border border-brand-border/60">
-        <h2 className="text-2xl font-semibold text-brand-dark mb-4">{t('dashboard.botStatus')}</h2>
-        <p className="text-brand-muted">{t('dashboard.botStatusDescription')}</p>
-      </div>
+      <GradientSection
+        title={t('dashboard.botStatus')}
+        description={t('dashboard.botStatusDescription')}
+      />
     </div>
   );
 };
 
 export default Dashboard;
+
+
+
+
+
+

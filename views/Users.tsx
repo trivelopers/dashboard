@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Role } from '../types';
 import Spinner from '../components/Spinner';
+import GradientSection from '../components/GradientSection';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -94,48 +95,60 @@ const Users: React.FC = () => {
   
   return (
     <>
-      <div className="bg-brand-surface p-8 rounded-xl shadow-brand-soft border border-brand-border/60">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-brand-dark">{t('users.title')}</h1>
+      <GradientSection
+        title={t('users.title')}
+        actions={
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-brand-primary text-white font-semibold rounded-md shadow-brand-soft hover:bg-brand-primary-hover transition"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-brand-soft transition hover:bg-brand-primary-hover"
           >
             {t('users.addNewUser')}
           </button>
-        </div>
-        
+        }
+      >
         <div className="overflow-x-auto">
           {isLoading ? (
             <div className="flex justify-center p-10">
               <Spinner />
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center text-brand-muted py-10">
-              {t('users.noUsers')}
-            </div>
+            <div className="py-10 text-center text-brand-muted">{t('users.noUsers')}</div>
           ) : (
-            <table className="min-w-full divide-y divide-brand-border">
-              <thead className="bg-brand-muted">
+            <table className="min-w-full divide-y divide-brand-border/80 rounded-2xl bg-white/90 shadow-brand-soft backdrop-blur">
+              <thead className="bg-brand-muted text-brand-surface">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-surface uppercase tracking-wider">{t('users.fullName')}</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-surface uppercase tracking-wider">{t('users.email')}</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-surface uppercase tracking-wider">{t('users.role')}</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                    {t('users.fullName')}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                    {t('users.email')}
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                    {t('users.role')}
+                  </th>
                 </tr>
               </thead>
-              <tbody className="bg-brand-surface divide-y divide-brand-border/70">
+              <tbody className="divide-y divide-brand-border/60 bg-white/85">
                 {users.map((user) => (
-                  <tr key={user.id}>
+                  <tr key={user.id} className="transition-colors hover:bg-brand-background/50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-dark">{user.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-muted">{user.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                           user.role === Role.ADMIN ? 'bg-brand-primary text-brand-dark' :
-                           user.role === Role.EDITOR ? 'bg-brand-accent text-white' : 'bg-brand-info text-brand-dark'
-                       }`}>
-                           {user.role === Role.ADMIN ? t('users.admin') : 
-                            user.role === Role.EDITOR ? t('users.editor') : t('users.viewer')}
-                       </span>
+                      <span
+                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                          user.role === Role.ADMIN
+                            ? 'bg-brand-primary text-brand-dark'
+                            : user.role === Role.EDITOR
+                            ? 'bg-brand-accent text-white'
+                            : 'bg-brand-info text-brand-dark'
+                        }`}
+                      >
+                        {user.role === Role.ADMIN
+                          ? t('users.admin')
+                          : user.role === Role.EDITOR
+                          ? t('users.editor')
+                          : t('users.viewer')}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -143,7 +156,7 @@ const Users: React.FC = () => {
             </table>
           )}
         </div>
-      </div>
+      </GradientSection>
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-brand-dark/70 z-50 flex justify-center items-center backdrop-blur-sm">

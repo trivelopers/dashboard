@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Message } from '../types';
 import Spinner from '../components/Spinner';
+import GradientSection from '../components/GradientSection';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import api from '../services/api';
 
@@ -54,40 +55,57 @@ const ChatHistory: React.FC = () => {
       </div>
     );
   }
-
   return (
-    <div className="bg-brand-surface rounded-xl shadow-brand-soft border border-brand-border/60 flex flex-col h-[calc(100vh-10rem)]">
-      <div className="p-4 border-b border-brand-border flex items-center">
-        <Link 
-          to="/contacts" 
-          className="mr-4 p-2 text-brand-muted hover:text-brand-primary hover:bg-brand-primary/10 rounded-full transition"
+    <GradientSection
+      title={t('chatHistory.title')}
+      description={`ID de contacto: ${contactId}`}
+      actions={
+        <Link
+          to="/contacts"
+          className="inline-flex items-center gap-2 rounded-full border border-brand-border/60 bg-white/60 px-3 py-1 text-sm font-semibold text-brand-dark transition hover:border-brand-primary/60 hover:text-brand-primary"
         >
-          <ArrowLeftIcon className="h-5 w-5" />
+          <ArrowLeftIcon className="h-4 w-4" />
+          {t('chatHistory.backToContacts', 'Volver a contactos')}
         </Link>
-        <div>
-          <h1 className="text-xl font-bold text-brand-dark">{t('chatHistory.title')}</h1>
-          <p className="text-sm text-brand-muted">Contact ID: {contactId}</p>
+      }
+      contentClassName="space-y-4"
+    >
+      <div className="flex h-[calc(100vh-12rem)] flex-col rounded-2xl border border-brand-border/60 bg-white/85 shadow-brand-soft backdrop-blur">
+        <div className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-6">
+          {messages.length > 0 ? (
+            messages.map((msg) => (
+              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className={`max-w-xl rounded-xl px-4 py-3 shadow-sm ${
+                    msg.role === 'user'
+                      ? 'bg-brand-primary text-white'
+                      : 'border border-brand-border/50 bg-white text-brand-dark'
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed">{msg.text}</p>
+                  <p
+                    className={`mt-1 text-right text-xs ${
+                      msg.role === 'user' ? 'text-white/80' : 'text-brand-muted'
+                    }`}
+                  >
+                    {new Date(msg.timestamp).toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-brand-muted">{t('chatHistory.noMessages')}</p>
+          )}
+          <div ref={chatEndRef} />
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-6 bg-brand-background space-y-4">
-        {messages.length > 0 ? messages.map(msg => (
-          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-xl px-4 py-3 rounded-xl shadow-sm ${
-              msg.role === 'user'
-                ? 'bg-brand-primary text-white'
-                : 'bg-brand-surface text-brand-dark border border-brand-border/70'
-            }`}>
-              <p className="text-sm">{msg.text}</p>
-              <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-white/80' : 'text-brand-muted'} text-right`}>
-                {new Date(msg.timestamp).toLocaleTimeString()}
-              </p>
-            </div>
-          </div>
-        )) : <p className="text-center text-brand-muted">{t('chatHistory.noMessages')}</p>}
-        <div ref={chatEndRef} />
-      </div>
-    </div>
+    </GradientSection>
   );
 };
 
 export default ChatHistory;
+
+
+
+
+

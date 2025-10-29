@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import ExpandableTextarea from '../components/ExpandableTextarea';
 import Spinner from '../components/Spinner';
+import GradientSection from '../components/GradientSection';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -249,21 +250,12 @@ const CompanyInfo: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-6 sm:p-10">
-      <header className="rounded-3xl border border-brand-primary/25 bg-gradient-to-br from-brand-background via-brand-surface to-white p-8 shadow-lg">
-        <div className="space-y-4">
-          <p className="inline-flex rounded-full border border-brand-primary/30 bg-brand-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-primary/80">
-            Identidad de marca
-          </p>
-          <div className="space-y-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-brand-dark sm:text-4xl">
-              Informaci贸n de tu empresa
-            </h1>
-            <p className="text-sm leading-relaxed text-brand-muted">
-              Mant茅n actualizada la descripci贸n, los servicios y las sucursales para alinear cada respuesta del asistente con tu oferta actual.
-            </p>
-          </div>
-        </div>
-      </header>
+      <GradientSection
+        eyebrow="Identidad de marca"
+        title="Informaci髇 de tu empresa"
+        description="Mant閚 actualizada la descripci髇, los servicios y las sucursales para alinear cada respuesta del asistente con tu oferta actual."
+        as="h1"
+      />
 
       {error && (
         <div className="rounded-2xl border border-red-200/70 bg-red-50/80 px-4 py-3 text-sm text-red-700 shadow-sm">
@@ -276,8 +268,10 @@ const CompanyInfo: React.FC = () => {
           Cambios guardados correctamente.
         </div>
       )}
-
-      <section className="space-y-6 rounded-3xl border border-brand-border/50 bg-brand-surface/95 p-8 shadow-md backdrop-blur">
+      <GradientSection
+        title="Descripci髇 y servicios"
+        description="Comparte el resumen de la empresa y mant閚 al d韆 la lista de servicios destacados."
+      >
         <div className="space-y-4">
           <label className="flex flex-col gap-2">
             <span className="text-sm font-medium text-brand-dark/90">Acerca de</span>
@@ -323,31 +317,17 @@ const CompanyInfo: React.FC = () => {
               ))}
               {!promptData.company.servicios.length && (
                 <div className="rounded-xl border border-dashed border-brand-border/50 bg-white/60 p-5 text-center text-sm text-brand-muted">
-                  A煤n no registraste servicios. Agrega tu primera oferta para personalizar las respuestas.
+                  A鷑 no registraste servicios. Agrega tu primera oferta para personalizar las respuestas.
                 </div>
               )}
             </div>
           </div>
         </div>
-      </section>
-
-      <section className="space-y-6 rounded-3xl border border-brand-border/50 bg-brand-surface/95 p-8 shadow-md backdrop-blur">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold text-brand-dark">Sucursales y puntos de contacto</h2>
-            <p className="mt-1 text-sm text-brand-muted">
-              A帽ade formas de contacto, direcciones y horarios para mejorar la precisi贸n de tus respuestas.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleAddBranch}
-            className="inline-flex items-center gap-2 rounded-full border border-brand-dark/40 bg-brand-dark/10 px-4 py-1.5 text-xs font-semibold text-brand-dark transition hover:border-brand-dark/60 hover:bg-brand-dark/15"
-          >
-            Nueva sucursal
-          </button>
-        </div>
-
+      </GradientSection>
+      <GradientSection
+        title="Sucursales y puntos de contacto"
+        description="A馻de formas de contacto, direcciones y horarios para mejorar la precisi髇 de tus respuestas."
+      >
         <div className="space-y-5">
           {promptData.branches.map((branch, index) => (
             <article
@@ -397,7 +377,7 @@ const CompanyInfo: React.FC = () => {
                 </label>
               </div>
               <label className="mt-3 flex w-full flex-col gap-1.5">
-                <span className="text-xs font-medium text-brand-muted">Direcci贸n</span>
+                <span className="text-xs font-medium text-brand-muted">Direcci髇</span>
                 <ExpandableTextarea
                   value={branch.direccion}
                   onChange={(event) =>
@@ -405,12 +385,12 @@ const CompanyInfo: React.FC = () => {
                   }
                   minRows={1}
                   className="w-full rounded-2xl border border-brand-border/40 bg-white/85 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                  placeholder="Direcci贸n f铆sica, referencias o datos clave."
+                  placeholder="Direcci髇 f韘ica, referencias o datos clave."
                 />
               </label>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-brand-muted">Tel茅fonos</span>
+                  <span className="text-xs font-medium text-brand-muted">Tel閒onos</span>
                   <div className="space-y-2">
                     {branch.telefonos.map((telefono, telefonoIndex) => (
                       <div
@@ -447,12 +427,12 @@ const CompanyInfo: React.FC = () => {
                       onClick={() => handleAddBranchArrayItem(branch.id, 'telefonos')}
                       className="rounded-full border border-brand-border/60 px-3 py-1 text-xs font-semibold text-brand-muted transition hover:border-brand-primary/60 hover:text-brand-primary"
                     >
-                      A帽adir tel茅fono
+                      A馻dir tel閒ono
                     </button>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-brand-muted">Correos electr贸nicos</span>
+                  <span className="text-xs font-medium text-brand-muted">Correos electr髇icos</span>
                   <div className="space-y-2">
                     {branch.emails.map((email, emailIndex) => (
                       <div
@@ -482,7 +462,7 @@ const CompanyInfo: React.FC = () => {
                       onClick={() => handleAddBranchArrayItem(branch.id, 'emails')}
                       className="rounded-full border border-brand-border/60 px-3 py-1 text-xs font-semibold text-brand-muted transition hover:border-brand-primary/60 hover:text-brand-primary"
                     >
-                      A帽adir correo
+                      A馻dir correo
                     </button>
                   </div>
                 </div>
@@ -522,11 +502,11 @@ const CompanyInfo: React.FC = () => {
           ))}
           {!promptData.branches.length && (
             <div className="rounded-xl border border-dashed border-brand-border/50 bg-white/60 p-5 text-center text-sm text-brand-muted">
-              Todav铆a no agregaste sucursales. Crea la primera para facilitar la atenci贸n personalizada.
+              Todav韆 no agregaste sucursales. Crea la primera para facilitar la atenci髇 personalizada.
             </div>
           )}
         </div>
-      </section>
+      </GradientSection>
 
       {hasChanges && (
         <div className="pointer-events-none fixed bottom-6 right-6 z-20 flex justify-end">
@@ -546,3 +526,6 @@ const CompanyInfo: React.FC = () => {
 };
 
 export default CompanyInfo;
+
+
+

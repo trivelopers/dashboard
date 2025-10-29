@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import ExpandableTextarea from '../components/ExpandableTextarea';
+import GradientSection from '../components/GradientSection';
 import Spinner from '../components/Spinner';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
@@ -245,27 +246,13 @@ const Prompt: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6 sm:p-10">
-      <header className="relative overflow-hidden rounded-3xl border border-brand-primary/25 bg-gradient-to-br from-brand-background via-brand-surface to-white p-8 shadow-lg">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-20 -right-16 hidden h-64 w-64 rounded-full bg-brand-primary/15 blur-3xl md:block"
-        />
-        <div className="relative space-y-6">
-          <div className="max-w-3xl space-y-4">
-            <p className="inline-flex rounded-full border border-brand-primary/30 bg-brand-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-primary/80">
-              Centro de control
-            </p>
-            <h1 className="text-3xl font-semibold tracking-tight text-brand-dark sm:text-4xl">
-              Configuración del asistente
-            </h1>
-            <p className="text-sm leading-relaxed text-brand-muted">
-              Ajusta el ADN del agente sin perder el hilo. Cada bloque está pensado para editar rápido,
-              validar cambios y mantener una narrativa consistente con tu marca.
-            </p>
-          </div>
-        </div>
-
-        <div className="relative mt-8 grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+      <GradientSection
+        eyebrow="Centro de control"
+        title="Configuración del asistente"
+        description="Ajusta el ADN del agente sin perder el hilo. Cada bloque está pensado para editar rápido, validar cambios y mantener una narrativa consistente con tu marca."
+        as="h1"
+      >
+        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
           <label className="flex flex-col gap-2">
             <span className="text-sm font-medium text-brand-dark/90">Rol del agente</span>
             <ExpandableTextarea
@@ -304,7 +291,7 @@ const Prompt: React.FC = () => {
             />
           </label>
         </div>
-      </header>
+      </GradientSection>
 
       {error && (
         <div className="rounded-2xl border border-red-200/70 bg-red-50/80 px-4 py-3 text-sm text-red-700 shadow-sm">
@@ -317,18 +304,10 @@ const Prompt: React.FC = () => {
           Cambios guardados correctamente.
         </div>
       )}
-
-
-      
-      <section className="space-y-6 rounded-3xl border border-brand-border/50 bg-brand-surface/95 p-8 shadow-md backdrop-blur">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-brand-dark">Ejemplos de interacciones</h2>
-            <p className="mt-1 text-sm leading-relaxed text-brand-muted">
-              Proporciona ejemplos claros de preguntas y respuestas para guiar el comportamiento del asistente.
-            </p>
-          </div>
-        </div>
+      <GradientSection
+        title="Ejemplos de interacciones"
+        description="Proporciona ejemplos claros de preguntas y respuestas para guiar el comportamiento del asistente."
+      >
         <div className="space-y-4">
           {promptData.examples.map((example, index) => (
             <article
@@ -388,18 +367,11 @@ const Prompt: React.FC = () => {
             Agregar ejemplo nuevo
           </button>
         </div>
-      </section>
-
-      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold text-brand-dark">Reglas de comportamiento</h2>
-            <p className="mt-1 text-sm text-brand-muted">
-              Define las reglas que guían el comportamiento del asistente durante las interacciones.
-            </p>
-          </div>
-        </div>
-
+      </GradientSection>
+      <GradientSection
+        title="Reglas de comportamiento"
+        description="Define las reglas que guían el comportamiento del asistente durante las interacciones."
+      >
         <div className="space-y-4">
           {promptData.behaviorRules.map((rule, index) => {
             const draftValue = behaviorRuleDrafts[rule.id] ?? rule.texto;
@@ -417,40 +389,38 @@ const Prompt: React.FC = () => {
                   <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
                     Regla de comportamiento #{index + 1}
                   </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {showRestore && (
+                      <button
+                        type="button"
+                        onClick={() => handleRestoreBehaviorRule(rule.id)}
+                        className="text-xs font-semibold text-brand-dark underline-offset-4 hover:underline"
+                      >
+                        Restaurar
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteBehaviorRule(rule.id)}
+                      className="text-xs font-semibold text-brand-primary underline-offset-4 hover:underline"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
                 <ExpandableTextarea
                   value={draftValue}
                   onChange={(event) => handleBehaviorRuleChange(rule.id, event.target.value)}
-                  minRows={1}
-                  className="mt-3 w-full rounded-lg border border-brand-info/40 px-3 py-2 text-sm leading-relaxed text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25"
-                  placeholder="Describe el comportamiento esperado para esta regla."
+                  onBlur={() => handleCommitBehaviorRule(rule.id)}
+                  minRows={3}
+                  className="mt-3 w-full rounded-2xl border border-brand-info/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25"
+                  placeholder="Describe el comportamiento deseado del asistente."
                 />
-                <div className="flex flex-wrap gap-2">
-                  {isDirty && (
-                    <button
-                      type="button"
-                      onClick={() => handleCommitBehaviorRule(rule.id)}
-                      className="rounded-full bg-brand-info px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-info-hover"
-                    >
-                      Guardar
-                    </button>
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-brand-muted">
+                  {isDirty && <span className="font-semibold text-brand-info">Cambios sin guardar</span>}
+                  {hasCommittedDifference && !isDirty && (
+                    <span className="font-semibold text-brand-dark">Modificado</span>
                   )}
-                  {showRestore && (
-                    <button
-                      type="button"
-                      onClick={() => handleRestoreBehaviorRule(rule.id)}
-                      className="rounded-full border border-brand-info/40 px-4 py-2 text-sm font-medium text-brand-info transition hover:border-brand-info/70 hover:bg-brand-info/10"
-                    >
-                      Restaurar
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteBehaviorRule(rule.id)}
-                    className="rounded-full border border-brand-info/40 px-4 py-2 text-sm font-medium text-brand-info transition hover:border-brand-info/70 hover:bg-brand-info/10"
-                  >
-                    Eliminar
-                  </button>
                 </div>
               </article>
             );
@@ -471,26 +441,18 @@ const Prompt: React.FC = () => {
             Agregar nueva regla
           </button>
         </div>
-      </section>
-
-      <section className="space-y-6 rounded-2xl bg-brand-surface p-6 shadow-brand-soft border border-brand-border/60">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold text-brand-dark">Reglas técnicas</h2>
-            <p className="mt-1 text-sm text-brand-muted">
-              ⚠️ Modificables solo por el equipo técnico. Estas reglas definen la estructura y el
-              formato de las respuestas del asistente.
-            </p>
-          </div>
-        </div>
-
+      </GradientSection>
+      <GradientSection
+        title="Reglas técnicas"
+        description="Modificables solo por el equipo técnico. Estas reglas definen la estructura y el formato de las respuestas del asistente."
+      >
         <div className="space-y-4">
           {promptData.coreRules.map((rule, index) => {
             const expanded = expandedCoreRules[rule.id] || false;
             return (
               <article
                 key={rule.id}
-                className="rounded-xl border border-brand-muted/60 bg-brand-muted/15 p-4 shadow-brand-soft"
+                className="rounded-xl border border-brand-info/30 bg-white/85 p-4 shadow-brand-soft"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -528,10 +490,7 @@ const Prompt: React.FC = () => {
                     onChange={(event) => handleCoreRuleChange(rule.id, event.target.value)}
                     readOnly={userRole !== 'admin'}
                     minRows={1}
-                    className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${userRole === 'admin'
-                        ? 'border-brand-info/60 bg-brand-surface text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25'
-                        : 'border-brand-info/40 bg-brand-info/10 text-brand-dark'
-                      }`}
+                    className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${userRole === 'admin' ? 'border-brand-info/60 bg-brand-surface text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25' : 'border-brand-info/40 bg-brand-info/10 text-brand-dark'}`}
                     placeholder="Contenido de la regla técnica."
                   />
                 )}
@@ -539,7 +498,7 @@ const Prompt: React.FC = () => {
             );
           })}
           {!promptData.coreRules.length && (
-            <div className="rounded-xl border border-dashed border-brand-info/60 bg-brand-info/10/40 p-6 text-center text-sm text-brand-info">
+            <div className="rounded-xl border border-dashed border-brand-info/60 bg-brand-info/10 p-6 text-center text-sm text-brand-info">
               No hay reglas principales registradas.
             </div>
           )}
@@ -550,13 +509,13 @@ const Prompt: React.FC = () => {
             <button
               type="button"
               onClick={handleAddCoreRule}
-              className="rounded-full border border-brand-info/60 px-4 py-2 text-sm font-medium text-brand-info transition hover:border-brand-info/70 hover:bg-brand-info/10"
+              className="rounded-full border border-brand-info/60 px-4 py-2 text-sm font-medium text-brand-info transición hover:border-brand-info/70 hover:bg-brand-info/10"
             >
               Agregar nueva regla técnica
             </button>
           </div>
         )}
-      </section>
+      </GradientSection>
 
 
 
@@ -579,6 +538,20 @@ const Prompt: React.FC = () => {
 };
 
 export default Prompt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
