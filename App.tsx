@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './views/Login';
 import Dashboard from './views/Dashboard';
 import Prompt from './views/Prompt';
+import CompanyInfo from './views/CompanyInfo';
 import Contacts from './views/Contacts';
 import ChatHistory from './views/ChatHistory';
 import Users from './views/Users';
@@ -34,6 +35,11 @@ function App() {
             <Route path="prompt" element={
               <ProtectedRoute allowedRoles={[Role.ADMIN, Role.EDITOR]}>
                 <Prompt />
+              </ProtectedRoute>
+            } />
+            <Route path="company" element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN, Role.EDITOR]}>
+                <CompanyInfo />
               </ProtectedRoute>
             } />
             <Route path="contacts" element={<Contacts />} />
