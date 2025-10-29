@@ -252,8 +252,8 @@ const CompanyInfo: React.FC = () => {
     <div className="mx-auto max-w-5xl space-y-8 p-6 sm:p-10">
       <GradientSection
         eyebrow="Identidad de marca"
-        title="Informaci髇 de tu empresa"
-        description="Mant閚 actualizada la descripci髇, los servicios y las sucursales para alinear cada respuesta del asistente con tu oferta actual."
+        title="Informaci贸n de tu empresa"
+        description="Mant茅n actualizada la descripci贸n, los servicios y las sucursales para alinear cada respuesta del asistente con tu oferta actual."
         as="h1"
       />
 
@@ -269,8 +269,8 @@ const CompanyInfo: React.FC = () => {
         </div>
       )}
       <GradientSection
-        title="Descripci髇 y servicios"
-        description="Comparte el resumen de la empresa y mant閚 al d韆 la lista de servicios destacados."
+        title="Descripci贸n y servicios"
+        description="Comparte el resumen de la empresa y mant茅n al d铆a la lista de servicios destacados."
       >
         <div className="space-y-4">
           <label className="flex flex-col gap-2">
@@ -317,7 +317,7 @@ const CompanyInfo: React.FC = () => {
               ))}
               {!promptData.company.servicios.length && (
                 <div className="rounded-xl border border-dashed border-brand-border/50 bg-white/60 p-5 text-center text-sm text-brand-muted">
-                  A鷑 no registraste servicios. Agrega tu primera oferta para personalizar las respuestas.
+                  A煤n no registraste servicios. Agrega tu primera oferta para personalizar las respuestas.
                 </div>
               )}
             </div>
@@ -326,7 +326,7 @@ const CompanyInfo: React.FC = () => {
       </GradientSection>
       <GradientSection
         title="Sucursales y puntos de contacto"
-        description="A馻de formas de contacto, direcciones y horarios para mejorar la precisi髇 de tus respuestas."
+        description="A帽ade formas de contacto, direcciones y horarios para mejorar la precisi贸n de tus respuestas."
       >
         <div className="space-y-5">
           {promptData.branches.map((branch, index) => (
@@ -377,7 +377,7 @@ const CompanyInfo: React.FC = () => {
                 </label>
               </div>
               <label className="mt-3 flex w-full flex-col gap-1.5">
-                <span className="text-xs font-medium text-brand-muted">Direcci髇</span>
+                <span className="text-xs font-medium text-brand-muted">Direcci贸n</span>
                 <ExpandableTextarea
                   value={branch.direccion}
                   onChange={(event) =>
@@ -385,12 +385,12 @@ const CompanyInfo: React.FC = () => {
                   }
                   minRows={1}
                   className="w-full rounded-2xl border border-brand-border/40 bg-white/85 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                  placeholder="Direcci髇 f韘ica, referencias o datos clave."
+                  placeholder="Direcci贸n f贸sica, referencias o datos clave."
                 />
               </label>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-brand-muted">Tel閒onos</span>
+                  <span className="text-xs font-medium text-brand-muted">Tel茅fonos</span>
                   <div className="space-y-2">
                     {branch.telefonos.map((telefono, telefonoIndex) => (
                       <div
@@ -427,12 +427,12 @@ const CompanyInfo: React.FC = () => {
                       onClick={() => handleAddBranchArrayItem(branch.id, 'telefonos')}
                       className="rounded-full border border-brand-border/60 px-3 py-1 text-xs font-semibold text-brand-muted transition hover:border-brand-primary/60 hover:text-brand-primary"
                     >
-                      A馻dir tel閒ono
+                      A帽adir tel茅fono
                     </button>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-brand-muted">Correos electr髇icos</span>
+                  <span className="text-xs font-medium text-brand-muted">Correos electr贸nicos</span>
                   <div className="space-y-2">
                     {branch.emails.map((email, emailIndex) => (
                       <div
@@ -462,7 +462,7 @@ const CompanyInfo: React.FC = () => {
                       onClick={() => handleAddBranchArrayItem(branch.id, 'emails')}
                       className="rounded-full border border-brand-border/60 px-3 py-1 text-xs font-semibold text-brand-muted transition hover:border-brand-primary/60 hover:text-brand-primary"
                     >
-                      A馻dir correo
+                      A帽adir correo
                     </button>
                   </div>
                 </div>
@@ -502,7 +502,7 @@ const CompanyInfo: React.FC = () => {
           ))}
           {!promptData.branches.length && (
             <div className="rounded-xl border border-dashed border-brand-border/50 bg-white/60 p-5 text-center text-sm text-brand-muted">
-              Todav韆 no agregaste sucursales. Crea la primera para facilitar la atenci髇 personalizada.
+              Todav铆a no agregaste sucursales. Crea la primera para facilitar la atenci贸n personalizada.
             </div>
           )}
         </div>
