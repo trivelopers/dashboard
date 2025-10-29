@@ -249,12 +249,12 @@ const Prompt: React.FC = () => {
       <GradientSection
         eyebrow="Centro de control"
         title="Configuración del asistente"
-        description="Ajusta el ADN del agente sin perder el hilo. Cada bloque está pensado para editar rápido, validar cambios y mantener una narrativa consistente con tu marca."
+        description="Refina el tono de tu asistente sin perder el contexto. Cada bloque está diseñado para iterar rápido, validar ajustes y sostener una narrativa fiel a tu marca."
         as="h1"
       >
         <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-brand-dark/90">Rol del agente</span>
+            <span className="text-sm font-medium text-brand-dark/90">Rol del asistente</span>
             <ExpandableTextarea
               value={promptData.role}
               onChange={(event) => {
@@ -268,12 +268,12 @@ const Prompt: React.FC = () => {
                   ? 'border-brand-primary/30 bg-white/80 text-brand-dark shadow-sm focus:border-brand-primary focus:ring-brand-primary/30'
                   : 'cursor-not-allowed border-brand-border/60 bg-brand-background/80 text-brand-muted'
                 }`}
-              placeholder="Describe el rol principal del agente."
+              placeholder="Describe el rol principal del asistente."
             />
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-brand-dark/90">Propósito del agente</span>
+            <span className="text-sm font-medium text-brand-dark/90">Propósito del asistente</span>
             <ExpandableTextarea
               value={promptData.purpose}
               onChange={(event) => {
@@ -287,7 +287,7 @@ const Prompt: React.FC = () => {
                   ? 'border-brand-primary/30 bg-white/80 text-brand-dark shadow-sm focus:border-brand-primary focus:ring-brand-primary/30'
                   : 'cursor-not-allowed border-brand-border/60 bg-brand-background/80 text-brand-muted'
                 }`}
-              placeholder="Explica el objetivo general del agente."
+              placeholder="Explica el objetivo general del asistente."
             />
           </label>
         </div>
