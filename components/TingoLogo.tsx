@@ -59,9 +59,9 @@ const TingoLogo: React.FC<TingoLogoProps> = ({ className }) => {
         />
       </svg>
       <div className="ml-3">
-        <p className="text-2xl font-extrabold leading-none text-[#F6B53D]">tingo</p>
+        <p className="text-2xl font-extrabold leading-none text-[#F6B53D]">Tingo</p>
         <p className="text-[10px] tracking-[0.28em] uppercase text-[#E76A52]">
-          {'Tu tiempo vale m\u00E1s'}
+          {'el Asistente'}
         </p>
       </div>
     </div>
