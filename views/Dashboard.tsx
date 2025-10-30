@@ -17,19 +17,20 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchCompanyName = async () => {
       try {
-        if (!user?.clientId) return;
-        const response = await fetch(`/api/v1/companies/${user.clientId}`);
-        if (!response.ok) throw new Error('Error al obtener la empresa');
-        const data = await response.json();
+        if (!user) {
+          setCompanyName(null);
+          return;
+        }
+        const { data } = await api.get('dashboard/clients/current');
         setCompanyName(data?.name || 'Empresa desconocida');
       } catch (error) {
-        console.error(error);
+        console.error('Error al obtener la empresa:', error);
         setCompanyName('Empresa no encontrada');
       }
     };
 
     fetchCompanyName();
-  }, [user?.clientId]);
+  }, [user]);
 
   useEffect(() => {
     const getDashboardData = async () => {
