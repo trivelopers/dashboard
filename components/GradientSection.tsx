@@ -10,6 +10,7 @@ interface GradientSectionProps {
   contentClassName?: string;
   titleClassName?: string;
   as?: keyof JSX.IntrinsicElements;
+  tone?: 'primary' | 'warm';
 }
 
 const GradientSection: React.FC<GradientSectionProps> = ({
@@ -21,8 +22,25 @@ const GradientSection: React.FC<GradientSectionProps> = ({
   className = '',
   contentClassName = '',
   titleClassName = '',
-  as = 'h2'
+  as = 'h2',
+  tone = 'primary'
 }) => {
+  const toneStyles = {
+    primary: {
+      border: 'border-brand-primary/20',
+      gradient: 'bg-gradient-to-br from-brand-background via-brand-surface to-white',
+      accentGlow: 'bg-brand-primary/15',
+      eyebrow: 'border-brand-primary/30 bg-brand-primary/10 text-brand-primary/80'
+    },
+    warm: {
+      border: 'border-brand-warm/40',
+      gradient: 'bg-gradient-to-br from-brand-warm/10 via-brand-background to-white',
+      accentGlow: 'bg-brand-warm/25',
+      eyebrow: 'border-brand-warm/40 bg-brand-warm/10 text-brand-warm/90'
+    }
+  } as const;
+
+  const currentTone = toneStyles[tone] ?? toneStyles.primary;
   const TitleTag = as;
   const hasHeaderContent = eyebrow || title || description || actions;
   const contentClasses = ['relative'];
@@ -35,18 +53,20 @@ const GradientSection: React.FC<GradientSectionProps> = ({
 
   return (
     <section
-      className={`relative overflow-hidden rounded-3xl border border-brand-primary/20 bg-gradient-to-br from-brand-background via-brand-surface to-white p-8 shadow-lg ${className}`}
+      className={`relative overflow-hidden rounded-3xl border ${currentTone.border} ${currentTone.gradient} p-8 shadow-lg ${className}`}
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-20 -right-16 hidden h-64 w-64 rounded-full bg-brand-primary/15 blur-3xl md:block"
+        className={`pointer-events-none absolute -top-20 -right-16 hidden h-64 w-64 rounded-full ${currentTone.accentGlow} blur-3xl md:block`}
       />
       <div className={contentClasses.join(' ')}>
         {hasHeaderContent && (
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl space-y-4">
               {eyebrow && (
-                <p className="inline-flex rounded-full border border-brand-primary/30 bg-brand-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-primary/80">
+                <p
+                  className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${currentTone.eyebrow}`}
+                >
                   {eyebrow}
                 </p>
               )}
