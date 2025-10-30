@@ -1,15 +1,19 @@
 import axios from 'axios';
 
-// ✅ En Vite las variables deben comenzar con VITE_
+let unauthorizedHandler: (() => void) | null = null;
+
+export const setUnauthorizedHandler = (handler: (() => void) | null) => {
+  unauthorizedHandler = handler;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // Ej: http://api.18-116-178-41.nip.io/api/v1
-  withCredentials: true, // Para cookies httpOnly
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// ✅ Interceptor para incluir token y clientId en cada request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -17,7 +21,6 @@ api.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // Añadimos clientId global (si aplica)
     const clientId = import.meta.env.VITE_CLIENT_ID;
     if (clientId) {
       config.params = config.params || {};
@@ -26,17 +29,19 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
-// ✅ Lógica de refresh token igual que antes
 let isRefreshing = false;
-let failedQueue: { resolve: (token: string) => void; reject: (error: any) => void; }[] = [];
+let failedQueue: { resolve: (token: string) => void; reject: (error: any) => void }[] = [];
 
 const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach(prom => {
-    if (error) prom.reject(error);
-    else if (token) prom.resolve(token);
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else if (token) {
+      prom.resolve(token);
+    }
   });
   failedQueue = [];
 };
@@ -49,7 +54,7 @@ api.interceptors.response.use(
     console.log('API Error:', {
       status: error.response?.status,
       url: originalRequest?.url,
-      message: error.response?.data?.message
+      message: error.response?.data?.message,
     });
 
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -60,8 +65,8 @@ api.interceptors.response.use(
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers['Authorization'] = 'Bearer ' + token;
+        }).then((token) => {
+          originalRequest.headers['Authorization'] = `Bearer ${token}`;
           return api(originalRequest);
         });
       }
@@ -74,8 +79,8 @@ api.interceptors.response.use(
         const { data } = await api.post('/auth/refresh');
         const newAccessToken = data.accessToken;
         localStorage.setItem('accessToken', newAccessToken);
-        api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
-        originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
+        api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
         processQueue(null, newAccessToken);
         console.log('Token refreshed successfully');
         return api(originalRequest);
@@ -84,6 +89,7 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         localStorage.removeItem('accessToken');
         delete api.defaults.headers.common['Authorization'];
+        unauthorizedHandler?.();
         window.location.hash = '/login';
         return Promise.reject(refreshError);
       } finally {
@@ -92,7 +98,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
