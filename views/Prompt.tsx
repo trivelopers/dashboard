@@ -245,16 +245,16 @@ const Prompt: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 p-6 sm:p-10">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-8 md:p-10">
       <GradientSection
         eyebrow="Centro de control"
-        title="Configuración del asistente"
-        description="Refina el tono de tu asistente sin perder el contexto. Cada bloque está diseñado para iterar rápido, validar ajustes y sostener una narrativa fiel a tu marca."
+        title="Ajustes del asistente"
+        description="Configura la voz del asistente con indicaciones sencillas. Ajusta cada bloque a tu ritmo y mantén la esencia de tu marca en cada conversación."
         as="h1"
       >
         <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-brand-dark/90">Rol del asistente</span>
+            <span className="text-sm font-medium text-brand-dark/90">Cómo se presenta el asistente</span>
             <ExpandableTextarea
               value={promptData.role}
               onChange={(event) => {
@@ -268,12 +268,12 @@ const Prompt: React.FC = () => {
                   ? 'border-brand-primary/30 bg-white/80 text-brand-dark shadow-sm focus:border-brand-primary focus:ring-brand-primary/30'
                   : 'cursor-not-allowed border-brand-border/60 bg-brand-background/80 text-brand-muted'
                 }`}
-              placeholder="Describe el rol principal del asistente."
+              placeholder="Describe en pocas palabras cómo quieres que se presente el asistente."
             />
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-brand-dark/90">Propósito del asistente</span>
+            <span className="text-sm font-medium text-brand-dark/90">Qué debe lograr el asistente</span>
             <ExpandableTextarea
               value={promptData.purpose}
               onChange={(event) => {
@@ -287,7 +287,7 @@ const Prompt: React.FC = () => {
                   ? 'border-brand-primary/30 bg-white/80 text-brand-dark shadow-sm focus:border-brand-primary focus:ring-brand-primary/30'
                   : 'cursor-not-allowed border-brand-border/60 bg-brand-background/80 text-brand-muted'
                 }`}
-              placeholder="Explica el objetivo general del asistente."
+              placeholder="Cuenta qué objetivo debe cumplir el asistente en cada conversación."
             />
           </label>
         </div>
@@ -306,7 +306,7 @@ const Prompt: React.FC = () => {
       )}
       <GradientSection
         title="Ejemplos de interacciones"
-        description="Proporciona ejemplos claros de preguntas y respuestas para guiar el comportamiento del asistente."
+        description="Suma ejemplos reales de conversaciones para mostrar cómo esperas que responda el asistente."
       >
         <div className="space-y-4">
           {promptData.examples.map((example, index) => (
@@ -321,7 +321,7 @@ const Prompt: React.FC = () => {
                   onClick={() => handleRemoveExample(example.id)}
                   className="text-sm font-medium text-brand-primary underline-offset-4 hover:underline"
                 >
-                  Eliminar ejemplo
+                  Quitar este ejemplo
                 </button>
               </div>
               <div className="mt-3 space-y-3">
@@ -334,7 +334,7 @@ const Prompt: React.FC = () => {
                     }
                     minRows={1}
                     className="w-full rounded-2xl border border-brand-primary/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                    placeholder="Consulta del cliente que quieres cubrir con este ejemplo."
+                    placeholder="Escribe la pregunta del cliente tal como la recibes."
                   />
                 </label>
                 <label className="flex flex-col gap-1.5">
@@ -346,7 +346,7 @@ const Prompt: React.FC = () => {
                     }
                     minRows={1}
                     className="w-full rounded-2xl border border-brand-primary/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/25"
-                    placeholder="Respuesta ideal del asistente para este caso."
+                    placeholder="Describe la respuesta que consideras ideal para el asistente."
                   />
                 </label>
               </div>
@@ -354,7 +354,7 @@ const Prompt: React.FC = () => {
           ))}
           {!promptData.examples.length && (
             <p className="rounded-2xl border border-dashed border-brand-primary/40 bg-brand-primary/10 p-5 text-center text-sm text-brand-primary">
-              Aún no se registraron ejemplos de conversación.
+              Todavía no agregaste ejemplos de conversación.
             </p>
           )}
         </div>
@@ -364,13 +364,13 @@ const Prompt: React.FC = () => {
             onClick={handleAddExample}
             className="inline-flex items-center gap-2 rounded-full border border-brand-primary/40 bg-brand-primary/5 px-5 py-2 text-sm font-semibold text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
           >
-            Agregar ejemplo nuevo
+            Agregar otro ejemplo
           </button>
         </div>
       </GradientSection>
       <GradientSection
-        title="Reglas de comportamiento"
-        description="Define las reglas que guían el comportamiento del asistente durante las interacciones."
+        title="Guías de comportamiento"
+        description="Redacta instrucciones simples para orientar cómo debe reaccionar el asistente en cada interacción."
       >
         <div className="space-y-4">
           {promptData.behaviorRules.map((rule, index) => {
@@ -387,7 +387,7 @@ const Prompt: React.FC = () => {
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
-                    Regla de comportamiento #{index + 1}
+                    Guía de comportamiento #{index + 1}
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
                     {showRestore && (
@@ -404,7 +404,7 @@ const Prompt: React.FC = () => {
                       onClick={() => handleDeleteBehaviorRule(rule.id)}
                       className="text-xs font-semibold text-brand-primary underline-offset-4 hover:underline"
                     >
-                      Eliminar
+                      Quitar
                     </button>
                   </div>
                 </div>
@@ -414,7 +414,7 @@ const Prompt: React.FC = () => {
                   onBlur={() => handleCommitBehaviorRule(rule.id)}
                   minRows={3}
                   className="mt-3 w-full rounded-2xl border border-brand-info/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25"
-                  placeholder="Describe el comportamiento deseado del asistente."
+                  placeholder="Escribe la instrucción que debe seguir el asistente en este caso."
                 />
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-brand-muted">
                   {isDirty && <span className="font-semibold text-brand-info">Cambios sin guardar</span>}
@@ -427,7 +427,7 @@ const Prompt: React.FC = () => {
           })}
           {!promptData.behaviorRules.length && (
             <div className="rounded-xl border border-dashed border-brand-primary/40 bg-brand-primary/10 p-6 text-center text-sm text-brand-primary">
-              No hay reglas de comportamiento registradas.
+              Todavía no definiste guías de comportamiento.
             </div>
           )}
         </div>
@@ -438,84 +438,84 @@ const Prompt: React.FC = () => {
             onClick={handleAddBehaviorRule}
             className="rounded-full border border-brand-primary/40 px-4 py-2 text-sm font-medium text-brand-primary transition hover:border-brand-primary/70 hover:bg-brand-primary/10"
           >
-            Agregar nueva regla
+            Agregar guía de comportamiento
           </button>
         </div>
       </GradientSection>
-      <GradientSection
-        title="Reglas técnicas"
-        description="Modificables solo por el equipo técnico. Estas reglas definen la estructura y el formato de las respuestas del asistente."
-      >
-        <div className="space-y-4">
-          {promptData.coreRules.map((rule, index) => {
-            const expanded = expandedCoreRules[rule.id] || false;
-            return (
-              <article
-                key={rule.id}
-                className="rounded-xl border border-brand-info/30 bg-white/85 p-4 shadow-brand-soft"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
-                      Regla técnica #{index + 1}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => toggleCoreRule(rule.id)}
-                      className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
-                    >
-                      {expanded ? 'Contraer regla' : 'Expandir regla'}
-                    </button>
-                    {userRole === 'admin' && (
+      {userRole === 'admin' && (
+        <GradientSection
+          tone="warm"
+          eyebrow="Solo administradores"
+          title="Indicaciones técnicas"
+          description="Solo el equipo técnico modifica este bloque. Aquí detallamos la estructura y el formato que debe respetar el asistente."
+        >
+          <div className="space-y-4">
+            {promptData.coreRules.map((rule, index) => {
+              const expanded = expandedCoreRules[rule.id] || false;
+              return (
+                <article
+                  key={rule.id}
+                  className="rounded-xl border border-brand-warm/40 bg-brand-warm/10 p-4 shadow-brand-soft"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark">
+                        Guía técnica #{index + 1}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => toggleCoreRule(rule.id)}
+                        className="text-sm font-medium text-brand-warm underline-offset-4 hover:underline"
+                      >
+                        {expanded ? 'Contraer regla' : 'Expandir regla'}
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleDeleteCoreRule(rule.id)}
-                        className="text-sm font-medium text-brand-info underline-offset-4 hover:underline"
+                        className="text-sm font-medium text-brand-warm underline-offset-4 hover:underline"
                       >
                         Eliminar
                       </button>
-                    )}
+                    </div>
                   </div>
-                </div>
-                {!expanded && (
-                  <p className="mt-3 whitespace-pre-line text-sm text-brand-dark">
-                    {previewRule(rule.texto)}
-                  </p>
-                )}
-                {expanded && (
-                  <ExpandableTextarea
-                    value={rule.texto}
-                    onChange={(event) => handleCoreRuleChange(rule.id, event.target.value)}
-                    readOnly={userRole !== 'admin'}
-                    minRows={1}
-                    className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${userRole === 'admin' ? 'border-brand-info/60 bg-brand-surface text-brand-dark focus:border-brand-info focus:outline-none focus:ring-2 focus:ring-brand-info/25' : 'border-brand-info/40 bg-brand-info/10 text-brand-dark'}`}
-                    placeholder="Contenido de la regla técnica."
-                  />
-                )}
-              </article>
-            );
-          })}
-          {!promptData.coreRules.length && (
-            <div className="rounded-xl border border-dashed border-brand-info/60 bg-brand-info/10 p-6 text-center text-sm text-brand-info">
-              No hay reglas principales registradas.
-            </div>
-          )}
-        </div>
+                  {!expanded && (
+                    <p className="mt-3 whitespace-pre-line text-sm text-brand-dark">
+                      {previewRule(rule.texto)}
+                    </p>
+                  )}
+                  {expanded && (
+                    <ExpandableTextarea
+                      value={rule.texto}
+                      onChange={(event) => handleCoreRuleChange(rule.id, event.target.value)}
+                      readOnly={userRole !== 'admin'}
+                      minRows={1}
+                      className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed ${userRole === 'admin' ? 'border-brand-warm/60 bg-brand-surface text-brand-dark focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/30' : 'border-brand-warm/40 bg-brand-warm/10 text-brand-dark'}`}
+                      placeholder="Escribe el detalle de esta indicación técnica."
+                    />
+                  )}
+                </article>
+              );
+            })}
+            {!promptData.coreRules.length && (
+              <div className="rounded-xl border border-dashed border-brand-warm/60 bg-brand-warm/10 p-6 text-center text-sm text-brand-warm">
+                Todavía no cargamos indicaciones técnicas.
+              </div>
+            )}
+          </div>
 
-        {userRole === 'admin' && (
           <div className="flex justify-end">
             <button
               type="button"
               onClick={handleAddCoreRule}
-              className="rounded-full border border-brand-info/60 px-4 py-2 text-sm font-medium text-brand-info transición hover:border-brand-info/70 hover:bg-brand-info/10"
+              className="rounded-full border border-brand-warm/60 px-4 py-2 text-sm font-medium text-brand-warm transition hover:border-brand-warm/80 hover:bg-brand-warm/15"
             >
-              Agregar nueva regla técnica
+              Agregar indicación técnica
             </button>
           </div>
-        )}
-      </GradientSection>
+        </GradientSection>
+      )}
 
 
 
