@@ -16,7 +16,7 @@
     "lastInteraction": "Last Interaction",
     "botStatus": "Bot Status",
     "botStatusDescription": "The chatbot is currently active and responding to user messages. All systems are operational.",
-    "companySummary": "Key metrics for {{company}}",
+    "companySummary": "Performance overview for {{company}}",
     "heroDescription": "Monitor how your assistant is performing at a glance."
   },
   "navigation": {
