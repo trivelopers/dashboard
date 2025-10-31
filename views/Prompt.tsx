@@ -70,7 +70,7 @@ const Prompt: React.FC = () => {
     setSuccess(false);
     try {
       const xmlPrompt = generateXMLPrompt(promptData);
-      await api.put('/dashboard/bot-settings', { prompt: xmlPrompt });
+      await api.patch('/dashboard/bot-settings/prompt', { prompt: xmlPrompt });
       setSuccess(true);
       setInitialPromptSnapshot(JSON.stringify(promptData));
       setInitialBehaviorRules(
@@ -300,7 +300,7 @@ const Prompt: React.FC = () => {
       )}
 
       {success && (
-        <div className="rounded-2xl border border-brand-warm/40 bg-brand-warm/10 px-4 py-3 text-sm text-brand-warm shadow-sm">
+        <div className="rounded-2xl border border-brand-primary/40 bg-brand-primary/10 px-4 py-3 text-sm text-brand-primary shadow-sm">
           Cambios guardados correctamente.
         </div>
       )}

@@ -81,7 +81,7 @@ const CompanyInfo: React.FC = () => {
     setSuccess(false);
     try {
       const xmlPrompt = generateXMLPrompt(promptData);
-      await api.put('/dashboard/bot-settings', { prompt: xmlPrompt });
+      await api.patch('/dashboard/bot-settings/prompt', { prompt: xmlPrompt });
       setInitialSnapshot(snapshotCompanyState(promptData.company, promptData.branches));
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
