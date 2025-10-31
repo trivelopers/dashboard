@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 
 import { ArrowLeftOnRectangleIcon, UserCircleIcon } from '@heroicons/react/24/solid';
-import tingoLogo from '../asistingo.png';
+import tingoLogo from '../nodai.png';
 
 import { navItems } from './navItems';
 
@@ -27,7 +27,7 @@ const Sidebar: React.FC = () => {
         <img
           src={tingoLogo}
           alt="Tingo el Asistente"
-          className="h-28 w-auto"
+          className="max-h-16 w-auto object-contain"
         />
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
