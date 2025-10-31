@@ -93,7 +93,7 @@ const ChatHistory: React.FC = () => {
         <div className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-6">
           {messages.length > 0 ? (
             messages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
                 <div
                   className={`max-w-xl rounded-xl px-4 py-3 shadow-sm ${
                     msg.role === 'user'
