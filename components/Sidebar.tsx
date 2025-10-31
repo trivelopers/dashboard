@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 
 import { ArrowLeftOnRectangleIcon, UserCircleIcon } from '@heroicons/react/24/solid';
-import tingoLogo from '../tingo-el-asistente-blanco.png';
+import tingoLogo from '../asistingo.png';
 
 import { navItems } from './navItems';
 

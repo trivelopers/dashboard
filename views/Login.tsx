@@ -6,7 +6,7 @@ import * as yup from 'yup';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import tingoLogo from '../tingo-el-asistente-blanco.png';
+import tingoLogo from '../asistingo.png';
 
 // Fix: Use yup.object({...}) instead of yup.object().shape({...}) to ensure correct type inference.
 const schema = yup.object({
