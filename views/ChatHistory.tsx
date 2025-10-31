@@ -20,15 +20,34 @@ const ChatHistory: React.FC = () => {
       if (contactId) {
         try {
           setIsLoading(true);
-          const response = await api.get(`/dashboard/interactions?contactId=${contactId}`);
-          // Transform interactions to messages format
-          const interactions = response.data.interactions || [];
-          const formattedMessages = interactions.map((interaction: any) => ({
-            id: interaction.id || interaction._id,
-            role: interaction.role || 'user',
-            text: interaction.message || interaction.text,
-            timestamp: interaction.createdAt || interaction.timestamp
-          }));
+          const response = await api.get(`/dashboard/contacts/${contactId}/messages`);
+          const apiMessages = response.data.messages || [];
+
+          const formattedMessages: Message[] = apiMessages
+            .map((message: any): Message | null => {
+              const timestamp =
+                message.timestamp || message.createdAt || message.updatedAt || null;
+              const id = message.id || message._id;
+
+              if (!id) {
+                return null;
+              }
+
+              return {
+                id,
+                role: message.sender === 'user' ? 'user' : 'assistant',
+                text: message.text || '',
+                timestamp,
+              };
+            })
+            .filter((message): message is Message => Boolean(message));
+
+          formattedMessages.sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return timeA - timeB;
+          });
+
           setMessages(formattedMessages);
         } catch (error) {
           console.error('Error fetching chat history:', error);
@@ -88,7 +107,7 @@ const ChatHistory: React.FC = () => {
                       msg.role === 'user' ? 'text-white/80' : 'text-brand-muted'
                     }`}
                   >
-                    {new Date(msg.timestamp).toLocaleTimeString()}
+                    {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : '--:--'}
                   </p>
                 </div>
               </div>
