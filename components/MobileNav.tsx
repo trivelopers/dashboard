@@ -8,7 +8,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/solid';
 import LanguageSelector from './LanguageSelector';
-import tingoLogo from '../nodai-logo.png';
+import nodaiLogo from '../nodai-logo-celeste.png';
 import { navItems } from './navItems';
 
 const MobileNav: React.FC = () => {
@@ -32,7 +32,7 @@ const MobileNav: React.FC = () => {
   return (
     <div className="md:hidden sticky top-0 z-40 bg-brand-dark text-[#E5E7EB] shadow-brand-soft">
       <div className="flex items-center justify-between px-4 py-3">
-        <img src={tingoLogo} alt="Tingo el Asistente" className="h-16 w-auto" />
+        <img src={nodaiLogo} alt="nodai" className="h-16 w-auto" />
         <div className="flex items-center gap-3">
           <LanguageSelector />
           <button

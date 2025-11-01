@@ -6,8 +6,8 @@
     "signingIn": "Iniciando sesión...",
     "invalidCredentials": "Credenciales inválidas",
     "welcome": "¡Bienvenido de vuelta!",
-    "adminPanel": "Tingo",
-    "signInToManage": "Inicia sesión para gestionar tu asistente virtual"
+    "adminPanel": "nodai",
+    "signInToManage": "Tu gestor de asistentes virtuales"
   },
   "dashboard": {
     "welcome": "¡Bienvenido, {{name}}!",
@@ -15,6 +15,8 @@
     "totalContacts": "Contactos totales",
     "lastInteraction": "Última interacción",
     "botStatus": "Estado del asistente",
+        "companySummary": "Estadisticas en {{company}}",
+
     "botStatusDescription": "El chatbot está actualmente activo y respondiendo a los mensajes de los usuarios. Todos los sistemas están operativos."
   },
   "navigation": {

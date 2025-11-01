@@ -28,7 +28,7 @@ const GradientSection: React.FC<GradientSectionProps> = ({
   const toneStyles = {
     primary: {
       border: 'border-brand-primary/20',
-      gradient: 'bg-gradient-to-br from-brand-background via-brand-surface to-white',
+      gradient: 'bg-gradient-to-br from-brand-surface via-brand-surface to-white',
       accentGlow: 'bg-brand-primary/15',
       eyebrow: 'border-brand-primary/30 bg-brand-primary/10 text-brand-primary/80'
     },

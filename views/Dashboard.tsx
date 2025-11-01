@@ -172,16 +172,7 @@ const Dashboard: React.FC = () => {
   fetchSummary();
 }, []);
 
-  const heroDescription = useMemo(() => {
-    if (summary?.companyName) {
-      return t('dashboard.companySummary', {
-        company: summary.companyName,
-        defaultValue: `Informacion general de ${summary.companyName}`,
-      });
-    }
-    return t('dashboard.heroDescription', 'Monitorea el pulso general del asistente.');
-  }, [summary?.companyName, t]);
-
+  
   const status = summary ? statusTone[summary.botStatus] ?? statusTone.unknown : statusTone.unknown;
   const lastInteraction = summary?.lastInteractionAt
     ? new Date(summary.lastInteractionAt).toLocaleString()
@@ -189,7 +180,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <GradientSection title={t('dashboard.welcome', { name: user?.name })} description={heroDescription}>
+      <GradientSection title={t('dashboard.welcome', { name: user?.name })}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             label="Empresa"
@@ -230,7 +221,7 @@ const Dashboard: React.FC = () => {
         <div className="space-y-6 lg:col-span-2">
           <GradientSection
             title="Performance del asistente"
-            description="Indicadores rapidos del bot y el equipo humano."
+            description="Indicadores rapidos del asistente y el equipo humano."
           >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <MetricCard

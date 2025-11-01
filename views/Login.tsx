@@ -6,7 +6,7 @@ import * as yup from 'yup';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import tingoLogo from '../nodai.png';
+import nodaiLogo from '../nodai-definitivo.png';
 
 // Fix: Use yup.object({...}) instead of yup.object().shape({...}) to ensure correct type inference.
 const schema = yup.object({
@@ -45,9 +45,9 @@ const Login: React.FC = () => {
       <div className="w-full max-w-md rounded-none sm:rounded-3xl bg-brand-dark sm:bg-brand-dark/90 p-8 sm:p-10 shadow-none sm:shadow-brand-soft sm:border sm:border-white/15">
         <div className="text-center mb-10">
           <img
-            src={tingoLogo}
-            alt="Tingo el Asistente"
-            className="mx-auto mb-4 max-h-24 w-auto object-contain drop-shadow-lg"
+            src={nodaiLogo}
+            alt="nodai"
+            className="mx-auto mt-2 mb-6 max-h-20 w-auto object-contain drop-shadow-lg"
           />
           <p className="text-sm text-white/70">{t('auth.signInToManage')}</p>
         </div>

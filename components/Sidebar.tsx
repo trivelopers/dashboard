@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 
 import { ArrowLeftOnRectangleIcon, UserCircleIcon } from '@heroicons/react/24/solid';
-import tingoLogo from '../nodai.png';
+import nodaiLogo from '../nodai-definitivo.png';
 
 import { navItems } from './navItems';
 
@@ -23,11 +23,11 @@ const Sidebar: React.FC = () => {
 
   return (
     <div className="flex flex-col w-64 bg-brand-dark text-[#E5E7EB] h-full shadow-brand-soft">
-      <div className="border-b border-white/10 bg-brand-dark flex justify-center py-6">
+      <div className="border-b border-white/10 bg-brand-dark flex justify-center py-8 px-6">
         <img
-          src={tingoLogo}
-          alt="Tingo el Asistente"
-          className="max-h-16 w-auto object-contain"
+          src={nodaiLogo}
+          alt="nodai"
+          className="max-h-12 w-auto object-contain"
         />
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
