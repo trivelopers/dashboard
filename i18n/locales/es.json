@@ -63,7 +63,10 @@
     "title": "Historial de conversación",
     "backToContacts": "Volver a Contactos",
     "loading": "Cargando historial de chat...",
-    "noMessages": "No se encontraron mensajes"
+    "noMessages": "No se encontraron mensajes",
+    "botLabel": "Asistente virtual",
+    "adminLabel": "Manual",
+    "contactLabel": "Contacto"
   },
   "prompt": {
     "title": "Configuración del prompt del sistema",

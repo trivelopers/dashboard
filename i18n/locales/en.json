@@ -63,7 +63,10 @@
     "title": "Chat History",
     "backToContacts": "Back to Contacts",
     "loading": "Loading chat history...",
-    "noMessages": "No messages found"
+    "noMessages": "No messages found",
+    "botLabel": "Automatic",
+    "adminLabel": "Manual",
+    "contactLabel": "Client"
   },
   "prompt": {
     "title": "System Prompt Configuration",

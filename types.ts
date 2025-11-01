@@ -22,9 +22,10 @@ export interface Contact {
 
 export interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'admin';
   text: string;
-  timestamp: string;
+  timestamp: string | null;
+  sender?: string | null;
 }
 
 export interface BotSettings {
