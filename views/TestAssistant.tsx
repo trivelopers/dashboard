@@ -496,7 +496,7 @@ const TestAssistant: React.FC = () => {
   };
   return (
     <GradientSection
-      title={t('testAssistant.title', 'Tester del asistente')}
+      title={t('testAssistant.title', 'Simulador de conversación real')}
       description={sectionDescription}
       contentClassName="space-y-6"
     >

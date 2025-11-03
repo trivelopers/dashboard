@@ -36,16 +36,16 @@ export const navItems: NavItem[] = [
     roles: [Role.ADMIN, Role.EDITOR, Role.VIEWER],
   },
   {
-    to: '/prompt',
-    labelKey: 'navigation.prompt',
-    icon: AdjustmentsHorizontalIcon,
-    roles: [Role.ADMIN, Role.EDITOR],
-  },
-  {
     to: '/test-assistant',
     labelKey: 'navigation.testAssistant',
     icon: BeakerIcon,
     roles: [Role.ADMIN],
+  },
+  {
+    to: '/prompt',
+    labelKey: 'navigation.prompt',
+    icon: AdjustmentsHorizontalIcon,
+    roles: [Role.ADMIN, Role.EDITOR],
   },
   {
     to: '/users',

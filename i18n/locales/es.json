@@ -28,7 +28,7 @@
     "company": "Mi empresa",
     "openMenu": "Abrir menu",
     "closeMenu": "Cerrar menu",
-    "testAssistant": "Tester"
+    "testAssistant": "Simulador"
   },
   "users": {
     "title": "Gestión de equipo",
@@ -117,7 +117,7 @@
     "goHome": "Ir al Inicio"
   },
   "testAssistant": {
-    "title": "Tester del asistente",
+    "title": "Simulador de conversación real",
     "description": "Envía mensajes de prueba como cliente y revisa la conversación.",
     "descriptionWithContact": "Historial de prueba para {{contactName}} (ID: {{contactId}}). Envía mensajes para validar el flujo.",
     "clientLabel": "Cliente de prueba",

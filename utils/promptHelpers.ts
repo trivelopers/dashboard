@@ -71,6 +71,47 @@ export const formatLabel = (value: string): string => {
   return withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
 };
 
+const normalizeKey = (value: string | undefined): string => {
+  if (!value) return '';
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+};
+
+const addKeyVariants = (set: Set<string>, value: string | undefined) => {
+  const key = normalizeKey(value);
+  if (!key) return;
+  set.add(key);
+  if (key.startsWith('sucursal_')) {
+    set.add(key.replace(/^sucursal_/, ''));
+  }
+};
+
+const buildBranchKeys = (branch: BranchInfo): string[] => {
+  const keys = new Set<string>();
+  addKeyVariants(keys, branch.tag);
+  addKeyVariants(keys, branch.etiqueta);
+  addKeyVariants(keys, branch.direccion);
+  return Array.from(keys);
+};
+
+const buildCandidateKeys = (...values: (string | undefined)[]): string[] => {
+  const keys = new Set<string>();
+  values.forEach((value) => addKeyVariants(keys, value));
+  return Array.from(keys);
+};
+
+const findBranchIndexByKeys = (branches: BranchInfo[], candidates: string[]): number => {
+  if (!candidates.length) return -1;
+  return branches.findIndex((branch) => {
+    const branchKeys = buildBranchKeys(branch);
+    return candidates.some((candidate) => branchKeys.includes(candidate));
+  });
+};
+
 const parseRuleSection = (content: string | undefined): RuleItem[] => {
   if (!content) return [];
   const matchedRules = content.match(/<rule>([\s\S]*?)<\/rule>/g);
@@ -196,14 +237,16 @@ export const parseXMLPrompt = (xmlString: string): PromptData => {
         const website = content.match(/<website>([\s\S]*?)<\/website>/)?.[1]?.trim() || '';
 
         const fallbackTag = `sucursal_${index + 1}`;
-        const slugTag = parseBranchTag(tag, fallbackTag);
-        const currentIndex = data.branches.findIndex((branch) => branch.tag === slugTag);
+        const preferredSlugSource = name || tag || fallbackTag;
+        const slugTag = slugify(preferredSlugSource, fallbackTag);
+        const candidates = buildCandidateKeys(tag, name, slugTag, fallbackTag);
+        const currentIndex = findBranchIndexByKeys(data.branches, candidates);
 
         const branch: BranchInfo = currentIndex >= 0 ? data.branches[currentIndex] : {
           id: createId(),
           tag: slugTag,
-          etiqueta: parseNameFromTag(slugTag),
-          responsable: '',
+          etiqueta: name || parseNameFromTag(slugTag),
+          responsable: name || '',
           telefonos: [],
           emails: [],
           sitio: '',
@@ -212,6 +255,12 @@ export const parseXMLPrompt = (xmlString: string): PromptData => {
           enlace: ''
         };
 
+        branch.tag = slugTag || branch.tag;
+        if (name) {
+          branch.etiqueta = branch.etiqueta || name;
+        } else if (!branch.etiqueta) {
+          branch.etiqueta = parseNameFromTag(branch.tag);
+        }
         branch.responsable = name || branch.responsable;
         branch.telefonos = phone ? parsePhones(phone) : branch.telefonos;
         branch.emails = email ? parseEmails(email) : branch.emails;
@@ -242,7 +291,8 @@ export const parseXMLPrompt = (xmlString: string): PromptData => {
         const baseTag = name || address || fallbackTag;
         const slugTag = slugify(baseTag, fallbackTag);
 
-        const existingIndex = data.branches.findIndex((branch) => branch.tag === slugTag);
+        const candidates = buildCandidateKeys(name, address, slugTag, fallbackTag);
+        const existingIndex = findBranchIndexByKeys(data.branches, candidates);
         const branch: BranchInfo = existingIndex >= 0 ? data.branches[existingIndex] : {
           id: createId(),
           tag: slugTag,
@@ -256,6 +306,7 @@ export const parseXMLPrompt = (xmlString: string): PromptData => {
           enlace: ''
         };
 
+        branch.tag = slugTag || branch.tag;
         branch.etiqueta = name || branch.etiqueta || formatLabel(baseTag);
         branch.direccion = address || branch.direccion;
         branch.telefonos = phones.length
