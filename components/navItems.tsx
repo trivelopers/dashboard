@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   BeakerIcon,
-  BuildingOffice2Icon,
+  CubeTransparentIcon,
   ChartPieIcon,
   AdjustmentsHorizontalIcon,
-  PhoneIcon,
+  IdentificationIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/solid';
 import { Role } from '../types';
@@ -24,15 +24,9 @@ export const navItems: NavItem[] = [
     roles: [Role.ADMIN, Role.EDITOR, Role.VIEWER],
   },
   {
-    to: '/company',
-    labelKey: 'navigation.company',
-    icon: BuildingOffice2Icon,
-    roles: [Role.ADMIN, Role.EDITOR],
-  },
-  {
     to: '/contacts',
     labelKey: 'navigation.contacts',
-    icon: PhoneIcon,
+    icon: IdentificationIcon,
     roles: [Role.ADMIN, Role.EDITOR, Role.VIEWER],
   },
   {
@@ -45,6 +39,12 @@ export const navItems: NavItem[] = [
     to: '/prompt',
     labelKey: 'navigation.prompt',
     icon: AdjustmentsHorizontalIcon,
+    roles: [Role.ADMIN, Role.EDITOR],
+  },
+  {
+    to: '/company',
+    labelKey: 'navigation.company',
+    icon: CubeTransparentIcon,
     roles: [Role.ADMIN, Role.EDITOR],
   },
   {

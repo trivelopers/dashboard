@@ -4,12 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import GradientSection from '../components/GradientSection';
 import Spinner from '../components/Spinner';
 import api from '../services/api';
-import {
-  DEFAULT_SIMULATION_CHAT_ID,
-  SimulationChatEntry,
-  readSimulationChats,
-  writeSimulationChats,
-} from '../utils/simulationStorage';
+import { SimulationChatEntry, readSimulationChats, writeSimulationChats } from '../utils/simulationStorage';
 
 const SIMULATION_SERVICE_KEY_HEADER = 'x-api-key';
 const SIMULATION_SERVICE_KEY_VALUE = 'x-api-key';
@@ -30,6 +25,7 @@ const TestAssistantSimulations: React.FC = () => {
   const [simulationChats, setSimulationChats] = useState<SimulationChatEntry[]>(() => readSimulationChats());
   const [chatListError, setChatListError] = useState<string | null>(null);
   const [isCreatingSimulation, setIsCreatingSimulation] = useState(false);
+  const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
   const hasHydratedSimulationsRef = useRef(false);
 
   useEffect(() => {
@@ -163,6 +159,28 @@ const TestAssistantSimulations: React.FC = () => {
     navigate(`/test-assistant/${chatId}`);
   };
 
+  const handleDeleteSimulation = useCallback(
+    async (chatId: string) => {
+      if (!chatId || deletingChatId === chatId) return;
+
+      setChatListError(null);
+      setDeletingChatId(chatId);
+
+      try {
+        await api.delete(`/dashboard/chats/${chatId}`);
+        setSimulationChats((prev) => prev.filter((entry) => entry.id !== chatId));
+      } catch (error) {
+        console.error('Error deleting simulation chat:', error);
+        setChatListError(
+          t('testAssistant.simulationDeleteError', 'No se pudo eliminar la simulacion. Intenta nuevamente.'),
+        );
+      } finally {
+        setDeletingChatId(null);
+      }
+    },
+    [deletingChatId, t],
+  );
+
   const description = simulationChats.length
     ? t(
         'testAssistant.simulationListDescription',
@@ -179,65 +197,148 @@ const TestAssistantSimulations: React.FC = () => {
       description={description}
       contentClassName="space-y-6"
     >
-      <div className="rounded-2xl border border-brand-border/60 bg-white/90 p-6 shadow-brand-soft">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-brand-dark">
-              {t('testAssistant.simulationListTitle', 'Simulaciones disponibles')}
-            </p>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,320px)_1fr]">
+        <section className="rounded-2xl border border-brand-border/50 bg-gradient-to-br from-white via-white to-brand-primary/5 p-6 shadow-brand-soft">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">
+            {t('testAssistant.simulationActions', 'Acciones rápidas')}
+          </p>
+          <h3 className="mt-3 text-lg font-semibold text-brand-dark">
+            {t('testAssistant.simulationHeroTitle', 'Gestiona y crea nuevas simulaciones')}
+          </h3>
+          <p className="mt-2 text-sm text-brand-muted">{description}</p>
+          <div className="mt-6 rounded-xl border border-brand-border/40 bg-white/80 px-4 py-3 text-sm text-brand-dark">
+            {t('testAssistant.simulationSummary', '{{count}} simulaciones guardadas en este dispositivo.', {
+              count: simulationChats.length,
+            })}
+          </div>
+          <div className="mt-6 flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={handleCreateSimulation}
+              disabled={isCreatingSimulation}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isCreatingSimulation ? (
+                <>
+                  <Spinner small /> {t('testAssistant.creatingSimulation', 'Creando...')}
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  {t('testAssistant.newSimulation', 'Nueva simulación')}
+                </>
+              )}
+            </button>
             <p className="text-xs text-brand-muted">
-              {t('testAssistant.simulationListHint', 'Haz clic en una simulación para abrir su historial.')}
+              {t(
+                'testAssistant.simulationSecondaryHint',
+                'Cada simulación crea un chat privado para validar respuestas sin afectar clientes reales.',
+              )}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleCreateSimulation}
-            disabled={isCreatingSimulation}
-            className="inline-flex items-center gap-2 rounded-lg border border-brand-primary/30 bg-white px-3 py-2 text-xs font-semibold text-brand-primary shadow-sm transition hover:bg-brand-primary/10 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
-          >
-            {isCreatingSimulation ? (
-              <>
-                <Spinner small /> {t('testAssistant.creatingSimulation', 'Creando...')}
-              </>
-            ) : (
-              t('testAssistant.newSimulation', 'Nueva simulación')
-            )}
-          </button>
-        </div>
-
-        {chatListError && (
-          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
-            {chatListError}
+        </section>
+        <section className="rounded-2xl border border-brand-border/60 bg-white/95 p-6 shadow-brand-soft">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-brand-dark">
+                {t('testAssistant.simulationListTitle', 'Simulaciones disponibles')}
+              </p>
+              <p className="text-xs text-brand-muted">
+                {t('testAssistant.simulationListHint', 'Haz clic en una simulación para abrir su historial.')}
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-brand-primary/5 px-3 py-2 text-xs text-brand-primary md:text-sm">
+              <span className="font-semibold">
+                {t('testAssistant.simulationTotalLabel', '{{count}} activas', {
+                  count: simulationChats.length,
+                })}
+              </span>
+              <span className="text-brand-muted">{t('testAssistant.simulationTapHint', 'Toque para abrir')}</span>
+            </div>
           </div>
-        )}
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          {simulationChats.map((chat, index) => {
-            const displayName =
-              chat.label ??
-              t('testAssistant.simulationDefaultName', 'Simulación {{index}}', {
-                index: index + 1,
-              });
-            const subtitle = chat.id === DEFAULT_SIMULATION_CHAT_ID ? 'predeterminada' : chat.id;
-
-            return (
-              <button
-                key={chat.id}
-                type="button"
-                onClick={() => handleOpenSimulation(chat.id)}
-                className="flex min-w-[200px] flex-col gap-1 rounded-xl border border-brand-border/70 bg-white px-4 py-3 text-left shadow-sm transition hover:border-brand-primary/40 hover:bg-brand-primary/5"
-              >
-                <span className="text-sm font-semibold text-brand-dark">{displayName}</span>
-                <span className="break-all text-xs text-brand-muted">{subtitle}</span>
-              </button>
-            );
-          })}
-          {simulationChats.length === 0 && (
-            <div className="w-full rounded-xl border border-dashed border-brand-border/60 bg-white px-4 py-8 text-center text-sm text-brand-muted">
-              {t('testAssistant.noSimulations', 'Todavía no hay simulaciones creadas.')}
+          {chatListError && (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+              {chatListError}
             </div>
           )}
-        </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {simulationChats.map((chat, index) => {
+              const displayName =
+                chat.label ??
+                t('testAssistant.simulationDefaultName', 'Simulación {{index}}', {
+                  index: index + 1,
+                });
+              const subtitle = chat.id;
+
+              return (
+                <div key={chat.id} className="relative h-full rounded-2xl border border-brand-border/60 bg-white shadow-brand-soft transition hover:-translate-y-0.5 hover:border-brand-primary/40 hover:shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenSimulation(chat.id)}
+                    className="flex h-full w-full flex-col gap-3 rounded-2xl px-4 py-4 text-left"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-sm font-semibold text-brand-dark">{displayName}</span>
+                      <span className="rounded-full bg-brand-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase text-brand-primary">
+                        {t('testAssistant.simulationBadge', 'Simulación')}
+                      </span>
+                    </div>
+                    <span className="line-clamp-2 break-all text-xs text-brand-muted">{subtitle}</span>
+                    <span className="text-xs font-semibold text-brand-primary">
+                      {t('testAssistant.openSimulation', 'Abrir conversación')}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      handleDeleteSimulation(chat.id);
+                    }}
+                    disabled={deletingChatId === chat.id}
+                    aria-label={t('testAssistant.deleteSimulation', 'Eliminar simulacion')}
+                    className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-brand-border/60 bg-white text-brand-muted shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {deletingChatId === chat.id ? (
+                      <Spinner small />
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                        <path
+                          fillRule="evenodd"
+                          d="M8.5 3a1 1 0 0 0-.894.553L7.382 4.5H5a.75.75 0 0 0 0 1.5h10a.75.75 0 0 0 0-1.5h-2.382l-.224-.447A1 1 0 0 0 11.5 3h-3Zm-2.958 4.5a.75.75 0 0 0-.742.651l-.75 6.75A2.25 2.25 0 0 0 6.29 17.5h7.42a2.25 2.25 0 0 0 2.24-2.599l-.75-6.75a.75.75 0 0 0-.742-.651H5.542Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+            {simulationChats.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-brand-border/60 bg-brand-primary/5 px-6 py-12 text-center">
+                <p className="text-sm font-semibold text-brand-dark">
+                  {t('testAssistant.noSimulations', 'Todavía no hay simulaciones creadas.')}
+                </p>
+                <p className="mt-2 text-xs text-brand-muted">
+                  {t('testAssistant.emptyStateHint', 'Crea tu primera simulación para comenzar a validar flujos.')}
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </GradientSection>
   );
