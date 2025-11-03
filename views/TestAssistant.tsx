@@ -1,4 +1,11 @@
-import React, { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  FormEvent,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import GradientSection from '../components/GradientSection';
 import { Message } from '../types';
@@ -370,7 +377,9 @@ const TestAssistant: React.FC = () => {
     reconcilePendingClientMessage,
   ]);
 
-  const handleSendClientMessage = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSendClientMessage = async (
+    event: FormEvent<HTMLFormElement> | KeyboardEvent<HTMLTextAreaElement>
+  ) => {
     event.preventDefault();
     const trimmed = clientMessage.trim();
 
@@ -466,6 +475,25 @@ const TestAssistant: React.FC = () => {
       setIsSendingClient(false);
     }
   };
+
+  const handleClientMessageKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (
+      event.key !== 'Enter' ||
+      event.shiftKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.metaKey ||
+      event.isComposing
+    ) {
+      return;
+    }
+
+    if (!clientMessage.trim() || isSendingClient) {
+      return;
+    }
+
+    handleSendClientMessage(event);
+  };
   return (
     <GradientSection
       title={t('testAssistant.title', 'Tester del asistente')}
@@ -560,6 +588,7 @@ const TestAssistant: React.FC = () => {
                 className="mt-4 h-32 w-full rounded-xl border border-brand-border/50 bg-white px-4 py-3 text-sm text-brand-dark shadow-sm focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                 value={clientMessage}
                 onChange={(event) => setClientMessage(event.target.value)}
+                onKeyDown={handleClientMessageKeyDown}
                 placeholder={t('testAssistant.clientPlaceholder', 'Escribe un mensaje de prueba...')}
                 disabled={isSendingClient}
               />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from 'react-i18next';
@@ -8,11 +8,42 @@ import { ArrowLeftOnRectangleIcon, UserCircleIcon } from '@heroicons/react/24/so
 import nodaiLogo from '../nodai-definitivo.png';
 
 import { navItems } from './navItems';
+import api from '../services/api';
 
 const Sidebar: React.FC = () => {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [companyName, setCompanyName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setCompanyName(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchCompanyName = async () => {
+      try {
+        const { data } = await api.get<{ name?: string }>('dashboard/clients/current');
+        if (isMounted) {
+          setCompanyName(data?.name ?? null);
+        }
+      } catch (error) {
+        console.error('Error fetching company name', error);
+        if (isMounted) {
+          setCompanyName(null);
+        }
+      }
+    };
+
+    fetchCompanyName();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -52,7 +83,7 @@ const Sidebar: React.FC = () => {
                   <item.icon
                     className={`h-5 w-5 mr-3 transition-colors duration-200 ${isActive ? 'text-brand-primary' : 'text-[#BBD6E5] group-hover:text-brand-primary group-focus:text-brand-primary'}`}
                   />
-                  {t(item.labelKey)}
+                  {item.to === '/company' ? companyName ?? t(item.labelKey) : t(item.labelKey)}
                 </>
               )}
             </NavLink>

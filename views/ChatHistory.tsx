@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Message, Role } from '../types';
@@ -93,7 +93,9 @@ const ChatHistory: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSendMessage = async (
+    event: FormEvent<HTMLFormElement> | KeyboardEvent<HTMLTextAreaElement>
+  ) => {
     event.preventDefault();
 
     if (!contactId || !newMessage.trim() || isSending || !canRespond) {
@@ -132,6 +134,25 @@ const ChatHistory: React.FC = () => {
     } finally {
       setIsSending(false);
     }
+  };
+
+  const handleAdminMessageKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (
+      event.key !== 'Enter' ||
+      event.shiftKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.metaKey ||
+      event.isComposing
+    ) {
+      return;
+    }
+
+    if (!newMessage.trim() || isSending || !canRespond) {
+      return;
+    }
+
+    handleSendMessage(event);
   };
 
   if (isLoading) {
@@ -220,6 +241,7 @@ const ChatHistory: React.FC = () => {
                 id="admin-response"
                 value={newMessage}
                 onChange={(event) => setNewMessage(event.target.value)}
+                onKeyDown={handleAdminMessageKeyDown}
                 placeholder={t('chatHistory.writeMessage', 'Escribe tu mensaje...')}
                 className="min-h-[3rem] flex-1 resize-none rounded-xl border border-brand-border/60 bg-white/80 px-4 py-3 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                 rows={2}
