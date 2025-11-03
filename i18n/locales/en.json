@@ -137,6 +137,12 @@
     "adminSend": "Send as admin",
     "loadingHistory": "Loading test history...",
     "historyError": "Unable to load the test history.",
+    "historyHeading": "Simulation history",
+    "resetNotice": "Restart the simulation to clear messages while keeping the same chat.",
+    "resetButton": "Restart simulation",
+    "resetting": "Restarting...",
+    "resetConfirm": "Do you want to restart the simulation? This will delete all messages in the current conversation.",
+    "resetError": "We couldn't clear the test history.",
     "assistantPlaceholder": "The assistant is composing a response..."
   }
 }

@@ -136,6 +136,12 @@
     "adminSend": "Enviar como admin",
     "loadingHistory": "Cargando historial de prueba...",
     "historyError": "No se pudo obtener el historial de prueba.",
+    "historyHeading": "Historial de la simulaci\u00F3n",
+    "resetNotice": "Reinicia la simulaci\u00F3n para borrar los mensajes conservando el mismo chat.",
+    "resetButton": "Reiniciar simulaci\u00F3n",
+    "resetting": "Reiniciando...",
+    "resetConfirm": "\u00BFDeseas reiniciar la simulaci\u00F3n? Esto borrar\u00E1 todos los mensajes de la conversaci\u00F3n actual.",
+    "resetError": "No se pudo limpiar el historial de prueba.",
     "assistantPlaceholder": "El asistente est\u00E1 preparando la respuesta..."
   }
 }
