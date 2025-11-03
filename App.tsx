@@ -14,6 +14,7 @@ import Contacts from './views/Contacts';
 import ChatHistory from './views/ChatHistory';
 import Users from './views/Users';
 import TestAssistant from './views/TestAssistant';
+import TestAssistantSimulations from './views/TestAssistantSimulations';
 import NotFound from './views/NotFound';
 import { Role } from './types';
 
@@ -39,6 +40,11 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="test-assistant" element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN]}>
+                <TestAssistantSimulations />
+              </ProtectedRoute>
+            } />
+            <Route path="test-assistant/:chatId" element={
               <ProtectedRoute allowedRoles={[Role.ADMIN]}>
                 <TestAssistant />
               </ProtectedRoute>

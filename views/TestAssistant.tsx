@@ -1,4 +1,4 @@
-import React, {
+﻿import React, {
   FormEvent,
   KeyboardEvent,
   useCallback,
@@ -6,38 +6,17 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import GradientSection from '../components/GradientSection';
 import { Message } from '../types';
 import Spinner from '../components/Spinner';
 import api from '../services/api';
+import { readSimulationChats, updateStoredSimulationLabel } from '../utils/simulationStorage';
 
 const TEST_WEBHOOK_URL = 'https://18-116-178-41.nip.io/webhook/test/client-message';
 const DEFAULT_SIMULATION_FROM = '5492222222222';
 const DEFAULT_SIMULATION_NAME = 'Cliente Falso';
-const DEFAULT_SIMULATION_CHAT_ID = '6907df7ffc87be11d0fccc3c';
-const SIMULATION_STORAGE_KEY = 'testAssistant.simulations';
-const SIMULATION_SERVICE_KEY_HEADER = 'x-api-key';
-const SIMULATION_SERVICE_KEY_VALUE = 'x-api-key';
-const SIMULATION_DEFAULT_PLATFORM: 'web' | 'whatsapp' | 'telegram' | 'facebook' | 'instagram' = 'web';
-
-type SimulationChatEntry = {
-  id: string;
-  label?: string | null;
-};
-
-type SimulationMetadata = {
-  displayName: string | null;
-  contactId: string | null;
-};
-
-const generateSimulationChatId = () => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID().replace(/-/g, '').slice(0, 24);
-  }
-
-  return Math.random().toString(16).slice(2).padEnd(24, '0').slice(0, 24);
-};
 
 // --- Funciones auxiliares (sin cambios)
 const formatApiMessage = (message: any): Message | null => {
@@ -75,12 +54,10 @@ const mergeMessageLists = (serverMessages: Message[], pendingMessages: Message[]
 // --- Componente principal
 const TestAssistant: React.FC = () => {
   const { t } = useTranslation();
-  const clientIdEnv = import.meta.env?.VITE_CLIENT_ID as string | undefined;
-  const [simulationChats, setSimulationChats] = useState<SimulationChatEntry[]>([]);
-  const [selectedSimulationId, setSelectedSimulationId] = useState<string | null>(null);
-  const [simulationMetadata, setSimulationMetadata] = useState<Record<string, SimulationMetadata>>({});
-  const [chatListError, setChatListError] = useState<string | null>(null);
-  const [isCreatingSimulation, setIsCreatingSimulation] = useState(false);
+  const { chatId } = useParams<{ chatId?: string }>();
+  const navigate = useNavigate();
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [isKnownSimulation, setIsKnownSimulation] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [pendingMessagesState, setPendingMessagesState] = useState<Message[]>([]);
   const [clientMessage, setClientMessage] = useState('');
@@ -104,59 +81,19 @@ const TestAssistant: React.FC = () => {
   const pendingClientMessageIdRef = useRef<string | null>(null);
   const pendingClientMessageSentAtRef = useRef<number | null>(null);
   const pendingClientMessageTextRef = useRef<string | null>(null);
-  const hasHydratedSimulationsRef = useRef(false);
   const historyReloadTimeoutRef = useRef<number | null>(null);
   const previousSimulationIdRef = useRef<string | null>(null);
   const historyReloadAttemptsRef = useRef(0);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const stored = window.localStorage.getItem(SIMULATION_STORAGE_KEY);
-      let initialEntries: SimulationChatEntry[] = [];
-
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          initialEntries = parsed
-            .map((entry) => {
-              if (!entry || typeof entry !== 'object') return null;
-              const id = typeof entry.id === 'string' ? entry.id.trim() : '';
-              if (!id) return null;
-              const label = typeof entry.label === 'string' ? entry.label : null;
-              return { id, label };
-            })
-            .filter((entry): entry is SimulationChatEntry => Boolean(entry));
-        }
-      }
-
-      if (!initialEntries.some((entry) => entry.id === DEFAULT_SIMULATION_CHAT_ID)) {
-        initialEntries.unshift({ id: DEFAULT_SIMULATION_CHAT_ID, label: null });
-      }
-
-      if (initialEntries.length === 0) {
-        initialEntries = [{ id: DEFAULT_SIMULATION_CHAT_ID, label: null }];
-      }
-
-      setSimulationChats(initialEntries);
-      setSelectedSimulationId((prev) => prev ?? initialEntries[0]?.id ?? null);
-      setChatListError(null);
-    } catch (error) {
-      console.error('Error hydrating simulation chats:', error);
-      const fallback = [{ id: DEFAULT_SIMULATION_CHAT_ID, label: null }];
-      setSimulationChats(fallback);
-      setSelectedSimulationId(fallback[0]?.id ?? null);
-      setChatListError(
-        t(
-          'testAssistant.simulationListError',
-          'No se pudo cargar la lista de simulaciones almacenada. Se usarán los valores por defecto.',
-        ),
-      );
-    } finally {
-      hasHydratedSimulationsRef.current = true;
+    if (!chatId) {
+      navigate('/test-assistant', { replace: true });
+      return;
     }
-  }, [t]);
+    setActiveChatId(chatId);
+    const storedChats = readSimulationChats();
+    setIsKnownSimulation(storedChats.some((entry) => entry.id === chatId));
+  }, [chatId, navigate]);
 
   useEffect(() => {
     return () => {
@@ -166,69 +103,19 @@ const TestAssistant: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!hasHydratedSimulationsRef.current) return;
-
-    try {
-      window.localStorage.setItem(SIMULATION_STORAGE_KEY, JSON.stringify(simulationChats));
-    } catch (error) {
-      console.error('Error persisting simulation chats:', error);
-      setChatListError(
-        t(
-          'testAssistant.simulationPersistError',
-          'No se pudo guardar la lista de simulaciones. Los cambios podrían perderse al recargar.',
-        ),
-      );
-    }
-  }, [simulationChats, t]);
-
-  useEffect(() => {
-    setSimulationMetadata((prev) => {
-      const next: Record<string, SimulationMetadata> = {};
-      simulationChats.forEach((entry) => {
-        const existing = prev[entry.id];
-        next[entry.id] = {
-          displayName: existing?.displayName ?? entry.label ?? null,
-          contactId: existing?.contactId ?? null,
-        };
-      });
-
-      const hasChanged =
-        Object.keys(next).length !== Object.keys(prev).length ||
-        Object.entries(next).some(([key, value]) => {
-          const prevValue = prev[key];
-          return !prevValue || prevValue.displayName !== value.displayName || prevValue.contactId !== value.contactId;
-        });
-
-      return hasChanged ? next : prev;
-    });
-  }, [simulationChats]);
-
-  useEffect(() => {
-    if (!simulationChats.length) {
-      setSelectedSimulationId(null);
-      return;
-    }
-
-    if (!selectedSimulationId || !simulationChats.some((entry) => entry.id === selectedSimulationId)) {
-      setSelectedSimulationId(simulationChats[0].id);
-    }
-  }, [simulationChats, selectedSimulationId]);
-
   const sectionDescription = contactId
     ? t(
         'testAssistant.descriptionWithContact',
-        'Historial de prueba para {{contactName}} (ID: {{contactId}}). Envía mensajes para validar el flujo.',
+        'Historial de prueba para {{contactName}} (ID: {{contactId}}). EnvÃ­a mensajes para validar el flujo.',
         { contactName: contactDisplayName ?? contactId, contactId }
       )
-    : selectedSimulationId
+    : activeChatId
     ? t(
         'testAssistant.descriptionWithChat',
-        'Simulación activa con chat ID {{chatId}}. Envía mensajes de prueba para revisar el flujo.',
-        { chatId: selectedSimulationId },
+        'SimulaciÃ³n activa con chat ID {{chatId}}. EnvÃ­a mensajes de prueba para revisar el flujo.',
+        { chatId: activeChatId },
       )
-    : t('testAssistant.description', 'Envía mensajes de prueba como cliente y visualiza el hilo de la conversación.');
+    : t('testAssistant.description', 'EnvÃ­a mensajes de prueba como cliente y visualiza el hilo de la conversaciÃ³n.');
 
   const applyMergedMessages = useCallback(() => {
     setMessages(mergeMessageLists(serverMessagesRef.current, pendingMessagesRef.current));
@@ -253,128 +140,15 @@ const TestAssistant: React.FC = () => {
     [applyMergedMessages]
   );
 
-  const handleCreateSimulation = useCallback(async () => {
-    if (isCreatingSimulation) return;
+  // Simulation list is handled in the selection view.
 
-    setIsCreatingSimulation(true);
-    setChatListError(null);
-
-    try {
-      const platformChatId = generateSimulationChatId();
-      const username = `sim-${platformChatId.slice(-8)}`;
-
-      let chatData: any = null;
-      let contactData: any = null;
-      let resolvedChatId: string | null = null;
-      let fallbackUsed = false;
-
-      try {
-        const simulateResponse = await api.post('/dashboard/chats/simulate', {
-          platform: SIMULATION_DEFAULT_PLATFORM,
-          platformChatId,
-          username,
-        });
-
-        chatData = simulateResponse.data?.chat ?? null;
-        contactData = simulateResponse.data?.contact ?? chatData?.contact ?? null;
-        resolvedChatId = chatData?.id ?? chatData?._id ?? null;
-      } catch (simulateError: unknown) {
-        const status = (simulateError as any)?.response?.status ?? null;
-        if (status === 404) {
-          fallbackUsed = true;
-        } else {
-          throw simulateError;
-        }
-      }
-
-      if (!resolvedChatId) {
-        if (!fallbackUsed) {
-          throw new Error('Chat data missing in response');
-        }
-
-        if (!clientIdEnv) {
-          throw new Error('No se pudo crear la simulación porque falta configurar el clientId (VITE_CLIENT_ID).');
-        }
-
-        const fallbackResponse = await api.post(
-          '/dashboard/chats/find-or-create',
-          {
-            platform: SIMULATION_DEFAULT_PLATFORM,
-            platformChatId,
-            username,
-            clientId: clientIdEnv,
-          },
-          {
-            headers: {
-              [SIMULATION_SERVICE_KEY_HEADER]: SIMULATION_SERVICE_KEY_VALUE,
-            },
-          },
-        );
-
-        chatData = fallbackResponse.data?.chat ?? null;
-        contactData = fallbackResponse.data?.contact ?? chatData?.contact ?? null;
-        resolvedChatId = chatData?.id ?? chatData?._id ?? null;
-      }
-
-      if (!resolvedChatId) {
-        throw new Error('Chat ID missing');
-      }
-
-      const resolvedContactId =
-        (contactData && typeof contactData === 'object' && (contactData.id || contactData._id)) ||
-        (typeof contactData === 'string' ? contactData : null) ||
-        null;
-
-      let displayName = 'Contacto de simulación';
-      if (contactData && typeof contactData === 'object') {
-        displayName =
-          contactData.name ||
-          contactData.username ||
-          contactData.displayName ||
-          contactData.phoneNumber ||
-          contactData.platformChatId ||
-          username;
-      } else if (typeof contactData === 'string') {
-        displayName = contactData;
-      } else if (resolvedContactId) {
-        displayName = resolvedContactId;
-      } else {
-        displayName = username;
-      }
-
-      const entryLabel = displayName !== resolvedContactId ? displayName : null;
-
-      setSimulationChats((prev) => {
-        const withoutDuplicate = prev.filter((entry) => entry.id !== resolvedChatId);
-        return [{ id: resolvedChatId, label: entryLabel }, ...withoutDuplicate];
-      });
-
-      setSimulationMetadata((prev) => ({
-        ...prev,
-        [resolvedChatId]: {
-          displayName,
-          contactId: resolvedContactId,
-        },
-      }));
-
-      setSelectedSimulationId(resolvedChatId);
-    } catch (error) {
-      console.error('Error creating simulation chat:', error);
-      setChatListError(
-        t('testAssistant.simulationCreateError', 'No se pudo crear la nueva simulación. Intenta nuevamente.'),
-      );
-    } finally {
-      setIsCreatingSimulation(false);
-    }
-  }, [clientIdEnv, isCreatingSimulation, t]);
-
-  // --- Hooks y funciones de carga / envío (idénticos al original) ---
+  // --- Hooks y funciones de carga / envÃ­o (idÃ©nticos al original) ---
   useEffect(() => {
-    if (!selectedSimulationId) return;
+    if (!activeChatId) return;
 
     let isCancelled = false;
-    const isSelectionChange = previousSimulationIdRef.current !== selectedSimulationId;
-    previousSimulationIdRef.current = selectedSimulationId;
+    const isSelectionChange = previousSimulationIdRef.current !== activeChatId;
+    previousSimulationIdRef.current = activeChatId;
 
     const resetStateForSelection = () => {
       setServerMessages([]);
@@ -413,13 +187,13 @@ const TestAssistant: React.FC = () => {
         setHistoryError(null);
         setResetError(null);
 
-        const chatResponse = await api.get(`/dashboard/chats/${selectedSimulationId}`);
+        const chatResponse = await api.get(`/dashboard/chats/${activeChatId}`);
         const chatData = chatResponse.data?.chat;
         if (!chatData) throw new Error('Chat not found');
 
         if (isCancelled) return;
 
-        const resolvedChatId = chatData.id ?? chatData._id ?? selectedSimulationId;
+        const resolvedChatId = chatData.id ?? chatData._id ?? activeChatId;
         setCurrentChatId(resolvedChatId);
         const contactData = chatData.contact ?? null;
         const resolvedContactId =
@@ -439,13 +213,9 @@ const TestAssistant: React.FC = () => {
         } else if (typeof contactData === 'string') displayName = contactData;
         else displayName = resolvedContactId;
         setContactDisplayName(displayName);
-        setSimulationMetadata((prev) => ({
-          ...prev,
-          [selectedSimulationId]: {
-            displayName,
-            contactId: resolvedContactId,
-          },
-        }));
+        const labelForStorage = displayName === resolvedContactId ? null : displayName;
+        updateStoredSimulationLabel(resolvedChatId, labelForStorage);
+        setIsKnownSimulation(true);
 
         const response = await api.get(`/dashboard/contacts/${resolvedContactId}/messages`);
         const apiMessages = response.data.messages || [];
@@ -502,13 +272,6 @@ const TestAssistant: React.FC = () => {
           setHistoryError(t('testAssistant.historyError', 'No se pudo obtener el historial de prueba.'));
         }
 
-        setSimulationMetadata((prev) => ({
-          ...prev,
-          [selectedSimulationId]: {
-            displayName: prev[selectedSimulationId]?.displayName ?? null,
-            contactId: null,
-          },
-        }));
       } finally {
         if (!isCancelled) {
           setIsLoadingHistory(false);
@@ -524,7 +287,7 @@ const TestAssistant: React.FC = () => {
   }, [
     historyReloadToken,
     isSendingClient,
-    selectedSimulationId,
+    activeChatId,
     setHistoryReloadToken,
     setPendingMessages,
     setServerMessages,
@@ -541,11 +304,11 @@ const TestAssistant: React.FC = () => {
     event.preventDefault();
     const trimmed = clientMessage.trim();
     if (!trimmed || isSendingClient) return;
-    if (!selectedSimulationId) {
+    if (!activeChatId) {
       setClientError(
         t(
           'testAssistant.simulationRequired',
-          'Selecciona o crea una simulación antes de enviar mensajes.',
+          'Selecciona o crea una simulaciÃ³n antes de enviar mensajes.',
         ),
       );
       return;
@@ -562,7 +325,7 @@ const TestAssistant: React.FC = () => {
     const placeholder: Message = {
       id: 'assistant-pending-' + now.getTime(),
       role: 'assistant',
-      text: t('testAssistant.assistantPlaceholder', 'El asistente está preparando la respuesta...'),
+      text: t('testAssistant.assistantPlaceholder', 'El asistente estÃ¡ preparando la respuesta...'),
       timestamp: new Date(now.getTime() + 1).toISOString(),
     };
 
@@ -586,7 +349,7 @@ const TestAssistant: React.FC = () => {
           text: trimmed,
           name: DEFAULT_SIMULATION_NAME,
           tipo: 'testing',
-          chatId: selectedSimulationId,
+          chatId: activeChatId,
         }),
       });
       if (typeof window !== 'undefined') {
@@ -708,12 +471,12 @@ const TestAssistant: React.FC = () => {
 
     const confirmMessage = t(
       'testAssistant.resetConfirm',
-      '¿Deseas reiniciar la simulación? Esto borrará todos los mensajes de la conversación actual.',
+      'Â¿Deseas reiniciar la simulaciÃ³n? Esto borrarÃ¡ todos los mensajes de la conversaciÃ³n actual.',
     );
     const confirmed = typeof window === 'undefined' ? true : window.confirm(confirmMessage);
     if (!confirmed) return;
 
-    const targetChatId = currentChatId ?? selectedSimulationId;
+    const targetChatId = currentChatId ?? activeChatId;
     if (!targetChatId && !contactId) {
       setResetError(t('testAssistant.resetError', 'No se pudo limpiar el historial de prueba.'));
       return;
@@ -764,7 +527,7 @@ const TestAssistant: React.FC = () => {
     contactId,
     currentChatId,
     isClearingHistory,
-    selectedSimulationId,
+    activeChatId,
     setHistoryReloadToken,
     setAssistantPlaceholderId,
     setAssistantPlaceholderMessage,
@@ -779,7 +542,7 @@ const TestAssistant: React.FC = () => {
   // --- Render ---
   return (
     <GradientSection
-      title={t('testAssistant.title', 'Simulador de conversación real')}
+      title={t('testAssistant.title', 'Simulador de conversaciÃ³n real')}
       description={sectionDescription}
       contentClassName="space-y-6"
     >
@@ -790,10 +553,10 @@ const TestAssistant: React.FC = () => {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold text-brand-dark">
-                  {t('testAssistant.historyHeading', 'Historial de la simulación')}
+                  {t('testAssistant.historyHeading', 'Historial de la simulaciÃ³n')}
                 </p>
                 <p className="text-xs text-brand-muted">
-                  {t('testAssistant.resetNotice', 'Reinicia la simulación para borrar los mensajes conservando el mismo chat.')}
+                  {t('testAssistant.resetNotice', 'Reinicia la simulaciÃ³n para borrar los mensajes conservando el mismo chat.')}
                 </p>
               </div>
               <button
@@ -803,7 +566,7 @@ const TestAssistant: React.FC = () => {
                   isClearingHistory ||
                   isLoadingHistory ||
                   !hasAnyMessages ||
-                  (!contactId && !currentChatId && !selectedSimulationId)
+                  (!contactId && !currentChatId && !activeChatId)
                 }
                 className="inline-flex items-center gap-2 rounded-xl border border-brand-primary/20 bg-white px-4 py-2 text-xs font-semibold text-brand-primary shadow-sm transition hover:bg-brand-primary/10 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
               >
@@ -812,7 +575,7 @@ const TestAssistant: React.FC = () => {
                     <Spinner small /> {t('testAssistant.resetting', 'Reiniciando...')}
                   </>
                 ) : (
-                  t('testAssistant.resetButton', 'Reiniciar simulación')
+                  t('testAssistant.resetButton', 'Reiniciar simulaciÃ³n')
                 )}
               </button>
             </div>
@@ -820,65 +583,37 @@ const TestAssistant: React.FC = () => {
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
-                  {t('testAssistant.simulationListTitle', 'Simulaciones disponibles')}
+                  {t('testAssistant.activeSimulationLabel', 'SimulaciÃ³n seleccionada')}
                 </p>
                 <button
                   type="button"
-                  onClick={handleCreateSimulation}
-                  disabled={isCreatingSimulation}
-                  className="inline-flex items-center gap-2 rounded-lg border border-brand-primary/30 bg-white px-3 py-2 text-xs font-semibold text-brand-primary shadow-sm transition hover:bg-brand-primary/10 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
+                  onClick={() => navigate('/test-assistant')}
+                  className="inline-flex items-center gap-2 rounded-lg border border-brand-primary/30 bg-white px-3 py-2 text-xs font-semibold text-brand-primary shadow-sm transition hover:bg-brand-primary/10 sm:text-sm"
                 >
-                  {isCreatingSimulation ? (
-                    <>
-                      <Spinner small /> {t('testAssistant.creatingSimulation', 'Creando...')}
-                    </>
-                  ) : (
-                    t('testAssistant.newSimulation', 'Nueva simulación')
-                  )}
+                  {t('testAssistant.backToList', 'Ver todas las simulaciones')}
                 </button>
               </div>
 
-              {chatListError && (
+              {!isKnownSimulation && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
-                  {chatListError}
+                  {t(
+                    'testAssistant.unknownSimulation',
+                    'Este chat no estÃ¡ en la lista local. Puedes volver a la lista para sincronizarlo.',
+                  )}
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-2">
-                {simulationChats.map((chat, index) => {
-                  const metadata = simulationMetadata[chat.id];
-                  const isActive = chat.id === selectedSimulationId;
-                  const displayName =
-                    metadata?.displayName && metadata.displayName !== metadata.contactId
-                      ? metadata.displayName
-                      : chat.label ??
-                        t('testAssistant.simulationDefaultName', 'Simulación {{index}}', {
-                          index: index + 1,
-                        });
-                  const subtitle = metadata?.contactId ?? chat.id;
-
-                  return (
-                    <button
-                      key={chat.id}
-                      type="button"
-                      onClick={() => setSelectedSimulationId(chat.id)}
-                      className={`flex min-w-[180px] flex-col gap-1 rounded-xl border px-4 py-3 text-left shadow-sm transition ${
-                        isActive
-                          ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
-                          : 'border-brand-border/70 bg-white text-brand-dark hover:border-brand-primary/40'
-                      }`}
-                    >
-                      <span className="text-sm font-semibold">{displayName}</span>
-                      <span className="break-all text-xs text-brand-muted">{subtitle}</span>
-                    </button>
-                  );
-                })}
-                {simulationChats.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-brand-border/60 bg-white px-4 py-3 text-xs text-brand-muted">
-                    {t('testAssistant.noSimulations', 'Todavía no hay simulaciones creadas.')}
-                  </div>
-                )}
-              </div>
+              {activeChatId && (
+                <div className="rounded-xl border border-brand-border/70 bg-white px-4 py-3 text-xs text-brand-dark shadow-sm">
+                  <p className="font-semibold text-brand-primary">{activeChatId}</p>
+                  <p className="text-brand-muted">
+                    {t(
+                      'testAssistant.simulationHint',
+                      'Los mensajes que envÃ­es aquÃ­ solo afectarÃ¡n a esta simulaciÃ³n.',
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -930,7 +665,7 @@ const TestAssistant: React.FC = () => {
             })
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-brand-muted">
-              {t('testAssistant.noMessages', 'Todavía no hay mensajes de prueba.')}
+              {t('testAssistant.noMessages', 'TodavÃ­a no hay mensajes de prueba.')}
             </div>
           )}
           <div ref={chatEndRef} />
@@ -939,7 +674,7 @@ const TestAssistant: React.FC = () => {
           )}
         </div>
 
-        {/* Input del cliente (único, a todo ancho y con colores del cliente) */}
+        {/* Input del cliente (Ãºnico, a todo ancho y con colores del cliente) */}
         <div className="border-t border-brand-border/60 bg-white/80 px-6 py-6">
           <div className="border-t border-brand-border/40 bg-white/90 px-6 py-4 backdrop-blur-sm">
             <form onSubmit={handleSendClientMessage} className="flex flex-col gap-3">
@@ -983,3 +718,5 @@ const TestAssistant: React.FC = () => {
 };
 
 export default TestAssistant;
+
+
