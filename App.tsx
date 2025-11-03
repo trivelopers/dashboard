@@ -13,6 +13,7 @@ import CompanyInfo from './views/CompanyInfo';
 import Contacts from './views/Contacts';
 import ChatHistory from './views/ChatHistory';
 import Users from './views/Users';
+import TestAssistant from './views/TestAssistant';
 import NotFound from './views/NotFound';
 import { Role } from './types';
 
@@ -35,6 +36,11 @@ function App() {
             <Route path="prompt" element={
               <ProtectedRoute allowedRoles={[Role.ADMIN, Role.EDITOR]}>
                 <Prompt />
+              </ProtectedRoute>
+            } />
+            <Route path="test-assistant" element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN]}>
+                <TestAssistant />
               </ProtectedRoute>
             } />
             <Route path="company" element={

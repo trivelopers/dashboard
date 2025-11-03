@@ -28,7 +28,8 @@
     "company": "Company Info",
     "logout": "Logout",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "testAssistant": "Assistant tester"
   },
   "users": {
     "title": "Team Management",
@@ -115,6 +116,27 @@
     "title": "Page Not Found",
     "description": "Sorry, the page you are looking for does not exist.",
     "goHome": "Go Home"
+  },
+  "testAssistant": {
+    "title": "Assistant tester",
+    "description": "Send test messages as a client and review the conversation flow.",
+    "descriptionWithContact": "Test history for {{contactName}} (ID: {{contactId}}). Send messages to validate the flow.",
+    "clientLabel": "Test client",
+    "adminLabel": "Admin",
+    "botLabel": "Assistant",
+    "noMessages": "No test messages yet.",
+    "clientInputTitle": "Message as client",
+    "clientInputDescription": "Send a client-side test message.",
+    "clientPlaceholder": "Write a test message...",
+    "clientSend": "Send as client",
+    "clientSending": "Sending...",
+    "clientError": "Failed to send the test message.",
+    "adminInputTitle": "Message as admin",
+    "adminInputDescription": "Temporarily disabled.",
+    "adminPlaceholder": "Manual replies coming soon.",
+    "adminSend": "Send as admin",
+    "loadingHistory": "Loading test history...",
+    "historyError": "Unable to load the test history.",
+    "assistantPlaceholder": "The assistant is composing a response..."
   }
 }
-

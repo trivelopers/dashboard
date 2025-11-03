@@ -261,7 +261,7 @@ const Dashboard: React.FC = () => {
           <InteractionsChart data={summary?.interactionsByDay ?? []} isLoading={isLoading} />
         </div>
         <GradientSection
-          title="Sugerencias rapidas"
+          title="Sugerencias rápidas"
           description="Acciones recomendadas para mantener el asistente siempre optimizado."
           className="h-full"
         >

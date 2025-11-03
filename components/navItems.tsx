@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  BeakerIcon,
   BuildingOffice2Icon,
   ChartPieIcon,
   PhoneIcon,
@@ -49,6 +50,12 @@ export const navItems: NavItem[] = [
     labelKey: 'navigation.prompt',
     icon: NeuralChipIcon,
     roles: [Role.ADMIN, Role.EDITOR],
+  },
+  {
+    to: '/test-assistant',
+    labelKey: 'navigation.testAssistant',
+    icon: BeakerIcon,
+    roles: [Role.ADMIN],
   },
   {
     to: '/company',

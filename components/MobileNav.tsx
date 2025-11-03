@@ -8,7 +8,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/solid';
 import LanguageSelector from './LanguageSelector';
-import nodaiLogo from '../nodai-logo-celeste.png';
+import nodaiLogo from '../nodai-centrado.png';
 import { navItems } from './navItems';
 
 const MobileNav: React.FC = () => {

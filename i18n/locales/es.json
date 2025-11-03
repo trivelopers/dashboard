@@ -15,20 +15,20 @@
     "totalContacts": "Contactos totales",
     "lastInteraction": "Última interacción",
     "botStatus": "Estado del asistente",
-        "companySummary": "Estadisticas en {{company}}",
-
+    "companySummary": "Estadisticas en {{company}}",
     "botStatusDescription": "El chatbot está actualmente activo y respondiendo a los mensajes de los usuarios. Todos los sistemas están operativos."
   },
   "navigation": {
     "dashboard": "Panel",
     "users": "Usuarios",
     "contacts": "Contactos",
-    "chats": "Chats",
-    "prompt": "Configuración",
-    "company": "Empresa",
     "logout": "Cerrar sesión",
+    "chats": "Conversaciones",
+    "prompt": "Refinamiento",
+    "company": "Mi empresa",
     "openMenu": "Abrir menu",
-    "closeMenu": "Cerrar menu"
+    "closeMenu": "Cerrar menu",
+    "testAssistant": "Tester del asistente"
   },
   "users": {
     "title": "Gestión de equipo",
@@ -115,6 +115,27 @@
     "title": "Página No Encontrada",
     "description": "Lo sentimos, la página que buscas no existe.",
     "goHome": "Ir al Inicio"
+  },
+  "testAssistant": {
+    "title": "Tester del asistente",
+    "description": "Env�a mensajes de prueba como cliente y revisa la conversaci�n.",
+    "descriptionWithContact": "Historial de prueba para {{contactName}} (ID: {{contactId}}). Env�a mensajes para validar el flujo.",
+    "clientLabel": "Cliente de prueba",
+    "adminLabel": "Administrador",
+    "botLabel": "Asistente",
+    "noMessages": "Todav�a no hay mensajes de prueba.",
+    "clientInputTitle": "Mensaje como cliente",
+    "clientInputDescription": "Env�a un mensaje para testear el flujo desde el lado del cliente.",
+    "clientPlaceholder": "Escribe un mensaje de prueba...",
+    "clientSend": "Enviar como cliente",
+    "clientSending": "Enviando...",
+    "clientError": "No se pudo enviar el mensaje de prueba.",
+    "adminInputTitle": "Mensaje como admin",
+    "adminInputDescription": "Temporalmente inhabilitado.",
+    "adminPlaceholder": "Pr�ximamente podr�s enviar respuestas manuales.",
+    "adminSend": "Enviar como admin",
+    "loadingHistory": "Cargando historial de prueba...",
+    "historyError": "No se pudo obtener el historial de prueba.",
+    "assistantPlaceholder": "El asistente est\u00E1 preparando la respuesta..."
   }
 }
-
