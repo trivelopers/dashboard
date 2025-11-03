@@ -474,10 +474,6 @@ const TestAssistant: React.FC = () => {
     setIsDeletingChat(true);
 
     try {
-      setPendingMessages([]);
-      setAssistantPlaceholderId(null);
-      historyReloadAttemptsRef.current = 0;
-      if (typeof window !== 'undefined' && historyReloadTimeoutRef.current !== null) {
       await api.delete(`/dashboard/chats/${targetChatId}`);
       removeStoredSimulation(targetChatId);
       navigate('/test-assistant');
@@ -485,8 +481,8 @@ const TestAssistant: React.FC = () => {
       console.error('Error deleting simulation chat:', error);
       setDeleteError(
         t('testAssistant.deleteChatError', 'No se pudo eliminar la simulación. Intenta nuevamente.'),
+      );
     } finally {
-      setIsClearingHistory(false);
       setIsDeletingChat(false);
     }
   }, [activeChatId, currentChatId, isDeletingChat, navigate, removeStoredSimulation, t]);
