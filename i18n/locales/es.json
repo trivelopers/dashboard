@@ -1,4 +1,4 @@
-{
+﻿{
   "auth": {
     "login": "Iniciar sesión",
     "email": "Correo electrónico",
@@ -118,21 +118,21 @@
   },
   "testAssistant": {
     "title": "Tester del asistente",
-    "description": "Env�a mensajes de prueba como cliente y revisa la conversaci�n.",
-    "descriptionWithContact": "Historial de prueba para {{contactName}} (ID: {{contactId}}). Env�a mensajes para validar el flujo.",
+    "description": "Envía mensajes de prueba como cliente y revisa la conversación.",
+    "descriptionWithContact": "Historial de prueba para {{contactName}} (ID: {{contactId}}). Envía mensajes para validar el flujo.",
     "clientLabel": "Cliente de prueba",
     "adminLabel": "Administrador",
     "botLabel": "Asistente",
-    "noMessages": "Todav�a no hay mensajes de prueba.",
+    "noMessages": "Todavía no hay mensajes de prueba.",
     "clientInputTitle": "Mensaje como cliente",
-    "clientInputDescription": "Env�a un mensaje para testear el flujo desde el lado del cliente.",
+    "clientInputDescription": "Envía un mensaje para testear el flujo desde el lado del cliente.",
     "clientPlaceholder": "Escribe un mensaje de prueba...",
     "clientSend": "Enviar como cliente",
     "clientSending": "Enviando...",
     "clientError": "No se pudo enviar el mensaje de prueba.",
     "adminInputTitle": "Mensaje como admin",
     "adminInputDescription": "Temporalmente inhabilitado.",
-    "adminPlaceholder": "Pr�ximamente podr�s enviar respuestas manuales.",
+    "adminPlaceholder": "Próximamente podrás enviar respuestas manuales.",
     "adminSend": "Enviar como admin",
     "loadingHistory": "Cargando historial de prueba...",
     "historyError": "No se pudo obtener el historial de prueba.",
