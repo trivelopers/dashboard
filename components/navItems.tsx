@@ -30,10 +30,10 @@ export const navItems: NavItem[] = [
     roles: [Role.ADMIN, Role.EDITOR, Role.VIEWER],
   },
   {
-    to: '/test-assistant',
-    labelKey: 'navigation.testAssistant',
-    icon: BeakerIcon,
-    roles: [Role.ADMIN],
+    to: '/company',
+    labelKey: 'navigation.company',
+    icon: CubeTransparentIcon,
+    roles: [Role.ADMIN, Role.EDITOR],
   },
   {
     to: '/prompt',
@@ -42,10 +42,10 @@ export const navItems: NavItem[] = [
     roles: [Role.ADMIN, Role.EDITOR],
   },
   {
-    to: '/company',
-    labelKey: 'navigation.company',
-    icon: CubeTransparentIcon,
-    roles: [Role.ADMIN, Role.EDITOR],
+    to: '/test-assistant',
+    labelKey: 'navigation.testAssistant',
+    icon: BeakerIcon,
+    roles: [Role.ADMIN],
   },
   {
     to: '/users',
