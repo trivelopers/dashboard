@@ -350,7 +350,7 @@ const Contacts: React.FC = () => {
                             className="inline-flex items-center gap-2 text-brand-primary transition-colors hover:text-brand-primary-hover"
                             aria-label="Contactar por WhatsApp"
                           >
-                            <span>{phoneValue}</span>
+                            <span>+{phoneValue}</span>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"

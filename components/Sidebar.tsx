@@ -55,13 +55,19 @@ const Sidebar: React.FC = () => {
   return (
     <div className="flex flex-col w-64 bg-brand-dark text-[#E5E7EB] h-full shadow-brand-soft">
       <div className="border-b border-white/10 bg-brand-dark flex flex-col items-center py-8 px-6">
-        <span className="w-full text-center text-4xl font-bold tracking-wide text-white mb-4">
-          Asistente
+      <span className="w-full text-center text-2xl font-semibold tracking-wide text-white mb-4">
+          {companyName ? (
+            <>
+              <span className="text-brand-primary">IAsistente</span> de {companyName}
+            </>
+          ) : (
+            <span className="text-brand-primary">IAsistente</span>
+          )}
         </span>
         <img
           src={nodaiLogo}
           alt="nodai"
-          className="max-h-8 w-auto object-contain"
+          className="max-h-6 w-auto object-contain"
         />
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
