@@ -201,27 +201,109 @@ export const parseXMLPrompt = (xmlString: string): PromptData => {
 
       const locationsMatch = companyContent.match(/<locations>([\s\S]*?)<\/locations>/);
       if (locationsMatch) {
-        const locations = locationsMatch[1].match(/<location>([\s\S]*?)<\/location>/g) || [];
-        locations.forEach((location, index) => {
-          const texto = location.replace(/<location>([\s\S]*?)<\/location>/, '$1').trim();
-          if (!texto) {
-            return;
+      const locations = locationsMatch[1].match(/<location>([\s\S]*?)<\/location>/g) || [];
+      locations.forEach((location, index) => {
+        const fallbackTag = `sucursal_${index + 1}`;
+        const locationContent = location.replace(/<location>([\s\S]*?)<\/location>/, '$1').trim();
+        if (!locationContent) {
+          return;
+        }
+
+        const hasStructuredFields = /<location_(name|address|phone|mail|link|hours)>/i.test(locationContent);
+
+        if (hasStructuredFields) {
+          const name =
+            locationContent.match(/<location_name>([\s\S]*?)<\/location_name>/)?.[1]?.trim() || '';
+          const address =
+            locationContent.match(/<location_address>([\s\S]*?)<\/location_address>/)?.[1]?.trim() ||
+            '';
+          const phoneMatches =
+            locationContent.match(/<location_phone>([\s\S]*?)<\/location_phone>/g) || [];
+          const emailMatches =
+            locationContent.match(/<location_mail>([\s\S]*?)<\/location_mail>/g) || [];
+          const link =
+            locationContent.match(/<location_link>([\s\S]*?)<\/location_link>/)?.[1]?.trim() || '';
+          const hours =
+            locationContent.match(/<location_hours>([\s\S]*?)<\/location_hours>/)?.[1]?.trim() || '';
+
+          const phoneValues = phoneMatches
+            .map((phone) => phone.replace(/<location_phone>([\s\S]*?)<\/location_phone>/, '$1').trim())
+            .filter(Boolean);
+          const emailValues = emailMatches
+            .map((email) => email.replace(/<location_mail>([\s\S]*?)<\/location_mail>/, '$1').trim())
+            .filter(Boolean);
+
+          const baseTag = name || address || fallbackTag;
+          const slugTag = slugify(baseTag, fallbackTag);
+          const candidates = buildCandidateKeys(name, address, slugTag, fallbackTag);
+          const existingIndex = findBranchIndexByKeys(data.branches, candidates);
+
+          const branch: BranchInfo =
+            existingIndex >= 0
+              ? data.branches[existingIndex]
+              : {
+                  id: createId(),
+                  tag: slugTag,
+                  etiqueta: formatLabel(baseTag),
+                  responsable: '',
+                  telefonos: [],
+                  emails: [],
+                  sitio: '',
+                  direccion: '',
+                  horario: '',
+                  enlace: ''
+                };
+
+          branch.tag = slugTag || branch.tag;
+          branch.etiqueta = name || branch.etiqueta || formatLabel(baseTag);
+          branch.direccion = address || branch.direccion;
+          branch.telefonos = phoneValues.length ? phoneValues : branch.telefonos;
+          branch.emails = emailValues.length ? emailValues : branch.emails;
+          branch.enlace = link || branch.enlace;
+          branch.horario = hours || branch.horario;
+
+          if (existingIndex >= 0) {
+            data.branches[existingIndex] = branch;
+          } else {
+            data.branches.push(branch);
           }
-          const fallbackTag = `sucursal_${index + 1}`;
-          data.branches.push({
-            id: createId(),
-            tag: slugify(texto, fallbackTag),
-            etiqueta: formatLabel(texto),
-            responsable: '',
-            telefonos: [],
-            emails: [],
-            sitio: '',
-            direccion: texto,
-            horario: '',
-            enlace: ''
-          });
-        });
-      }
+
+          return;
+        }
+
+        const texto = locationContent;
+        const baseTag = texto || fallbackTag;
+        const slugTag = slugify(baseTag, fallbackTag);
+        const candidates = buildCandidateKeys(texto, slugTag, fallbackTag);
+        const existingIndex = findBranchIndexByKeys(data.branches, candidates);
+
+        const branch: BranchInfo =
+          existingIndex >= 0
+            ? data.branches[existingIndex]
+            : {
+                id: createId(),
+                tag: slugTag,
+                etiqueta: formatLabel(texto),
+                responsable: '',
+                telefonos: [],
+                emails: [],
+                sitio: '',
+                direccion: '',
+                horario: '',
+                enlace: ''
+              };
+
+        branch.tag = slugTag || branch.tag;
+        branch.etiqueta = branch.etiqueta || formatLabel(texto);
+        branch.direccion = texto || branch.direccion;
+
+        if (existingIndex >= 0) {
+          data.branches[existingIndex] = branch;
+        } else {
+          data.branches.push(branch);
+        }
+      });
+    }
     }
 
     const contactsMatch = xmlString.match(/<contacts>([\s\S]*?)<\/contacts>/);
@@ -380,43 +462,6 @@ export const generateXMLPrompt = (data: PromptData): string => {
     xmlString += '  </behavior_rules>\n';
   }
 
-  const contactBranches = data.branches.filter((branch) => {
-    const hasPhones = branch.telefonos.some((phone) => phone.trim());
-    const hasEmails = branch.emails.some((email) => email.trim());
-    return (
-      branch.responsable.trim() ||
-      hasPhones ||
-      hasEmails ||
-      branch.sitio.trim()
-    );
-  });
-
-  if (contactBranches.length) {
-    xmlString += '  <contacts>\n';
-    contactBranches.forEach((branch, index) => {
-      const fallback = `sucursal_${index + 1}`;
-      const baseTag = branch.tag.trim() || branch.etiqueta.trim();
-      const tag = slugify(baseTag, fallback);
-      xmlString += `    <${tag}>\n`;
-      if (branch.responsable.trim()) {
-        xmlString += `      <name>${branch.responsable.trim()}</name>\n`;
-      }
-      const firstPhone = branch.telefonos.find((phone) => phone.trim());
-      if (firstPhone) {
-        xmlString += `      <phone>${firstPhone.trim()}</phone>\n`;
-      }
-      const firstEmail = branch.emails.find((email) => email.trim());
-      if (firstEmail) {
-        xmlString += `      <email>${firstEmail.trim()}</email>\n`;
-      }
-      if (branch.sitio.trim()) {
-        xmlString += `      <website>${branch.sitio.trim()}</website>\n`;
-      }
-      xmlString += `    </${tag}>\n`;
-    });
-    xmlString += '  </contacts>\n';
-  }
-
   const detailedLocations = data.branches.filter((branch) => {
     const hasPhones = branch.telefonos.some((phone) => phone.trim());
     const hasEmails = branch.emails.some((email) => email.trim());
@@ -430,44 +475,11 @@ export const generateXMLPrompt = (data: PromptData): string => {
     );
   });
 
-  if (detailedLocations.length) {
-    xmlString += '  <locations>\n';
-    detailedLocations.forEach((branch) => {
-      xmlString += '    <location>\n';
-      if (branch.etiqueta.trim()) {
-        xmlString += `      <location_name>${branch.etiqueta.trim()}</location_name>\n`;
-      }
-      if (branch.direccion.trim()) {
-        xmlString += `      <location_address>${branch.direccion.trim()}</location_address>\n`;
-      }
-      branch.telefonos.forEach((phone) => {
-        if (phone.trim()) {
-          xmlString += `      <location_phone>${phone.trim()}</location_phone>\n`;
-        }
-      });
-      branch.emails.forEach((email) => {
-        if (email.trim()) {
-          xmlString += `      <location_mail>${email.trim()}</location_mail>\n`;
-        }
-      });
-      if (branch.enlace.trim()) {
-        xmlString += `      <location_link>${branch.enlace.trim()}</location_link>\n`;
-      }
-      if (branch.horario.trim()) {
-        xmlString += `      <location_hours>${branch.horario.trim()}</location_hours>\n`;
-      }
-      xmlString += '    </location>\n';
-    });
-    xmlString += '  </locations>\n';
-  }
-
   const about = data.company.acerca.trim();
   const services = data.company.servicios.map((service) => service.trim()).filter(Boolean);
-  const locations = data.branches
-    .map((branch) => branch.direccion.trim() || branch.etiqueta.trim())
-    .filter(Boolean);
+  const hasCompanyLocations = detailedLocations.length > 0;
 
-  if (about || services.length || locations.length) {
+  if (about || services.length || hasCompanyLocations) {
     xmlString += '  <company>\n';
     if (about) {
       xmlString += `    <about>${about}</about>\n`;
@@ -479,10 +491,33 @@ export const generateXMLPrompt = (data: PromptData): string => {
       });
       xmlString += '    </services>\n';
     }
-    if (locations.length) {
+    if (hasCompanyLocations) {
       xmlString += '    <locations>\n';
-      locations.forEach((location) => {
-        xmlString += `      <location>${location}</location>\n`;
+      detailedLocations.forEach((branch) => {
+        xmlString += '      <location>\n';
+        if (branch.etiqueta.trim()) {
+          xmlString += `        <location_name>${branch.etiqueta.trim()}</location_name>\n`;
+        }
+        if (branch.direccion.trim()) {
+          xmlString += `        <location_address>${branch.direccion.trim()}</location_address>\n`;
+        }
+        branch.telefonos.forEach((phone) => {
+          if (phone.trim()) {
+            xmlString += `        <location_phone>${phone.trim()}</location_phone>\n`;
+          }
+        });
+        branch.emails.forEach((email) => {
+          if (email.trim()) {
+            xmlString += `        <location_mail>${email.trim()}</location_mail>\n`;
+          }
+        });
+        if (branch.enlace.trim()) {
+          xmlString += `        <location_link>${branch.enlace.trim()}</location_link>\n`;
+        }
+        if (branch.horario.trim()) {
+          xmlString += `        <location_hours>${branch.horario.trim()}</location_hours>\n`;
+        }
+        xmlString += '      </location>\n';
       });
       xmlString += '    </locations>\n';
     }
