@@ -40,12 +40,12 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="test-assistant" element={
-              <ProtectedRoute allowedRoles={[Role.ADMIN]}>
+              <ProtectedRoute allowedRoles={[Role.ADMIN, Role.EDITOR]}>
                 <TestAssistantSimulations />
               </ProtectedRoute>
             } />
             <Route path="test-assistant/:chatId" element={
-              <ProtectedRoute allowedRoles={[Role.ADMIN]}>
+              <ProtectedRoute allowedRoles={[Role.ADMIN, Role.EDITOR]}>
                 <TestAssistant />
               </ProtectedRoute>
             } />

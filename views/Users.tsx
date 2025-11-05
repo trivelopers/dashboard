@@ -9,23 +9,6 @@ import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 
-// MOCK SERVICE for fetching users.
-// TODO: Replace with a real API call once the backend endpoint is available.
-let mockTeamUsers: User[] = [
-    { id: '1', email: 'admin@example.com', name: 'Admin (mock)', role: Role.ADMIN, clientId: 'awesome-inc-client-id' },
-    { id: '2', email: 'editor@example.com', name: 'Editor User', role: Role.EDITOR, clientId: 'awesome-inc-client-id' },
-    { id: '3', email: 'viewer@example.com', name: 'Viewer User', role: Role.VIEWER, clientId: 'awesome-inc-client-id' },
-];
-
-const fetchUsers = (): Promise<User[]> => {
-    return new Promise(resolve => setTimeout(() => resolve([...mockTeamUsers]), 500));
-};
-
-// This mock function is updated to reflect the creation and is used by the fetch mock
-const addUserToMock = (user: User) => {
-    mockTeamUsers.push(user);
-}
-
 // Fix: Use yup.object({...}) and yup.mixed<Role>() to correctly infer the schema type and match AddUserFormData.
 const addUserSchema = yup.object({
   name: yup.string().required('Name is required'),
@@ -52,9 +35,15 @@ const Users: React.FC = () => {
 
   const fetchAndSetUsers = async () => {
     setIsLoading(true);
-    const data = await fetchUsers();
-    setUsers(data);
-    setIsLoading(false);
+    try {
+      const { data } = await api.get<{ Users: User[] }>('/dashboard/Users');
+      setUsers(data.Users || []);
+    } catch (error) {
+      console.error('Failed to fetch users', error);
+      setUsers([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   useEffect(() => {
@@ -71,19 +60,9 @@ const Users: React.FC = () => {
             role: data.role.toLowerCase() // Backend expects lowercase role
         };
 
-        const response = await api.post('/auth/register', newUserPayload);
-        
-        // Update mock data for immediate UI feedback
-        const createdUser = response.data.user;
-        addUserToMock({
-            id: createdUser.id,
-            email: createdUser.email,
-            name: createdUser.name,
-            role: data.role, // Use the uppercase role for frontend consistency
-            clientId: createdUser.clientId,
-        });
+        await api.post('/auth/register', newUserPayload);
 
-        await fetchAndSetUsers(); // Refetch users from mock service
+        await fetchAndSetUsers(); // Refresh list with real data
         setIsModalOpen(false);
         reset();
     } catch(error: any) {

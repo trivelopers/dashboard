@@ -152,7 +152,7 @@ const TestAssistantSimulations: React.FC = () => {
 
     try {
       const platformChatId = generateSimulationChatId();
-      const username = `sim-${platformChatId.slice(-8)}`;
+      const username = `contacto-${platformChatId.slice(-5)}`;
 
       let chatData: any = null;
       let contactData: any = null;
@@ -386,7 +386,10 @@ const TestAssistantSimulations: React.FC = () => {
                     t('testAssistant.simulationDefaultName', 'Simulación {{index}}', {
                       index: index + 1,
                     });
-                  const subtitle = chat.id;
+                  const subtitle = t(
+                    'testAssistant.simulationPrivateSubtitle',
+                    'Historial de prueba confidencial',
+                  );
 
                   return (
                     <div

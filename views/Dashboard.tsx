@@ -11,7 +11,7 @@ import {
 import GradientSection from '../components/GradientSection';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
-import { Contact } from '../types';
+import { Contact, Role } from '../types';
 import { parseXMLPrompt } from '../utils/promptHelpers';
 
 type ApiContact = Contact & {
@@ -98,7 +98,7 @@ const InteractionsChart: React.FC<{ data: InteractionsPoint[]; isLoading?: boole
               : 0;
 
             return (
-              <div key={point.date} className="flex w-full flex-col items-center gap-2">
+              <div key={point.date} className="flex h-full w-full flex-col items-center justify-end gap-2">
                 <div
                   className={`flex w-full ${hasActivity ? 'items-end' : 'items-center'} justify-center rounded-t-xl text-xs font-medium transition-all ${
                     hasActivity
@@ -107,12 +107,9 @@ const InteractionsChart: React.FC<{ data: InteractionsPoint[]; isLoading?: boole
                   }`}
                   style={hasActivity ? { height: `${normalizedHeight}%` } : { height: '8px' }}
                 >
-                  <span
-                    className={`text-[11px] ${hasActivity ? 'mb-2 text-brand-dark/80' : 'font-medium text-brand-muted'}`}
-                  >
-                    {point.count}
-                  </span>
+                  {hasActivity && <span className="mb-2 text-[11px] text-brand-dark/80">{point.count}</span>}
                 </div>
+                {!hasActivity && <span className="text-xs font-medium text-brand-muted">{point.count}</span>}
                 <span className="text-xs text-brand-muted">
                   {new Date(point.date).toLocaleDateString(undefined, { weekday: 'short' })}
                 </span>
@@ -466,6 +463,7 @@ const Dashboard: React.FC = () => {
 
   const companyName = companyData?.name ?? t('dashboard.companyFallback', 'Tu empresa');
   const timezone = companyData?.timezone || companyData?.timeZone || null;
+  const canRefineAssistant = user?.role === Role.ADMIN || user?.role === Role.EDITOR;
 
   const handleRefresh = () => {
     setReloadKey((value) => value + 1);
@@ -583,11 +581,6 @@ const Dashboard: React.FC = () => {
                           {' | '}
                           {formatDateTime(contact.lastInteractionDate)}
                         </p>
-                        {channel && (
-                          <p className="text-xs text-brand-muted">
-                            {t('dashboard.channel', 'Canal')}: {channel}
-                          </p>
-                        )}
                       </div>
                       <Link
                         to={`/chats/${contact.id}`}
@@ -698,14 +691,16 @@ const Dashboard: React.FC = () => {
                 </p>
               )}
 
-              <div className="mt-3 flex justify-end">
-                <Link
-                  to="/prompt"
-                  className="inline-flex items-center rounded-full border border-brand-primary/60 bg-brand-primary/10 px-4 py-2 text-xs font-semibold text-brand-primary transition hover:border-brand-primary hover:bg-brand-primary/20"
-                >
-                  {t('dashboard.openPrompt', 'Refinar asistente')}
-                </Link>
-              </div>
+              {canRefineAssistant && (
+                <div className="mt-3 flex justify-end">
+                  <Link
+                    to="/prompt"
+                    className="inline-flex items-center rounded-full border border-brand-primary/60 bg-brand-primary/10 px-4 py-2 text-xs font-semibold text-brand-primary transition hover:border-brand-primary hover:bg-brand-primary/20"
+                  >
+                    {t('dashboard.openPrompt', 'Refinar asistente')}
+                  </Link>
+                </div>
+              )}
             </div>
           </GradientSection>
         </div>
@@ -715,4 +710,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-

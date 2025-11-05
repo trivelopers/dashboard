@@ -81,9 +81,11 @@ const TestAssistant: React.FC = () => {
   const pendingClientMessageIdRef = useRef<string | null>(null);
   const pendingClientMessageSentAtRef = useRef<number | null>(null);
   const pendingClientMessageTextRef = useRef<string | null>(null);
+  const fetchHistoryRef = useRef<(() => Promise<void>) | null>(null);
   const historyReloadTimeoutRef = useRef<number | null>(null);
   const previousSimulationIdRef = useRef<string | null>(null);
   const historyReloadAttemptsRef = useRef(0);
+  const hasInitialScrollRef = useRef(false);
 
   useEffect(() => {
     if (!chatId) {
@@ -106,13 +108,13 @@ const TestAssistant: React.FC = () => {
   const sectionDescription = contactId
     ? t(
         'testAssistant.descriptionWithContact',
-        'Historial de prueba para {{contactName}} (ID: {{contactId}}). Envía mensajes para validar el flujo.',
+        'Historial de prueba para {{contactName}}. Envía mensajes para validar el flujo.',
         { contactName: contactDisplayName ?? contactId, contactId }
       )
     : activeChatId
     ? t(
         'testAssistant.descriptionWithChat',
-        'Simulación activa con chat ID {{chatId}}. Envía mensajes de prueba para revisar el flujo.',
+        'Simulación activa lista para validar el flujo. Envía mensajes de prueba desde el lado del cliente.',
         { chatId: activeChatId },
       )
     : t('testAssistant.description', 'Envía mensajes de prueba como cliente y visualiza el hilo de la conversación.');
@@ -277,10 +279,12 @@ const TestAssistant: React.FC = () => {
       }
     };
 
+    fetchHistoryRef.current = fetchHistory;
     fetchHistory();
 
     return () => {
       isCancelled = true;
+      fetchHistoryRef.current = null;
     };
   }, [
     historyReloadToken,
@@ -293,8 +297,58 @@ const TestAssistant: React.FC = () => {
   ]);
 
   useEffect(() => {
+    if (hasInitialScrollRef.current) return;
+    if (!messages.length) return;
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    hasInitialScrollRef.current = true;
   }, [messages]);
+
+  useEffect(() => {
+    if (!isAssistantTyping) return;
+
+    let delay = 10000;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let isCancelled = false;
+
+    const checkAssistantResponse = async () => {
+      if (isCancelled) return;
+
+      const fetchHistoryFn = fetchHistoryRef.current;
+
+      if (fetchHistoryFn) {
+        try {
+          await fetchHistoryFn();
+        } catch (error) {
+          console.error('Error refreshing assistant history:', error);
+        }
+      }
+
+      if (isCancelled) return;
+
+      const mergedMessages = mergeMessageLists(
+        serverMessagesRef.current,
+        pendingMessagesRef.current
+      );
+      const lastMessage = mergedMessages[mergedMessages.length - 1];
+      const assistantResponded =
+        lastMessage?.role === 'assistant' && lastMessage.id !== assistantPlaceholderId;
+
+      if (assistantResponded) {
+        setIsAssistantTyping(false);
+        return;
+      }
+
+      delay = 5000;
+      timeoutId = setTimeout(checkAssistantResponse, delay);
+    };
+
+    timeoutId = setTimeout(checkAssistantResponse, delay);
+
+    return () => {
+      isCancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [assistantPlaceholderId, isAssistantTyping]);
 
   const handleSendClientMessage = async (
     event: FormEvent<HTMLFormElement> | KeyboardEvent<HTMLTextAreaElement>
@@ -494,118 +548,89 @@ const TestAssistant: React.FC = () => {
       description={sectionDescription}
       contentClassName="space-y-6"
     >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,340px)_1fr]">
-        <section className="flex flex-col gap-6 rounded-2xl border border-brand-border/60 bg-white/95 p-6 shadow-brand-soft">
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-muted">
-              {t('testAssistant.activeSimulationLabel', 'Simulación seleccionada')}
-            </p>
-            <h3 className="text-xl font-semibold text-brand-dark">
-              {contactDisplayName ?? t('testAssistant.historyHeading', 'Historial de la simulación')}
-            </h3>
-            <p className="text-sm text-brand-muted">
-              {t('testAssistant.deleteNotice', 'Elimina la simulación para borrar por completo el chat.')}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/test-assistant')}
-              className="inline-flex flex-1 min-w-[140px] items-center justify-center gap-2 rounded-xl border border-brand-primary/30 bg-brand-primary/5 px-4 py-2.5 text-sm font-semibold text-brand-primary shadow-sm transition hover:bg-brand-primary/10"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                <path
-                  fillRule="evenodd"
-                  d="M7.22 4.22a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06-1.06L10.94 10 7.22 6.28a.75.75 0 0 1 0-1.06Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              {t('testAssistant.backToList', 'Ver todas las simulaciones')}
-            </button>
-            <button
-              type="button"
-              onClick={handleDeleteChat}
-              disabled={
-                isDeletingChat ||
-                isLoadingHistory ||
-                (!contactId && !currentChatId && !activeChatId)
-              }
-              aria-label={t('testAssistant.deleteSimulation', 'Eliminar simulación')}
-              className="inline-flex min-w-[48px] items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-500 shadow-sm transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isDeletingChat ? (
-                <>
-                  <Spinner small /> {t('testAssistant.deleting', 'Eliminando...')}
-                </>
-              ) : (
-                <>
+      <div className="flex flex-col gap-6">
+        <section className="flex min-h-[70vh] flex-col overflow-hidden rounded-2xl border border-brand-border/60 bg-white/90 shadow-brand-soft backdrop-blur lg:h-[calc(100vh-12rem)] lg:min-h-0">
+          <header className="border-b border-brand-border/50 bg-gradient-to-r from-white to-brand-primary/5 px-6 py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center justify-start">
+                <button
+                  type="button"
+                  onClick={() => navigate('/test-assistant')}
+                  className="inline-flex items-center gap-2 rounded-xl border border-brand-primary/30 bg-white/80 px-4 py-2 text-xs font-semibold text-brand-primary shadow-sm transition hover:bg-brand-primary/10"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                     <path
                       fillRule="evenodd"
-                      d="M8.5 3a1 1 0 0 0-.894.553L7.382 4.5H5a.75.75 0 0 0 0 1.5h10a.75.75 0 0 0 0-1.5h-2.382l-.224-.447A1 1 0 0 0 11.5 3h-3Zm-2.958 4.5a.75.75 0 0 0-.742.651l-.75 6.75A2.25 2.25 0 0 0 6.29 17.5h7.42a2.25 2.25 0 0 0 2.24-2.599l-.75-6.75a.75.75 0 0 0-.742-.651H5.542Z"
+                      d="M7.22 4.22a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06-1.06L10.94 10l-3.72-3.72a.75.75 0 0 1 0-1.06Z"
                       clipRule="evenodd"
                     />
                   </svg>
-                  {t('testAssistant.deleteSimulation', 'Eliminar simulación')}
-                </>
-              )}
-            </button>
-          </div>
-
-          {activeChatId && (
-            <div className="rounded-2xl border border-brand-border/50 bg-brand-background/60 px-4 py-4 text-sm text-brand-dark">
-              <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
-                {t('testAssistant.chatIdentifier', 'ID del chat')}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-brand-primary break-all">{activeChatId}</p>
-              <p className="mt-2 text-xs text-brand-muted">
-                {t(
-                  'testAssistant.simulationHint',
-                  'Los mensajes que envíes aquí solo afectarán a esta simulación.',
-                )}
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-3">
-            {!isKnownSimulation && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
-                {t(
-                  'testAssistant.unknownSimulation',
-                  'Este chat no está en la lista local. Puedes volver a la lista para sincronizarlo.',
-                )}
+                  {t('testAssistant.backToList', 'Ver todas las simulaciones')}
+                </button>
               </div>
-            )}
-            {deleteError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-600">
-                {deleteError}
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="flex min-h-[70vh] flex-col rounded-2xl border border-brand-border/60 bg-white/90 shadow-brand-soft backdrop-blur">
-          <header className="border-b border-brand-border/50 bg-gradient-to-r from-white to-brand-primary/5 px-6 py-4">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div>
+              <div className="flex flex-col gap-2 text-center md:flex-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand-muted">
-                  {t('testAssistant.conversationLabel', 'Conversación')}
+                  {t('testAssistant.simulationLabel', 'Simulación')}
                 </p>
-                <p className="text-lg font-semibold text-brand-dark">
-                  {contactDisplayName ?? t('testAssistant.clientLabel', 'Cliente de prueba')}
-                </p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-center sm:gap-3">
+                  <p className="text-lg font-semibold text-brand-dark">
+                    {contactDisplayName ?? t('testAssistant.clientLabel', 'Cliente de prueba')}
+                  </p>
+                  <div className="flex items-center gap-3 rounded-full bg-brand-primary/10 px-4 py-1 text-xs font-semibold text-brand-primary">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    {isAssistantTyping
+                      ? t('testAssistant.typing', 'El asistente está respondiendo...')
+                      : t('testAssistant.ready', 'Listo para probar')}
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-3 rounded-full bg-brand-primary/10 px-4 py-1 text-xs font-semibold text-brand-primary">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                {isAssistantTyping
-                  ? t('testAssistant.typing', 'El asistente está respondiendo...')
-                  : t('testAssistant.ready', 'Listo para probar')}
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={handleDeleteChat}
+                  disabled={
+                    isDeletingChat ||
+                    isLoadingHistory ||
+                    (!contactId && !currentChatId && !activeChatId)
+                  }
+                  aria-label={t('testAssistant.deleteSimulation', 'Eliminar simulación')}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 shadow-sm transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isDeletingChat ? (
+                    <Spinner small />
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                      <path
+                        fillRule="evenodd"
+                        d="M8.5 3a1 1 0 0 0-.894.553L7.382 4.5H5a.75.75 0 0 0 0 1.5h10a.75.75 0 0 0 0-1.5h-2.382l-.224-.447A1 1 0 0 0 11.5 3h-3Zm-2.958 4.5a.75.75 0 0 0-.742.651l-.75 6.75A2.25 2.25 0 0 0 6.29 17.5h7.42a2.25 2.25 0 0 0 2.24-2.599l-.75-6.75a.75.75 0 0 0-.742-.651H5.542Z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </button>
               </div>
             </div>
           </header>
 
-          <div className="flex-1 space-y-4 overflow-y-auto bg-brand-background/70 px-4 py-6 sm:px-6">
+          {(!isKnownSimulation || deleteError) && (
+            <div className="space-y-3 border-b border-brand-border/40 bg-white/80 px-6 py-4 text-xs">
+              {!isKnownSimulation && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-700">
+                  {t(
+                    'testAssistant.unknownSimulation',
+                    'Este chat no está en la lista local. Puedes volver a la lista para sincronizarlo.',
+                  )}
+                </div>
+              )}
+              {deleteError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600">
+                  {deleteError}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-brand-background/70 px-4 py-6 sm:px-6">
             {isLoadingHistory ? (
               <div className="flex h-full flex-col items-center justify-center space-y-4 text-sm text-brand-muted">
                 <Spinner />

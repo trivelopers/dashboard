@@ -318,10 +318,10 @@ const Contacts: React.FC = () => {
                     {t('contacts.name')}
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                    {t('contacts.phone')}
+                    {t('contacts.viewConversation', 'Ver conversación')}
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                    {t('contacts.viewConversation', 'Ver conversación')}
+                    {t('contacts.phone')}
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                     {t('contacts.platform', 'Plataforma')}
@@ -340,6 +340,14 @@ const Contacts: React.FC = () => {
                     <tr key={contact.id} className="transition-colors hover:bg-brand-background/50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-dark">
                         {contact.name || contact.username || contact.userName || 'Sin nombre'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <Link
+                          to={`/chats/${contact.id}`}
+                          className="inline-flex items-center rounded-full bg-brand-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-primary-hover"
+                        >
+                          {t('contacts.viewConversation', 'Ver conversación')}
+                        </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-muted">
                         {whatsappUrl ? (
@@ -364,14 +372,6 @@ const Contacts: React.FC = () => {
                         ) : (
                           <span>{phoneValue || 'N/A'}</span>
                         )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link
-                          to={`/chats/${contact.id}`}
-                          className="inline-flex items-center rounded-full bg-brand-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-primary-hover"
-                        >
-                          {t('contacts.viewConversation', 'Ver conversación')}
-                        </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-muted">
                         {resolvePlatformLabel(contact)}
@@ -405,7 +405,6 @@ const Contacts: React.FC = () => {
 };
 
 export default Contacts;
-
 
 
 

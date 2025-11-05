@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   BeakerIcon,
-  CubeTransparentIcon,
+  HeartIcon,
   ChartPieIcon,
   AdjustmentsHorizontalIcon,
   IdentificationIcon,
@@ -32,7 +32,7 @@ export const navItems: NavItem[] = [
   {
     to: '/company',
     labelKey: 'navigation.company',
-    icon: CubeTransparentIcon,
+    icon: HeartIcon,
     roles: [Role.ADMIN, Role.EDITOR],
   },
   {
@@ -45,7 +45,7 @@ export const navItems: NavItem[] = [
     to: '/test-assistant',
     labelKey: 'navigation.testAssistant',
     icon: BeakerIcon,
-    roles: [Role.ADMIN],
+    roles: [Role.ADMIN, Role.EDITOR],
   },
   {
     to: '/users',

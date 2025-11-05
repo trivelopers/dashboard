@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent } from 'react';
+import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Message, Role } from '../types';
 import Spinner from '../components/Spinner';
 import GradientSection from '../components/GradientSection';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 
@@ -46,6 +47,88 @@ const formatApiMessage = (message: any): Message | null => {
   };
 };
 
+const CONTACT_PHONE_KEYS = [
+  'phoneNumber',
+  'phone',
+  'phone_number',
+  'telefono',
+  'tel',
+  'mobile',
+  'mobileNumber',
+  'whatsapp',
+  'whatsappNumber',
+  'whatsapp_number',
+  'username',
+  'userName',
+  'platformChatId',
+  'platform_chat_id',
+  'chatId',
+];
+
+const resolveContactPhone = (contact: unknown): string | null => {
+  const extractPhone = (record: unknown): string | null => {
+    if (record == null) {
+      return null;
+    }
+
+    if (typeof record === 'string' || typeof record === 'number') {
+      const normalized = String(record).trim();
+      if (!normalized) {
+        return null;
+      }
+
+      const digits = normalized.replace(/[^\d]/g, '');
+      return digits || null;
+    }
+
+    if (Array.isArray(record)) {
+      for (const entry of record) {
+        const result = extractPhone(entry);
+        if (result) {
+          return result;
+        }
+      }
+      return null;
+    }
+
+    if (typeof record === 'object') {
+      const source = record as Record<string, unknown>;
+      for (const key of CONTACT_PHONE_KEYS) {
+        if (key in source) {
+          const result = extractPhone(source[key]);
+          if (result) {
+            return result;
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
+  if (contact && typeof contact === 'object') {
+    const source = contact as Record<string, unknown>;
+    const candidates: Array<unknown> = [
+      source,
+      source['phoneNumber'],
+      source['phone'],
+      source['platformChatId'],
+      source['metadata'],
+      source['lastChannel'],
+      source['latestChannel'],
+    ];
+
+    for (const candidate of candidates) {
+      const result = extractPhone(candidate);
+      if (result) {
+        return result;
+      }
+    }
+  }
+
+  return extractPhone(contact);
+};
+
 const ChatHistory: React.FC = () => {
   const { contactId } = useParams<{ contactId: string }>();
   const { t } = useTranslation();
@@ -55,6 +138,7 @@ const ChatHistory: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [sendWarning, setSendWarning] = useState<string | null>(null);
+  const [contactPhone, setContactPhone] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const canRespond = user?.role === Role.ADMIN;
@@ -64,26 +148,47 @@ const ChatHistory: React.FC = () => {
       if (contactId) {
         try {
           setIsLoading(true);
-          const response = await api.get(`/dashboard/contacts/${contactId}/messages`);
-          const apiMessages = response.data.messages || [];
+          const [messagesResult, contactResult] = await Promise.allSettled([
+            api.get(`/dashboard/contacts/${contactId}/messages`),
+            api.get(`/dashboard/contacts/${contactId}`),
+          ]);
 
-          const formattedMessages: Message[] = apiMessages
-            .map(formatApiMessage)
-            .filter((message): message is Message => Boolean(message));
+          if (messagesResult.status === 'fulfilled') {
+            const apiMessages = messagesResult.value?.data?.messages || [];
 
-          formattedMessages.sort((a, b) => {
-            const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-            const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-            return timeA - timeB;
-          });
+            const formattedMessages: Message[] = apiMessages
+              .map(formatApiMessage)
+              .filter((message): message is Message => Boolean(message));
 
-          setMessages(formattedMessages);
+            formattedMessages.sort((a, b) => {
+              const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+              const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+              return timeA - timeB;
+            });
+
+            setMessages(formattedMessages);
+          } else {
+            console.error('Error fetching chat history:', messagesResult.reason);
+            setMessages([]);
+          }
+
+          if (contactResult.status === 'fulfilled') {
+            const contactData = contactResult.value?.data?.contact;
+            setContactPhone(resolveContactPhone(contactData));
+          } else {
+            console.error('Error fetching contact details:', contactResult.reason);
+            setContactPhone(null);
+          }
         } catch (error) {
           console.error('Error fetching chat history:', error);
           setMessages([]);
+          setContactPhone(null);
         } finally {
           setIsLoading(false);
         }
+      } else {
+        setMessages([]);
+        setContactPhone(null);
       }
     };
     fetchChatHistory();
@@ -93,12 +198,76 @@ const ChatHistory: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const lastMessageDate = useMemo(() => {
+    const contactMessages = messages.filter(
+      (message) => message.role === 'user' && Boolean(message.timestamp),
+    );
+
+    if (!contactMessages.length) {
+      return null;
+    }
+
+    const latest = contactMessages.reduce<Date | null>((accumulator, message) => {
+      if (!message.timestamp) {
+        return accumulator;
+      }
+
+      const current = new Date(message.timestamp);
+      if (Number.isNaN(current.getTime())) {
+        return accumulator;
+      }
+
+      if (!accumulator || current.getTime() > accumulator.getTime()) {
+        return current;
+      }
+
+      return accumulator;
+    }, null);
+
+    return latest;
+  }, [messages]);
+
+  const isOutside24Hours = useMemo(() => {
+    if (!lastMessageDate) {
+      return false;
+    }
+
+    const now = Date.now();
+    const lastContactTime = lastMessageDate.getTime();
+    const difference = now - lastContactTime;
+    const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+
+    return difference > twentyFourHoursInMs;
+  }, [lastMessageDate]);
+
+  const whatsappLink = useMemo(() => {
+    if (!contactPhone) {
+      return null;
+    }
+
+    const sanitized = contactPhone.replace(/[^\d]/g, '');
+    return sanitized ? `https://wa.me/${sanitized}` : null;
+  }, [contactPhone]);
+
+  const isManualReplyBlocked = useMemo(() => {
+    if (messages.length === 0) {
+      return true;
+    }
+    return isOutside24Hours;
+  }, [isOutside24Hours, messages.length]);
+
   const handleSendMessage = async (
     event: FormEvent<HTMLFormElement> | KeyboardEvent<HTMLTextAreaElement>
   ) => {
     event.preventDefault();
 
-    if (!contactId || !newMessage.trim() || isSending || !canRespond) {
+    if (
+      !contactId ||
+      !newMessage.trim() ||
+      isSending ||
+      !canRespond ||
+      isManualReplyBlocked
+    ) {
       return;
     }
 
@@ -148,7 +317,7 @@ const ChatHistory: React.FC = () => {
       return;
     }
 
-    if (!newMessage.trim() || isSending || !canRespond) {
+    if (!newMessage.trim() || isSending || !canRespond || isManualReplyBlocked) {
       return;
     }
 
@@ -192,6 +361,20 @@ const ChatHistory: React.FC = () => {
                   : msg.role === 'assistant'
                   ? t('chatHistory.botLabel', 'Bot')
                   : t('chatHistory.contactLabel', 'Contacto');
+              const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
+              const formattedDate = timestamp
+                ? timestamp.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                : null;
+              const formattedTime = timestamp
+                ? timestamp.toLocaleTimeString(undefined, {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : null;
 
               return (
                 <div key={msg.id} className={`flex ${isUserMessage ? 'justify-start' : 'justify-end'}`}>
@@ -217,7 +400,9 @@ const ChatHistory: React.FC = () => {
                       isUserMessage ? 'text-white/80' : 'text-brand-muted'
                     }`}
                   >
-                    {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : '--:--'}
+                    {formattedDate && formattedTime
+                      ? `${formattedDate} - ${formattedTime}`
+                      : formattedTime || formattedDate || '--:--'}
                   </p>
                 </div>
                 </div>
@@ -229,38 +414,74 @@ const ChatHistory: React.FC = () => {
           <div ref={chatEndRef} />
         </div>
         {canRespond ? (
-          <form
-            onSubmit={handleSendMessage}
-            className="border-t border-brand-border/60 bg-white/90 px-6 py-4"
-          >
-            <label htmlFor="admin-response" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-brand-muted">
-              {t('chatHistory.replyAsAdmin', 'Responder manualmente')}
-            </label>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <textarea
-                id="admin-response"
-                value={newMessage}
-                onChange={(event) => setNewMessage(event.target.value)}
-                onKeyDown={handleAdminMessageKeyDown}
-                placeholder={t('chatHistory.writeMessage', 'Escribe tu mensaje...')}
-                className="min-h-[3rem] flex-1 resize-none rounded-xl border border-brand-border/60 bg-white/80 px-4 py-3 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
-                rows={2}
-              />
-              <button
-                type="submit"
-                disabled={isSending || !newMessage.trim()}
-                className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-brand-border"
-              >
-                {isSending ? t('chatHistory.sending', 'Enviando...') : t('chatHistory.send', 'Enviar')}
-              </button>
-            </div>
-            {sendError && (
-              <p className="mt-2 text-sm text-red-500">{sendError}</p>
+          <div className="border-t border-brand-border/60 bg-white/90 px-6 py-4">
+            {isManualReplyBlocked ? (
+              <div className="rounded-xl bg-yellow-50 p-4 text-gray-700">
+                <div className="flex items-start gap-3">
+                  <ExclamationTriangleIcon className="mt-1 h-6 w-6 flex-shrink-0 text-amber-500" />
+                  <div className="space-y-3 text-sm leading-relaxed">
+                    <p className="font-medium">
+                      ⚠️ No podés responder desde el sistema porque pasaron más de 24 horas desde el último mensaje del cliente.
+                    </p>
+                    <p>
+                      WhatsApp solo permite contestar dentro de ese plazo. Si necesitás contactarlo igual, podés hacerlo directamente desde WhatsApp:
+                    </p>
+                    {whatsappLink ? (
+                      <a
+                        href={whatsappLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 font-semibold text-brand-primary transition hover:text-brand-primary-hover"
+                      >
+                        <span aria-hidden="true">👉</span>
+                        Abrir chat en WhatsApp
+                      </a>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 font-semibold text-brand-muted">
+                        <span aria-hidden="true">👉</span>
+                        Abrir chat en WhatsApp
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSendMessage}>
+                <label
+                  htmlFor="admin-response"
+                  className="mb-2 block text-xs font-semibold uppercase tracking-wide text-brand-muted"
+                >
+                  {t('chatHistory.replyAsAdmin', 'Responder manualmente')}
+                </label>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                  <textarea
+                    id="admin-response"
+                    value={newMessage}
+                    onChange={(event) => setNewMessage(event.target.value)}
+                    onKeyDown={handleAdminMessageKeyDown}
+                    placeholder={t('chatHistory.writeMessage', 'Escribe tu mensaje...')}
+                    className="min-h-[3rem] flex-1 resize-none rounded-xl border border-brand-border/60 bg-white/80 px-4 py-3 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                    rows={2}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSending || !newMessage.trim()}
+                    className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-brand-border disabled:text-brand-muted"
+                  >
+                    {isSending
+                      ? t('chatHistory.sending', 'Enviando...')
+                      : t('chatHistory.send', 'Enviar')}
+                  </button>
+                </div>
+                {sendError && (
+                  <p className="mt-2 text-sm text-red-500">{sendError}</p>
+                )}
+                {!sendError && sendWarning && (
+                  <p className="mt-2 text-sm text-amber-600">{sendWarning}</p>
+                )}
+              </form>
             )}
-            {!sendError && sendWarning && (
-              <p className="mt-2 text-sm text-amber-600">{sendWarning}</p>
-            )}
-          </form>
+          </div>
         ) : (
           <div className="border-t border-brand-border/60 bg-white/80 px-6 py-4 text-sm text-brand-muted">
             {t('chatHistory.onlyAdminsCanReply', 'Solo los administradores pueden enviar respuestas desde aquí.')}

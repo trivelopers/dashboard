@@ -119,10 +119,10 @@
   "testAssistant": {
     "title": "Simulador de conversación real",
     "description": "Envía mensajes de prueba como cliente y revisa la conversación.",
-    "descriptionWithContact": "Historial de prueba para {{contactName}} (ID: {{contactId}}). Envía mensajes para validar el flujo.",
+    "descriptionWithContact": "Historial de prueba para {{contactName}}. Envía mensajes para validar el flujo.",
     "clientLabel": "Cliente de prueba",
     "adminLabel": "Administrador",
-    "botLabel": "Asistente",
+    "botLabel": "IAsistente",
     "noMessages": "Todavía no hay mensajes de prueba.",
     "clientInputTitle": "Mensaje como cliente",
     "clientInputDescription": "Envía un mensaje para testear el flujo desde el lado del cliente.",
@@ -136,12 +136,17 @@
     "adminSend": "Enviar como admin",
     "loadingHistory": "Cargando historial de prueba...",
     "historyError": "No se pudo obtener el historial de prueba.",
-    "historyHeading": "Historial de la simulaci\u00F3n",
-    "resetNotice": "Reinicia la simulaci\u00F3n para borrar los mensajes conservando el mismo chat.",
-    "resetButton": "Reiniciar simulaci\u00F3n",
+    "historyHeading": "Historial de la simulación",
+    "resetNotice": "Reinicia la simulación para borrar los mensajes conservando el mismo chat.",
+    "resetButton": "Reiniciar simulación",
     "resetting": "Reiniciando...",
-    "resetConfirm": "\u00BFDeseas reiniciar la simulaci\u00F3n? Esto borrar\u00E1 todos los mensajes de la conversaci\u00F3n actual.",
+    "resetConfirm": "¿Deseas reiniciar la simulación? Esto borrará todos los mensajes de la conversación actual.",
     "resetError": "No se pudo limpiar el historial de prueba.",
-    "assistantPlaceholder": "El asistente est\u00E1 preparando la respuesta..."
+    "assistantPlaceholder": "El asistente está preparando la respuesta...",
+    "descriptionWithChat": "Simulación activa lista para validar el flujo. Envía mensajes de prueba desde el lado del cliente.",
+    "simulationPrivateSubtitle": "Historial de prueba confidencial",
+    "simulationStatusLabel": "Simulación activa",
+    "simulationStatusValue": "Historial de prueba en curso",
+    "simulationHint": "Los mensajes que envíes aquí solo afectarán a esta simulación."
   }
 }
