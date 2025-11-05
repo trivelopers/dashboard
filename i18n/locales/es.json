@@ -122,7 +122,7 @@
     "descriptionWithContact": "Historial de prueba para {{contactName}}. Envía mensajes para validar el flujo.",
     "clientLabel": "Cliente de prueba",
     "adminLabel": "Administrador",
-    "botLabel": "IAsistente",
+    "botLabel": "Asistente virtual",
     "noMessages": "Todavía no hay mensajes de prueba.",
     "clientInputTitle": "Mensaje como cliente",
     "clientInputDescription": "Envía un mensaje para testear el flujo desde el lado del cliente.",

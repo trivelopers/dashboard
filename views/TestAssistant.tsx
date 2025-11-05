@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import GradientSection from '../components/GradientSection';
 import { Message } from '../types';
 import Spinner from '../components/Spinner';
 import api from '../services/api';
@@ -105,20 +104,6 @@ const TestAssistant: React.FC = () => {
     };
   }, []);
 
-  const sectionDescription = contactId
-    ? t(
-        'testAssistant.descriptionWithContact',
-        'Historial de prueba para {{contactName}}. Envía mensajes para validar el flujo.',
-        { contactName: contactDisplayName ?? contactId, contactId }
-      )
-    : activeChatId
-    ? t(
-        'testAssistant.descriptionWithChat',
-        'Simulación activa lista para validar el flujo. Envía mensajes de prueba desde el lado del cliente.',
-        { chatId: activeChatId },
-      )
-    : t('testAssistant.description', 'Envía mensajes de prueba como cliente y visualiza el hilo de la conversación.');
-
   const applyMergedMessages = useCallback(() => {
     setMessages(mergeMessageLists(serverMessagesRef.current, pendingMessagesRef.current));
   }, []);
@@ -201,20 +186,13 @@ const TestAssistant: React.FC = () => {
           (typeof contactData === 'string' ? contactData : null);
         if (!resolvedContactId) throw new Error('Contact id missing');
         setContactId(resolvedContactId);
-        let displayName = 'Contacto de prueba';
-        if (contactData && typeof contactData === 'object') {
-          displayName =
-            contactData.name ||
-            contactData.username ||
-            contactData.displayName ||
-            contactData.phoneNumber ||
-            contactData.platformChatId ||
-            resolvedContactId;
-        } else if (typeof contactData === 'string') displayName = contactData;
-        else displayName = resolvedContactId;
+        const storedSimulations = readSimulationChats();
+        const simulationIndex = storedSimulations.findIndex((entry) => entry.id === resolvedChatId);
+        const displayName = t('testAssistant.simulationDefaultName', 'Simulación {{index}}', {
+          index: simulationIndex >= 0 ? simulationIndex + 1 : storedSimulations.length + 1,
+        });
         setContactDisplayName(displayName);
-        const labelForStorage = displayName === resolvedContactId ? null : displayName;
-        updateStoredSimulationLabel(resolvedChatId, labelForStorage);
+        updateStoredSimulationLabel(resolvedChatId, null);
         setIsKnownSimulation(true);
 
         const response = await api.get(`/dashboard/contacts/${resolvedContactId}/messages`);
@@ -543,16 +521,11 @@ const TestAssistant: React.FC = () => {
 
   // --- Render ---
   return (
-    <GradientSection
-      title={t('testAssistant.title', 'Simulador de conversación real')}
-      description={sectionDescription}
-      contentClassName="space-y-6"
-    >
-      <div className="flex flex-col gap-6">
-        <section className="flex min-h-[70vh] flex-col overflow-hidden rounded-2xl border border-brand-border/60 bg-white/90 shadow-brand-soft backdrop-blur lg:h-[calc(100vh-12rem)] lg:min-h-0">
-          <header className="border-b border-brand-border/50 bg-gradient-to-r from-white to-brand-primary/5 px-6 py-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center justify-start">
+    <div className="-mx-4 -my-4 flex h-full flex-1 flex-col overflow-hidden md:-mx-8 md:-my-8">
+      <section className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-brand-border/60 bg-white/95 shadow-brand-soft backdrop-blur">
+        <header className="flex-shrink-0 border-b border-brand-border/50 bg-gradient-to-r from-white to-brand-primary/5 px-6 py-4 sm:px-10 sm:py-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center justify-start">
                 <button
                   type="button"
                   onClick={() => navigate('/test-assistant')}
@@ -567,12 +540,12 @@ const TestAssistant: React.FC = () => {
                   </svg>
                   {t('testAssistant.backToList', 'Ver todas las simulaciones')}
                 </button>
-              </div>
-              <div className="flex flex-col gap-2 text-center md:flex-1">
+            </div>
+            <div className="flex flex-col gap-2 text-center md:flex-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand-muted">
                   {t('testAssistant.simulationLabel', 'Simulación')}
                 </p>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-center sm:gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-center sm:gap-3">
                   <p className="text-lg font-semibold text-brand-dark">
                     {contactDisplayName ?? t('testAssistant.clientLabel', 'Cliente de prueba')}
                   </p>
@@ -582,9 +555,9 @@ const TestAssistant: React.FC = () => {
                       ? t('testAssistant.typing', 'El asistente está respondiendo...')
                       : t('testAssistant.ready', 'Listo para probar')}
                   </div>
-                </div>
               </div>
-              <div className="flex items-center justify-end">
+            </div>
+            <div className="flex items-center justify-end">
                 <button
                   type="button"
                   onClick={handleDeleteChat}
@@ -608,9 +581,9 @@ const TestAssistant: React.FC = () => {
                     </svg>
                   )}
                 </button>
-              </div>
             </div>
-          </header>
+          </div>
+        </header>
 
           {(!isKnownSimulation || deleteError) && (
             <div className="space-y-3 border-b border-brand-border/40 bg-white/80 px-6 py-4 text-xs">
@@ -630,7 +603,7 @@ const TestAssistant: React.FC = () => {
             </div>
           )}
 
-          <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-brand-background/70 px-4 py-6 sm:px-6">
+          <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-brand-background/70 px-4 py-6 sm:px-8 lg:px-12">
             {isLoadingHistory ? (
               <div className="flex h-full flex-col items-center justify-center space-y-4 text-sm text-brand-muted">
                 <Spinner />
@@ -680,7 +653,7 @@ const TestAssistant: React.FC = () => {
             )}
           </div>
 
-          <div className="border-t border-brand-border/50 bg-white/90 px-6 py-5">
+          <div className="flex-shrink-0 border-t border-brand-border/50 bg-white/90 px-6 py-5 sm:px-10">
             <form onSubmit={handleSendClientMessage} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold uppercase tracking-[0.25em] text-brand-muted">
@@ -720,9 +693,8 @@ const TestAssistant: React.FC = () => {
               </div>
             </form>
           </div>
-        </section>
-      </div>
-    </GradientSection>
+      </section>
+    </div>
   );
 };
 

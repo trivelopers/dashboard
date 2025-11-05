@@ -58,10 +58,10 @@ const Sidebar: React.FC = () => {
       <span className="w-full text-center text-2xl font-semibold tracking-wide text-white mb-4">
           {companyName ? (
             <>
-              <span className="text-brand-primary">IAsistente</span> de {companyName}
+              <span className="text-brand-primary">Asistente virtual</span> de {companyName}
             </>
           ) : (
-            <span className="text-brand-primary">IAsistente</span>
+            <span className="text-brand-primary">Asistente virtual</span>
           )}
         </span>
         <img

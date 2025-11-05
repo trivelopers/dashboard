@@ -116,7 +116,7 @@ const TestAssistantSimulations: React.FC = () => {
           return;
         }
 
-        const entries = normalized.map(({ id, label }) => ({ id, label }));
+        const entries = normalized.map(({ id }) => ({ id }));
 
         setSimulationChats(entries);
         setChatListError(null);
@@ -152,10 +152,9 @@ const TestAssistantSimulations: React.FC = () => {
 
     try {
       const platformChatId = generateSimulationChatId();
-      const username = `contacto-${platformChatId.slice(-5)}`;
+      const username = `simulacion-${platformChatId.slice(-5)}`;
 
       let chatData: any = null;
-      let contactData: any = null;
       let resolvedChatId: string | null = null;
       let fallbackUsed = false;
 
@@ -167,7 +166,6 @@ const TestAssistantSimulations: React.FC = () => {
         });
 
         chatData = simulateResponse.data?.chat ?? null;
-        contactData = simulateResponse.data?.contact ?? chatData?.contact ?? null;
         resolvedChatId = chatData?.id ?? chatData?._id ?? null;
       } catch (simulateError: unknown) {
         const status = (simulateError as any)?.response?.status ?? null;
@@ -203,7 +201,6 @@ const TestAssistantSimulations: React.FC = () => {
         );
 
         chatData = fallbackResponse.data?.chat ?? null;
-        contactData = fallbackResponse.data?.contact ?? chatData?.contact ?? null;
         resolvedChatId = chatData?.id ?? chatData?._id ?? null;
       }
 
@@ -211,33 +208,9 @@ const TestAssistantSimulations: React.FC = () => {
         throw new Error('Chat ID missing');
       }
 
-      const resolvedContactId =
-        (contactData && typeof contactData === 'object' && (contactData.id || contactData._id)) ||
-        (typeof contactData === 'string' ? contactData : null) ||
-        null;
-
-      let displayName = 'Contacto de simulación';
-      if (contactData && typeof contactData === 'object') {
-        displayName =
-          contactData.name ||
-          contactData.username ||
-          contactData.displayName ||
-          contactData.phoneNumber ||
-          contactData.platformChatId ||
-          username;
-      } else if (typeof contactData === 'string') {
-        displayName = contactData;
-      } else if (resolvedContactId) {
-        displayName = resolvedContactId;
-      } else {
-        displayName = username;
-      }
-
-      const entryLabel = displayName !== resolvedContactId ? displayName : null;
-
       setSimulationChats((prev) => {
         const withoutDuplicate = prev.filter((entry) => entry.id !== resolvedChatId);
-        return [{ id: resolvedChatId, label: entryLabel }, ...withoutDuplicate];
+        return [{ id: resolvedChatId }, ...withoutDuplicate];
       });
 
       navigate(`/test-assistant/${resolvedChatId}`);
@@ -381,11 +354,9 @@ const TestAssistantSimulations: React.FC = () => {
             ) : (
               <>
                 {simulationChats.map((chat, index) => {
-                  const displayName =
-                    chat.label ??
-                    t('testAssistant.simulationDefaultName', 'Simulación {{index}}', {
-                      index: index + 1,
-                    });
+                  const displayName = t('testAssistant.simulationDefaultName', 'Simulación {{index}}', {
+                    index: index + 1,
+                  });
                   const subtitle = t(
                     'testAssistant.simulationPrivateSubtitle',
                     'Historial de prueba confidencial',
