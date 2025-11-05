@@ -57,7 +57,7 @@ function App() {
             <Route path="contacts" element={<Contacts />} />
             <Route path="chats/:contactId" element={<ChatHistory />} />
             <Route path="users" element={
-              <ProtectedRoute allowedRoles={[Role.ADMIN]}>
+              <ProtectedRoute allowedRoles={[Role.ADMIN, Role.EDITOR]}>
                 <Users />
               </ProtectedRoute>
             } />

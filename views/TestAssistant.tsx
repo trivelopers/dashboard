@@ -521,8 +521,8 @@ const TestAssistant: React.FC = () => {
 
   // --- Render ---
   return (
-    <div className="-mx-4 -my-4 flex h-full flex-1 flex-col overflow-hidden md:-mx-8 md:-my-8">
-      <section className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-brand-border/60 bg-white/95 shadow-brand-soft backdrop-blur">
+    <div className="-mx-4 flex h-full min-h-0 flex-1 flex-col overflow-hidden md:-mx-8">
+      <section className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-brand-border/60 bg-white/95 shadow-brand-soft backdrop-blur">
         <header className="flex-shrink-0 border-b border-brand-border/50 bg-gradient-to-r from-white to-brand-primary/5 px-6 py-4 sm:px-10 sm:py-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center justify-start">

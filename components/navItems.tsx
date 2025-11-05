@@ -51,6 +51,6 @@ export const navItems: NavItem[] = [
     to: '/users',
     labelKey: 'navigation.users',
     icon: UserGroupIcon,
-    roles: [Role.ADMIN],
+    roles: [Role.ADMIN, Role.EDITOR],
   },
 ];

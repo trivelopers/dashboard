@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { User, Role } from '../types';
 import Spinner from '../components/Spinner';
 import GradientSection from '../components/GradientSection';
@@ -20,6 +20,44 @@ const addUserSchema = yup.object({
 type AddUserFormData = yup.InferType<typeof addUserSchema>;
 
 
+type ApiUser = Omit<User, 'role'> & { role: string };
+
+const normalizeRole = (role: Role | string | null | undefined): Role => {
+  const normalized = (role ?? '').toString().trim().toLowerCase();
+  switch (normalized) {
+    case 'admin':
+      return Role.ADMIN;
+    case 'superadmin':
+      return Role.ADMIN;
+    case 'editor':
+      return Role.EDITOR;
+    case 'user':
+      return Role.EDITOR;
+    case 'viewer':
+      return Role.VIEWER;
+    default:
+      return Role.EDITOR;
+  }
+};
+
+const toBackendRole = (role: Role): string => {
+  switch (role) {
+    case Role.ADMIN:
+      return 'admin';
+    case Role.EDITOR:
+      return 'user';
+    case Role.VIEWER:
+    default:
+      return 'viewer';
+  }
+};
+
+const mapUsersFromApi = (fetchedUsers: ApiUser[] = []): User[] =>
+  fetchedUsers.map((user) => ({
+    ...user,
+    role: normalizeRole(user.role),
+  }));
+
 const Users: React.FC = () => {
   const { user: currentUser } = useAuth();
   const { t } = useTranslation();
@@ -36,8 +74,8 @@ const Users: React.FC = () => {
   const fetchAndSetUsers = async () => {
     setIsLoading(true);
     try {
-      const { data } = await api.get<{ Users: User[] }>('/dashboard/Users');
-      setUsers(data.Users || []);
+      const { data } = await api.get<{ Users: ApiUser[] }>('/dashboard/Users');
+      setUsers(mapUsersFromApi(data.Users));
     } catch (error) {
       console.error('Failed to fetch users', error);
       setUsers([]);
@@ -49,6 +87,13 @@ const Users: React.FC = () => {
   useEffect(() => {
     fetchAndSetUsers();
   }, []);
+
+  const visibleUsers = useMemo(() => {
+    if (currentUser?.role === Role.EDITOR) {
+      return users.filter((user) => user.role !== Role.ADMIN);
+    }
+    return users;
+  }, [currentUser?.role, users]);
 
   const handleAddUser = async (data: AddUserFormData) => {
     if (!currentUser) return;
@@ -90,7 +135,7 @@ const Users: React.FC = () => {
             <div className="flex justify-center p-10">
               <Spinner />
             </div>
-          ) : users.length === 0 ? (
+          ) : visibleUsers.length === 0 ? (
             <div className="py-10 text-center text-brand-muted">{t('users.noUsers')}</div>
           ) : (
             <table className="min-w-full divide-y divide-brand-border/80 rounded-2xl bg-white/90 shadow-brand-soft backdrop-blur">
@@ -108,7 +153,7 @@ const Users: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-border/60 bg-white/85">
-                {users.map((user) => (
+                {visibleUsers.map((user) => (
                   <tr key={user.id} className="transition-colors hover:bg-brand-background/50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-dark">{user.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-muted">{user.email}</td>
