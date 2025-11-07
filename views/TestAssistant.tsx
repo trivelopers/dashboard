@@ -11,9 +11,10 @@ import { useTranslation } from 'react-i18next';
 import { Message } from '../types';
 import Spinner from '../components/Spinner';
 import api from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 import { readSimulationChats, removeStoredSimulation, updateStoredSimulationLabel } from '../utils/simulationStorage';
 
-const TEST_WEBHOOK_URL = 'https://18-116-178-41.nip.io/webhook/test/client-message';
+const BASE_WEBHOOK_URL = 'https://18-116-178-41.nip.io/webhook/client-message';
 const DEFAULT_SIMULATION_FROM = '5492222222222';
 const DEFAULT_SIMULATION_NAME = 'Cliente Falso';
 
@@ -53,8 +54,14 @@ const mergeMessageLists = (serverMessages: Message[], pendingMessages: Message[]
 // --- Componente principal
 const TestAssistant: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { chatId } = useParams<{ chatId?: string }>();
   const navigate = useNavigate();
+  
+  // Create webhook URL with client ID
+  const webhookUrl = user?.clientId 
+    ? `${BASE_WEBHOOK_URL}/${user.clientId}`
+    : BASE_WEBHOOK_URL;
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [isKnownSimulation, setIsKnownSimulation] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -371,7 +378,7 @@ const TestAssistant: React.FC = () => {
     pendingClientMessageTextRef.current = trimmed;
 
     try {
-      await fetch(TEST_WEBHOOK_URL, {
+      await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
