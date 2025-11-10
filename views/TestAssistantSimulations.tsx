@@ -357,10 +357,6 @@ const TestAssistantSimulations: React.FC = () => {
                   const displayName = t('testAssistant.simulationDefaultName', 'Simulación {{index}}', {
                     index: index + 1,
                   });
-                  const subtitle = t(
-                    'testAssistant.simulationPrivateSubtitle',
-                    'Historial de prueba confidencial',
-                  );
 
                   return (
                     <div
@@ -378,7 +374,6 @@ const TestAssistantSimulations: React.FC = () => {
                             {t('testAssistant.simulationBadge', 'Simulación')}
                           </span>
                         </div>
-                        <span className="line-clamp-2 break-all text-xs text-brand-muted">{subtitle}</span>
                         <span className="text-xs font-semibold text-brand-primary">
                           {t('testAssistant.openSimulation', 'Abrir conversación')}
                         </span>
