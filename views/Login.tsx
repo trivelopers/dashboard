@@ -47,9 +47,9 @@ const Login: React.FC = () => {
           <img
             src={nodaiLogo}
             alt="nodai"
-            className="mx-auto mt-2 mb-6 max-h-20 w-auto object-contain drop-shadow-lg"
+            className="mx-auto mt-2 mb-6 max-h-16 w-auto object-contain drop-shadow-lg"
           />
-          <p className="text-sm text-white/70">{t('auth.signInToManage')}</p>
+          <p className="text-base text-white/80">{t('auth.signInToManage')}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
