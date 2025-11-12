@@ -95,6 +95,18 @@ const Users: React.FC = () => {
     return users;
   }, [currentUser?.role, users]);
 
+  const roleOptions = useMemo(() => {
+    if (currentUser?.role === Role.ADMIN) {
+      return [
+        { value: Role.VIEWER, label: t('users.viewer') },
+        { value: Role.EDITOR, label: t('users.editor') },
+        { value: Role.ADMIN, label: t('users.admin') },
+      ];
+    }
+
+    return [{ value: Role.VIEWER, label: t('users.viewer') }];
+  }, [currentUser?.role, t]);
+
   const handleAddUser = async (data: AddUserFormData) => {
     if (!currentUser) return;
     setCreationError(null);
@@ -205,11 +217,13 @@ const Users: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-brand-dark">{t('users.role')}</label>
                   <select {...register('role')} className="mt-1 w-full px-3 py-2 border border-brand-border rounded-md bg-brand-background focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary">
-                      <option value={Role.VIEWER}>{t('users.viewer')}</option>
-                      <option value={Role.EDITOR}>{t('users.editor')}</option>
-                      <option value={Role.ADMIN}>{t('users.admin')}</option>
+                    {roleOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
-              </div>
+                </div>
               {creationError && <p className="text-sm text-brand-warm text-center">{creationError}</p>}
               <div className="flex justify-end space-x-4 pt-4">
                 <button
