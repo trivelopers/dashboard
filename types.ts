@@ -31,3 +31,19 @@ export interface Message {
 export interface BotSettings {
     promptSystem: string;
 }
+
+export interface PromptHistoryEntry {
+  id: string;
+  clientId: string;
+  prompt: string;
+  createdAt: string;
+  changedBy: {
+    id: string;
+    email: string;
+    name?: string | null;
+    role?: string | null;
+  };
+  changeType: string;
+  changeDetail?: string | null;
+  version: number;
+}
