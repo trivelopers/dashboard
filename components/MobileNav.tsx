@@ -5,11 +5,19 @@ import { useTranslation } from 'react-i18next';
 import {
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
+  UserCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid';
 import LanguageSelector from './LanguageSelector';
 import nodaiLogo from '../nodai-centrado.png';
 import { navItems } from './navItems';
+import { Role } from '../types';
+
+const roleLabelKeys: Record<Role, string> = {
+  [Role.ADMIN]: 'users.admin',
+  [Role.EDITOR]: 'users.editor',
+  [Role.VIEWER]: 'users.viewer',
+};
 
 const MobileNav: React.FC = () => {
   const { user, logout } = useAuth();
@@ -52,6 +60,30 @@ const MobileNav: React.FC = () => {
 
       {isMenuOpen && (
         <div className="border-t border-white/10">
+          <div className="px-4 py-4 border-b border-white/10">
+            <NavLink
+              to="/profile"
+              onClick={handleNavigate}
+              className={({ isActive }) =>
+                `group flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-medium transition ${
+                  isActive
+                    ? 'border-brand-primary/40 bg-white/10 text-white'
+                    : 'border-transparent text-[#E5E7EB] hover:border-white/20 hover:bg-white/5 hover:text-white'
+                }`
+              }
+            >
+              <UserCircleIcon className="h-8 w-8 text-brand-primary" />
+              <div className="flex flex-col leading-tight">
+                <span>{user.name}</span>
+                <span className="text-xs text-[#BBD6E5]">
+                  {t(roleLabelKeys[user.role] ?? 'users.viewer')}
+                </span>
+              </div>
+            </NavLink>
+            <p className="mt-2 text-xs font-medium uppercase tracking-[0.4em] text-[#BBD6E5]">
+              {t('profile.viewDetails')}
+            </p>
+          </div>
           <nav className="flex flex-col">
             {navItems.map((item) => {
               if (!user.role || !item.roles.includes(user.role)) {

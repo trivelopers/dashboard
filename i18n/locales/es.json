@@ -68,6 +68,42 @@
     "loading": "Cargando usuarios...",
     "noUsers": "No se encontraron usuarios"
   },
+  "profile": {
+    "eyebrow": "Cuenta",
+    "title": "Mi perfil",
+    "description": "Consulta tu cuenta y permisos de acceso.",
+    "heroNote": "Mantén tus datos sincronizados con tu organización y revisa tu acceso en un solo lugar.",
+    "detailsLabel": "Resumen",
+    "detailsSubtitle": "La información mostrada solo es visible para tu organización.",
+    "fields": {
+      "name": "Nombre completo",
+      "email": "Correo electrónico",
+      "role": "Rol",
+      "clientId": "ID del cliente"
+    },
+    "viewDetails": "Ver detalles del perfil",
+    "changePassword": {
+      "title": "Cambiar contraseña",
+      "description": "Actualiza tu contraseña sin validar por correo.",
+      "ctaTitle": "Acceso seguro",
+      "ctaDescription": "Renovala cuando lo necesites",
+      "ctaButton": "Ir a cambiar contraseña",
+      "screenTitle": "Cambiar contraseña",
+      "screenDescription": "Puedes actualizarla desde este panel en cualquier momento.",
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Repetir contraseña",
+      "button": "Guardar contraseña",
+      "saving": "Guardando...",
+      "success": "Contraseña actualizada correctamente.",
+      "error": "No se pudo actualizar la contraseña.",
+      "mismatch": "Las contraseñas deben coincidir.",
+      "minLength": "La contraseña debe tener al menos 8 caracteres."
+      ,
+      "show": "Mostrar",
+      "hide": "Ocultar"
+    }
+  },
   "contacts": {
     "title": "Contactos",
     "name": "Nombre",

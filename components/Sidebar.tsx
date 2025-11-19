@@ -9,7 +9,13 @@ import nodaiLogo from '../nodai-definitivo.png';
 
 import { navItems } from './navItems';
 import api from '../services/api';
+import { Role } from '../types';
 
+const roleLabelKeys: Record<Role, string> = {
+  [Role.ADMIN]: 'users.admin',
+  [Role.EDITOR]: 'users.editor',
+  [Role.VIEWER]: 'users.viewer',
+};
 const Sidebar: React.FC = () => {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
@@ -51,6 +57,8 @@ const Sidebar: React.FC = () => {
   };
   
   if (!user) return null;
+
+  const profileRoleLabel = t(roleLabelKeys[user.role] ?? 'users.viewer');
 
   return (
     <div className="flex flex-col w-64 bg-brand-dark text-[#E5E7EB] h-full shadow-brand-soft">
@@ -103,13 +111,24 @@ const Sidebar: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <LanguageSelector />
         </div>
-        <div className="flex items-center mb-4">
-            <UserCircleIcon className="h-10 w-10 text-brand-primary/70 mr-3"/>
-            <div>
-                <p className="font-semibold text-white">{user.name}</p>
-                <span className="text-xs bg-brand-primary text-brand-dark px-2 py-0.5 rounded-full">{user.role}</span>
-            </div>
-        </div>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            `group mb-4 flex w-full items-center space-x-3 rounded-2xl border px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+              isActive
+                ? 'border-brand-primary/40 bg-white/10 shadow-brand-soft text-white'
+                : 'border-transparent text-[#E5E7EB] hover:border-white/20 hover:bg-white/5 hover:text-white'
+            }`
+          }
+        >
+          <UserCircleIcon className="h-10 w-10 text-brand-primary/70" />
+          <div>
+            <p className="font-semibold text-white">{user.name}</p>
+            <span className="text-xs bg-brand-primary text-brand-dark px-2 py-0.5 rounded-full">
+              {profileRoleLabel}
+            </span>
+          </div>
+        </NavLink>
         <button
           onClick={handleLogout}
           className="flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-lg text-[#E5E7EB] hover:bg-white/10 hover:text-brand-primary transition-colors duration-200"

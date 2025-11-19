@@ -18,6 +18,8 @@ import TestAssistantSimulations from './views/TestAssistantSimulations';
 import Integrations from './views/Integrations';
 import Help from './views/Help';
 import NotFound from './views/NotFound';
+import Profile from './views/Profile';
+import ChangePassword from './views/ChangePassword';
 import { Role } from './types';
 
 function App() {
@@ -36,6 +38,14 @@ function App() {
           >
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
             <Route path="prompt" element={
               <ProtectedRoute allowedRoles={[Role.ADMIN, Role.EDITOR]}>
                 <Prompt />
@@ -63,6 +73,7 @@ function App() {
                 <Users />
               </ProtectedRoute>
             } />
+            <Route path="change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             <Route
               path="integrations"
               element={

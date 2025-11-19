@@ -69,6 +69,42 @@
     "loading": "Loading users...",
     "noUsers": "No users found"
   },
+  "profile": {
+    "eyebrow": "Account",
+    "title": "My Profile",
+    "description": "Review your account settings and permissions.",
+    "heroNote": "Keep your information in sync with your organization and monitor your access from one place.",
+    "detailsLabel": "User snapshot",
+    "detailsSubtitle": "This information is visible only within your organization.",
+    "fields": {
+      "name": "Full Name",
+      "email": "Email address",
+      "role": "Role",
+      "clientId": "Client ID"
+    },
+    "viewDetails": "View profile details",
+    "changePassword": {
+      "title": "Change password",
+      "description": "Update your password without email verification.",
+      "ctaTitle": "Secure access",
+      "ctaDescription": "Rotate it whenever you need to.",
+      "ctaButton": "Go to change password",
+      "screenTitle": "Change password",
+      "screenDescription": "You can update it from this panel at any time.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm password",
+      "button": "Save password",
+      "saving": "Saving...",
+      "success": "Password updated successfully.",
+      "error": "Unable to update password.",
+      "mismatch": "Passwords must match.",
+      "minLength": "Password must be at least 8 characters."
+      ,
+      "show": "Show",
+      "hide": "Hide"
+    }
+  },
   "contacts": {
     "title": "Contacts",
     "name": "Name",
