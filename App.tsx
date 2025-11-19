@@ -15,6 +15,8 @@ import ChatHistory from './views/ChatHistory';
 import Users from './views/Users';
 import TestAssistant from './views/TestAssistant';
 import TestAssistantSimulations from './views/TestAssistantSimulations';
+import Integrations from './views/Integrations';
+import Help from './views/Help';
 import NotFound from './views/NotFound';
 import { Role } from './types';
 
@@ -61,6 +63,22 @@ function App() {
                 <Users />
               </ProtectedRoute>
             } />
+            <Route
+              path="integrations"
+              element={
+                <ProtectedRoute allowedRoles={[Role.ADMIN]}>
+                  <Integrations />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="help"
+              element={
+                <ProtectedRoute allowedRoles={[Role.ADMIN]}>
+                  <Help />
+                </ProtectedRoute>
+              }
+            />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

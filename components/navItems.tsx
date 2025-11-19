@@ -6,6 +6,8 @@ import {
   AdjustmentsHorizontalIcon,
   IdentificationIcon,
   UserGroupIcon,
+  PuzzlePieceIcon,
+  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/solid';
 import { Role } from '../types';
 
@@ -52,5 +54,17 @@ export const navItems: NavItem[] = [
     labelKey: 'navigation.users',
     icon: UserGroupIcon,
     roles: [Role.ADMIN, Role.EDITOR],
+  },
+  {
+    to: '/integrations',
+    labelKey: 'navigation.integrations',
+    icon: PuzzlePieceIcon,
+    roles: [Role.ADMIN],
+  },
+  {
+    to: '/help',
+    labelKey: 'navigation.help',
+    icon: QuestionMarkCircleIcon,
+    roles: [Role.ADMIN],
   },
 ];

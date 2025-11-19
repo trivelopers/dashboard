@@ -22,13 +22,36 @@
     "dashboard": "Panel",
     "users": "Usuarios",
     "contacts": "Contactos",
-    "logout": "Cerrar sesión",
     "chats": "Conversaciones",
     "prompt": "Refinamiento",
     "company": "Mi empresa",
+    "testAssistant": "Simulaciones",
+    "integrations": "Integraciones",
+    "help": "Ayuda",
+    "logout": "Cerrar sesión",
     "openMenu": "Abrir menu",
-    "closeMenu": "Cerrar menu",
-    "testAssistant": "Simulaciones"
+    "closeMenu": "Cerrar menu"
+  },
+  "integrations": {
+    "title": "Integraciones",
+    "description": "Conecta NodAI con tu CRM, analíticas o canales de mensajería para automatizar flujos.",
+    "statusTitle": "Todavía no hay integraciones",
+    "statusDescription": "Nuestro equipo puede ayudarte mediante la API o webhooks.",
+    "comingSoon": "Catálogo de integraciones y plantillas pronto disponible.",
+    "cta": "Solicitar integración"
+  },
+  "help": {
+    "title": "Centro de ayuda",
+    "description": "Encuentra guías, preguntas frecuentes y buenas prácticas para administrar tu asistente.",
+    "quickLinkOneTitle": "Guía de inicio",
+    "quickLinkOneDescription": "Configura tu asistente, invita al equipo y crea tu primer flujo.",
+    "quickLinkTwoTitle": "Consejos de prompts",
+    "quickLinkTwoDescription": "Mejora respuestas con tono, reglas de seguridad y ejemplos.",
+    "quickLinkThreeTitle": "Monitoreo y alertas",
+    "quickLinkThreeDescription": "Aprende a seguir uso, disponibilidad y errores críticos.",
+    "supportTitle": "¿Necesitas ayuda adicional?",
+    "supportDescription": "Abre un ticket o agenda una sesión con un ingeniero de éxito.",
+    "contactSupport": "Contactar soporte"
   },
   "users": {
     "title": "Gestión de equipo",

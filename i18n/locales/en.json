@@ -26,10 +26,33 @@
     "chats": "Chats",
     "prompt": "Assistant",
     "company": "Company Info",
+    "testAssistant": "Assistant tester",
+    "integrations": "Integrations",
+    "help": "Help",
     "logout": "Logout",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu",
-    "testAssistant": "Assistant tester"
+    "closeMenu": "Close menu"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "description": "Connect NodAI with your CRM, analytics, or messaging tools to automate workflows.",
+    "statusTitle": "No integrations configured yet",
+    "statusDescription": "Reach out to your success manager or use the API to set up connectors.",
+    "comingSoon": "Integration catalog and templates coming soon.",
+    "cta": "Request integration"
+  },
+  "help": {
+    "title": "Help Center",
+    "description": "Find guides, FAQs, and best practices for managing your assistant.",
+    "quickLinkOneTitle": "Getting started guide",
+    "quickLinkOneDescription": "Set up your assistant, invite teammates, and configure your first workflow.",
+    "quickLinkTwoTitle": "Prompt design tips",
+    "quickLinkTwoDescription": "Improve responses with tone controls, safety rules, and examples.",
+    "quickLinkThreeTitle": "Monitoring and alerts",
+    "quickLinkThreeDescription": "Understand how to track engagement, uptime, and failure scenarios.",
+    "supportTitle": "Need extra help?",
+    "supportDescription": "Open a ticket or schedule a live clinic with a success engineer.",
+    "contactSupport": "Contact support"
   },
   "users": {
     "title": "Team Management",
