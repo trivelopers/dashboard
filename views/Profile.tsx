@@ -86,7 +86,6 @@ const Profile: React.FC = () => {
           <p className="text-base font-semibold text-brand-dark">
             {t('profile.changePassword.ctaDescription')}
           </p>
-          <p className="text-sm text-brand-muted">{t('profile.changePassword.ctaNote')}</p>
         </div>
         <Link
           to="/change-password"
