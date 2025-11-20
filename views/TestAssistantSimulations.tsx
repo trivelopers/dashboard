@@ -75,7 +75,7 @@ const TestAssistantSimulations: React.FC = () => {
         const rawChats = Array.isArray(response.data?.chats) ? response.data.chats : [];
 
         const normalized = rawChats
-          .map((chat: any) => {
+          .map((chat: any, index: number) => {
             const id =
               (typeof chat?.id === 'string' && chat.id.trim()) ||
               (typeof chat?._id === 'string' && chat._id.trim());
@@ -102,21 +102,27 @@ const TestAssistantSimulations: React.FC = () => {
               label = chat.platformChatId;
             }
 
-            const updatedAt = chat?.updatedAt ?? chat?.createdAt ?? null;
+            const createdAt = chat?.createdAt ?? chat?.updatedAt ?? null;
 
-            return { id, label, updatedAt };
+            return { id, label, createdAt, index };
           })
           .filter(
-            (entry): entry is { id: string; label: string | null; updatedAt: string | null } => Boolean(entry),
+            (
+              entry,
+            ): entry is { id: string; label: string | null; createdAt: string | null; index: number } =>
+              Boolean(entry),
           );
 
-        normalized.sort((a, b) => parseTimestamp(b.updatedAt) - parseTimestamp(a.updatedAt));
+        normalized.sort((a, b) => {
+          const diff = parseTimestamp(a.createdAt) - parseTimestamp(b.createdAt);
+          return diff !== 0 ? diff : a.index - b.index;
+        });
 
         if (isCancelled) {
           return;
         }
 
-        const entries = normalized.map(({ id }) => ({ id }));
+        const entries = normalized.map(({ id, createdAt }) => ({ id, createdAt }));
 
         setSimulationChats(entries);
         setChatListError(null);
@@ -209,8 +215,12 @@ const TestAssistantSimulations: React.FC = () => {
       }
 
       setSimulationChats((prev) => {
-        const withoutDuplicate = prev.filter((entry) => entry.id !== resolvedChatId);
-        return [{ id: resolvedChatId }, ...withoutDuplicate];
+        const existing = prev.find((entry) => entry.id === resolvedChatId);
+        if (existing) {
+          return prev;
+        }
+        const createdAt = new Date().toISOString();
+        return [...prev, { id: resolvedChatId, createdAt }];
       });
 
       navigate(`/test-assistant/${resolvedChatId}`);

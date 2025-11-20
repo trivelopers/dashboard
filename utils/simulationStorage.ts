@@ -1,6 +1,7 @@
 export type SimulationChatEntry = {
   id: string;
   label?: string | null;
+  createdAt?: string | null;
 };
 
 export const SIMULATION_STORAGE_KEY = 'testAssistant.simulations';
@@ -21,7 +22,22 @@ export const readSimulationChats = (): SimulationChatEntry[] => {
         const id = typeof entry.id === 'string' ? entry.id.trim() : '';
         if (!id) return null;
         const label = typeof entry.label === 'string' ? entry.label : null;
-        return { id, label };
+
+        const createdAtValue = (entry as any).createdAt;
+        let createdAt: string | null = null;
+        if (
+          typeof createdAtValue === 'string' ||
+          typeof createdAtValue === 'number' ||
+          createdAtValue instanceof Date
+        ) {
+          const date = new Date(createdAtValue);
+          const timestamp = date.getTime();
+          if (!Number.isNaN(timestamp)) {
+            createdAt = date.toISOString();
+          }
+        }
+
+        return { id, label, createdAt };
       })
       .filter((entry): entry is SimulationChatEntry => Boolean(entry));
 
