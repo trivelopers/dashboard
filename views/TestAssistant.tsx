@@ -611,12 +611,7 @@ const TestAssistant: React.FC = () => {
           )}
 
           <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-brand-background/70 px-4 py-6 sm:px-8 lg:px-12">
-            {isLoadingHistory ? (
-              <div className="flex h-full flex-col items-center justify-center space-y-4 text-sm text-brand-muted">
-                <Spinner />
-                <span>{t('testAssistant.loadingHistory', 'Cargando historial de prueba...')}</span>
-              </div>
-            ) : messages.length > 0 ? (
+            {messages.length > 0 ? (
               messages.map((msg) => {
                 const isUser = msg.role === 'user';
                 const isPendingAssistant = msg.id === assistantPlaceholderId && isAssistantTyping;
