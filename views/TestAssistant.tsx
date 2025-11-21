@@ -43,10 +43,20 @@ const mergeMessageLists = (serverMessages: Message[], pendingMessages: Message[]
   const byId = new Map<string, Message>();
   for (const msg of combined) if (msg?.id) byId.set(msg.id, msg);
   const merged = Array.from(byId.values());
+  const isAssistantPlaceholder = (msg?: Message) =>
+    !!msg?.id && msg.id.startsWith('assistant-pending-');
+
   merged.sort((a, b) => {
+    const aIsPlaceholder = isAssistantPlaceholder(a);
+    const bIsPlaceholder = isAssistantPlaceholder(b);
+    if (aIsPlaceholder && !bIsPlaceholder) return 1; // always push placeholder to the end
+    if (!aIsPlaceholder && bIsPlaceholder) return -1;
+
     const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
     const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-    return timeA - timeB;
+    if (timeA !== timeB) return timeA - timeB;
+
+    return (a.id || '').localeCompare(b.id || '');
   });
   return merged;
 };
@@ -93,6 +103,19 @@ const TestAssistant: React.FC = () => {
   const historyReloadAttemptsRef = useRef(0);
   const hasInitialScrollRef = useRef(false);
 
+  const getNextTimestamp = useCallback(() => {
+    const times: number[] = [];
+    const collect = (msg?: Message) => {
+      if (!msg?.timestamp) return;
+      const t = new Date(msg.timestamp as string).getTime();
+      if (!Number.isNaN(t)) times.push(t);
+    };
+    serverMessagesRef.current.forEach(collect);
+    pendingMessagesRef.current.forEach(collect);
+    const maxTime = times.length ? Math.max(...times) : Date.now();
+    return maxTime + 1;
+  }, []);
+
   useEffect(() => {
     if (!chatId) {
       navigate('/test-assistant', { replace: true });
@@ -133,6 +156,67 @@ const TestAssistant: React.FC = () => {
     },
     [applyMergedMessages]
   );
+
+  const reconcilePendingClientMessages = useCallback(
+    (serverMessages: Message[]) => {
+      if (!serverMessages.length) return;
+
+      setPendingMessages((prev) => {
+        if (!prev.some((msg) => msg?.id?.startsWith('client-'))) {
+          return prev;
+        }
+
+        const userServerTimes = serverMessages
+          .filter((msg) => msg.role === 'user' && msg.timestamp)
+          .map((msg) => new Date(msg.timestamp as string).getTime())
+          .filter((time) => !Number.isNaN(time));
+
+        if (!userServerTimes.length) {
+          return prev;
+        }
+
+        return prev.filter((msg) => {
+          if (!msg?.id?.startsWith('client-')) return true;
+          const messageTime = msg.timestamp ? new Date(msg.timestamp).getTime() : NaN;
+          if (Number.isNaN(messageTime)) return true;
+          return !userServerTimes.some((time) => time >= messageTime);
+        });
+      });
+    },
+    [setPendingMessages]
+  );
+
+  const hasAssistantReplyAfterPending = useCallback(
+    (serverMessages: Message[]) => {
+      if (!serverMessages.length) return false;
+      const pendingSentAt = pendingClientMessageSentAtRef.current;
+      if (!pendingSentAt) return false;
+
+      return serverMessages.some((msg) => {
+        if (msg.role !== 'assistant' || !msg.timestamp) return false;
+        const ts = new Date(msg.timestamp as string).getTime();
+        if (Number.isNaN(ts)) return false;
+        return ts >= pendingSentAt;
+      });
+    },
+    []
+  );
+
+  const clearAssistantPlaceholder = useCallback(() => {
+    setPendingMessages((prev) =>
+      prev.filter(
+        (msg) =>
+          !msg?.id?.startsWith('assistant-pending-') &&
+          !msg?.id?.startsWith('client-')
+      )
+    );
+    setAssistantPlaceholderId(null);
+    setAssistantPlaceholderMessage(null);
+    setIsAssistantTyping(false);
+    pendingClientMessageIdRef.current = null;
+    pendingClientMessageSentAtRef.current = null;
+    pendingClientMessageTextRef.current = null;
+  }, [setPendingMessages]);
 
   // Simulation list is handled in the selection view.
 
@@ -219,6 +303,10 @@ const TestAssistant: React.FC = () => {
             historyReloadTimeoutRef.current = null;
           }
           setServerMessages(formattedMessages);
+          reconcilePendingClientMessages(formattedMessages);
+          if (assistantPlaceholderId && hasAssistantReplyAfterPending(formattedMessages)) {
+            clearAssistantPlaceholder();
+          }
         }
       } catch (error) {
         if (isCancelled) return;
@@ -278,6 +366,9 @@ const TestAssistant: React.FC = () => {
     setHistoryReloadToken,
     setPendingMessages,
     setServerMessages,
+    reconcilePendingClientMessages,
+    hasAssistantReplyAfterPending,
+    clearAssistantPlaceholder,
     t,
   ]);
 
@@ -351,30 +442,46 @@ const TestAssistant: React.FC = () => {
       return;
     }
 
-    const now = new Date();
+    const now = Date.now();
+    const userTime = Math.max(now, getNextTimestamp());
+    const placeholderTime = userTime + 1;
     const userMessage: Message = {
-      id: 'client-' + now.toISOString(),
+      id: 'client-' + new Date(userTime).toISOString(),
       role: 'user',
       text: trimmed,
-      timestamp: now.toISOString(),
+      timestamp: new Date(userTime).toISOString(),
     };
 
     const placeholder: Message = {
-      id: 'assistant-pending-' + now.getTime(),
+      id: 'assistant-pending-' + placeholderTime,
       role: 'assistant',
       text: t('testAssistant.assistantPlaceholder', 'El asistente está preparando la respuesta...'),
-      timestamp: new Date(now.getTime() + 1).toISOString(),
+      timestamp: new Date(placeholderTime).toISOString(),
     };
 
-    setPendingMessages((prev) => [...prev, userMessage, placeholder]);
+    const placeholderIdToUse = assistantPlaceholderId ?? placeholder.id;
+    const placeholderMessage: Message =
+      assistantPlaceholderId && assistantPlaceholderMessage
+        ? {
+            ...assistantPlaceholderMessage,
+            id: placeholderIdToUse,
+            text: placeholder.text,
+            timestamp: placeholder.timestamp,
+          }
+        : { ...placeholder, id: placeholderIdToUse };
+
+    setPendingMessages((prev) => {
+      const withoutPlaceholders = prev.filter((msg) => !msg?.id?.startsWith('assistant-pending-'));
+      return [...withoutPlaceholders, userMessage, placeholderMessage];
+    });
     setClientMessage('');
     setIsSendingClient(true);
-    setAssistantPlaceholderId(placeholder.id);
-    setAssistantPlaceholderMessage(placeholder);
+    setAssistantPlaceholderId(placeholderIdToUse);
+    setAssistantPlaceholderMessage(placeholderMessage);
     setIsAssistantTyping(true);
     setClientError(null);
     pendingClientMessageIdRef.current = userMessage.id;
-    pendingClientMessageSentAtRef.current = now.getTime();
+    pendingClientMessageSentAtRef.current = userTime;
     pendingClientMessageTextRef.current = trimmed;
 
     try {
@@ -432,6 +539,11 @@ const TestAssistant: React.FC = () => {
           return timeA - timeB;
         });
         setServerMessages(formattedMessages);
+        reconcilePendingClientMessages(formattedMessages);
+        if (assistantPlaceholderId && hasAssistantReplyAfterPending(formattedMessages)) {
+          clearAssistantPlaceholder();
+          return;
+        }
 
         if (assistantPlaceholderId) {
           const placeholderTime = assistantPlaceholderMessage?.timestamp
@@ -448,9 +560,8 @@ const TestAssistant: React.FC = () => {
             setPendingMessages((prev) =>
               prev.filter(
                 (msg) =>
-                  msg.id !== assistantPlaceholderId &&
-                  !msg.id.startsWith('client-') &&
-                  msg.id !== pendingClientMessageIdRef.current
+                  !msg?.id?.startsWith('assistant-pending-') &&
+                  !msg?.id?.startsWith('client-')
               )
             );
             setAssistantPlaceholderId(null);
@@ -471,7 +582,13 @@ const TestAssistant: React.FC = () => {
           });
 
           if (hasUserEcho) {
-            setPendingMessages((prev) => prev.filter((msg) => !msg.id.startsWith('client-')));
+            setPendingMessages((prev) =>
+              prev.filter(
+                (msg) =>
+                  !msg?.id?.startsWith('client-') &&
+                  !msg?.id?.startsWith('assistant-pending-')
+              )
+            );
             pendingClientMessageIdRef.current = null;
             pendingClientMessageSentAtRef.current = null;
             pendingClientMessageTextRef.current = null;
@@ -501,6 +618,9 @@ const TestAssistant: React.FC = () => {
     isAssistantTyping,
     setPendingMessages,
     setServerMessages,
+    reconcilePendingClientMessages,
+    hasAssistantReplyAfterPending,
+    clearAssistantPlaceholder,
   ]);
 
   const handleDeleteChat = useCallback(async () => {
