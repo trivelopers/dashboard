@@ -648,8 +648,8 @@ const TestAssistant: React.FC = () => {
 
   // --- Render ---
   return (
-    <div className="flex min-h-screen flex-1 flex-col">
-<section className="relative flex min-h-screen w-full flex-col overflow-visible border border-brand-border/60 bg-white/95 shadow-brand-soft backdrop-blur">
+    <div className="flex h-full min-h-0 flex-1 flex-col">
+      <section className="relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-3xl border border-brand-border/60 bg-white/95 shadow-brand-soft backdrop-blur">
         <header className="sticky top-0 z-30 flex-shrink-0 border-b border-brand-border/50 bg-gradient-to-r from-white to-white px-4 py-2 sm:px-10 sm:py-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center justify-start">
@@ -731,7 +731,7 @@ const TestAssistant: React.FC = () => {
           )}
 
           <div className="flex-1 min-h-0 bg-brand-background/70">
-            <div className="flex h-full flex-col">
+            <div className="flex h-full min-h-0 flex-col">
               <div className="flex-1 min-h-0 space-y-4 overflow-y-auto px-4 py-6 pb-4 sm:px-8 lg:px-12">
                 {messages.length > 0 ? (
                   messages.map((msg) => {
