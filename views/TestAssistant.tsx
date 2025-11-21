@@ -648,9 +648,9 @@ const TestAssistant: React.FC = () => {
 
   // --- Render ---
   return (
-    <div className="-mx-4 flex h-full min-h-0 flex-1 flex-col overflow-hidden md:-mx-8">
-      <section className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-brand-border/60 bg-white/95 shadow-brand-soft backdrop-blur">
-        <header className="flex-shrink-0 border-b border-brand-border/50 bg-gradient-to-r from-white to-brand-primary/5 px-6 py-4 sm:px-10 sm:py-5">
+    <div className="flex min-h-screen flex-1 flex-col">
+<section className="relative flex min-h-screen w-full flex-col overflow-visible border border-brand-border/60 bg-white/95 shadow-brand-soft backdrop-blur">
+        <header className="sticky top-0 z-30 flex-shrink-0 border-b border-brand-border/50 bg-gradient-to-r from-white to-white px-4 py-2 sm:px-10 sm:py-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center justify-start">
                 <button
@@ -730,52 +730,57 @@ const TestAssistant: React.FC = () => {
             </div>
           )}
 
-          <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-brand-background/70 px-4 py-6 sm:px-8 lg:px-12">
-            {messages.length > 0 ? (
-              messages.map((msg) => {
-                const isUser = msg.role === 'user';
-                const isPendingAssistant = msg.id === assistantPlaceholderId && isAssistantTyping;
-                const label = isUser
-                  ? t('testAssistant.clientLabel', 'Cliente de prueba')
-                  : t('testAssistant.botLabel', 'Asistente');
-                return (
-                  <div key={msg.id} className={`flex ${isUser ? 'justify-start' : 'justify-end'}`}>
-                    <div
-                      className={`max-w-xl space-y-1 rounded-2xl px-4 py-3 shadow-sm ${
-                        isUser
-                          ? 'bg-brand-primary text-white'
-                          : 'border border-brand-border/40 bg-white text-brand-dark'
-                      }`}
-                    >
-                      <p className={`text-xs font-semibold uppercase tracking-wide ${isUser ? 'text-white/70' : 'text-brand-muted'}`}>
-                        {label}
-                      </p>
-                      <p className="text-sm leading-relaxed">
-                        {isPendingAssistant ? (
-                          <span className="flex items-center gap-2">
-                            <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-brand-primary/30 border-t-brand-primary" />
-                            <span>{msg.text}</span>
-                          </span>
-                        ) : (
-                          msg.text
-                        )}
-                      </p>
-                    </div>
+          <div className="flex-1 min-h-0 bg-brand-background/70">
+            <div className="flex h-full flex-col">
+              <div className="flex-1 min-h-0 space-y-4 overflow-y-auto px-4 py-6 pb-4 sm:px-8 lg:px-12">
+                {messages.length > 0 ? (
+                  messages.map((msg) => {
+                    const isUser = msg.role === 'user';
+                    const isPendingAssistant =
+                      msg.id === assistantPlaceholderId && isAssistantTyping;
+                    const label = isUser
+                      ? t('testAssistant.clientLabel', 'Cliente de prueba')
+                      : t('testAssistant.botLabel', 'Asistente');
+                    return (
+                      <div key={msg.id} className={`flex ${isUser ? 'justify-start' : 'justify-end'}`}>
+                        <div
+                          className={`max-w-xl space-y-1 rounded-2xl px-4 py-3 shadow-sm ${
+                            isUser
+                              ? 'bg-brand-primary text-white'
+                              : 'border border-brand-border/40 bg-white text-brand-dark'
+                          }`}
+                        >
+                          <p className={`text-xs font-semibold uppercase tracking-wide ${isUser ? 'text-white/70' : 'text-brand-muted'}`}>
+                            {label}
+                          </p>
+                          <p className="text-sm leading-relaxed">
+                            {isPendingAssistant ? (
+                              <span className="flex items-center gap-2">
+                                <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-brand-primary/30 border-t-brand-primary" />
+                                <span>{msg.text}</span>
+                              </span>
+                            ) : (
+                              msg.text
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm text-brand-muted">
+                    {t('testAssistant.noMessages', 'Todavía no hay mensajes de prueba.')}
                   </div>
-                );
-              })
-            ) : (
-              <div className="flex h-full items-center justify-center text-sm text-brand-muted">
-                {t('testAssistant.noMessages', 'Todavía no hay mensajes de prueba.')}
+                )}
+                <div ref={chatEndRef} />
+                {historyError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{historyError}</div>
+                )}
               </div>
-            )}
-            <div ref={chatEndRef} />
-            {historyError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{historyError}</div>
-            )}
+            </div>
           </div>
 
-          <div className="flex-shrink-0 border-t border-brand-border/50 bg-white/90 px-6 py-5 sm:px-10">
+          <div className="sticky bottom-0 z-30 flex-shrink-0 border-t border-brand-border/50 bg-white/90 px-4 py-2 shadow-brand-soft backdrop-blur sm:px-10">
             <form onSubmit={handleSendClientMessage} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold uppercase tracking-[0.25em] text-brand-muted">
