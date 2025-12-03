@@ -61,6 +61,53 @@ const mergeMessageLists = (serverMessages: Message[], pendingMessages: Message[]
   return merged;
 };
 
+const parseFormattedLine = (line: string, keyPrefix: string) => {
+  const nodes: React.ReactNode[] = [];
+  const pattern = /(\*[^*\n]+?\*|_[^_\n]+?_)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let chunkIndex = 0;
+
+  while ((match = pattern.exec(line)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(line.slice(lastIndex, match.index));
+    }
+
+    const token = match[0];
+    const content = token.slice(1, -1);
+    const chunkKey = `${keyPrefix}-${chunkIndex}`;
+
+    if (token.startsWith('*')) {
+      nodes.push(<strong key={`b-${chunkKey}`}>{content}</strong>);
+    } else {
+      nodes.push(<em key={`i-${chunkKey}`}>{content}</em>);
+    }
+
+    lastIndex = pattern.lastIndex;
+    chunkIndex += 1;
+  }
+
+  if (lastIndex < line.length) {
+    nodes.push(line.slice(lastIndex));
+  }
+
+  if (!nodes.length) nodes.push(line);
+
+  return nodes;
+};
+
+const renderMessageText = (text: string): React.ReactNode => {
+  if (!text) return null;
+  const lines = text.split(/\r?\n/);
+
+  return lines.map((line, lineIndex) => (
+    <React.Fragment key={`line-${lineIndex}`}>
+      {parseFormattedLine(line, `line-${lineIndex}`)}
+      {lineIndex < lines.length - 1 ? <br /> : null}
+    </React.Fragment>
+  ));
+};
+
 // --- Componente principal
 const TestAssistant: React.FC = () => {
   const { t } = useTranslation();
@@ -757,10 +804,10 @@ const TestAssistant: React.FC = () => {
                             {isPendingAssistant ? (
                               <span className="flex items-center gap-2">
                                 <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-brand-primary/30 border-t-brand-primary" />
-                                <span>{msg.text}</span>
+                                <span>{renderMessageText(msg.text)}</span>
                               </span>
                             ) : (
-                              msg.text
+                              renderMessageText(msg.text)
                             )}
                           </p>
                         </div>
