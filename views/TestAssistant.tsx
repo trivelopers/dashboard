@@ -828,33 +828,22 @@ const TestAssistant: React.FC = () => {
           </div>
 
           <div className="sticky bottom-0 z-30 flex-shrink-0 border-t border-brand-border/50 bg-white/90 px-4 py-2 shadow-brand-soft backdrop-blur sm:px-10">
-            <form onSubmit={handleSendClientMessage} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold uppercase tracking-[0.25em] text-brand-muted">
-                  {t('testAssistant.clientInputTitle', 'Mensaje de prueba')}
-                </label>
-                <p className="text-sm text-brand-muted">
-                  {t('testAssistant.clientHelper', 'Redacta tal como lo haría un cliente real.')}
-                </p>
-              </div>
-
-              <textarea
-                className="w-full resize-none rounded-2xl border border-brand-border/50 bg-white px-4 py-3 text-sm text-brand-dark placeholder-brand-muted transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-                rows={3}
-                value={clientMessage}
-                onChange={(e) => setClientMessage(e.target.value)}
-                onKeyDown={handleClientMessageKeyDown}
-                placeholder={t('testAssistant.clientPlaceholder', 'Escribe un mensaje para probar...')}
-                disabled={isSendingClient}
-              />
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                {clientError && <p className="text-sm text-red-600">{clientError}</p>}
+            <form onSubmit={handleSendClientMessage} className="flex flex-col gap-3">
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
+                <textarea
+                  className="w-full resize-none rounded-xl border border-brand-border/50 bg-white px-4 py-2 text-sm text-brand-dark placeholder-brand-muted transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 sm:flex-1"
+                  rows={2}
+                  value={clientMessage}
+                  onChange={(e) => setClientMessage(e.target.value)}
+                  onKeyDown={handleClientMessageKeyDown}
+                  placeholder="Escribi un mensaje de prueba como si fueras un cliente real"
+                  disabled={isSendingClient}
+                />
 
                 <button
                   type="submit"
                   disabled={isSendingClient || !clientMessage.trim()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-primary px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:self-center"
                 >
                   {isSendingClient ? (
                     <>
@@ -865,6 +854,8 @@ const TestAssistant: React.FC = () => {
                   )}
                 </button>
               </div>
+
+              {clientError && <p className="text-sm text-red-600">{clientError}</p>}
             </form>
           </div>
       </section>
