@@ -697,70 +697,88 @@ const TestAssistant: React.FC = () => {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <section className="relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-3xl border border-brand-border/60 bg-white/95 shadow-brand-soft backdrop-blur">
-        <header className="sticky top-0 z-30 flex-shrink-0 border-b border-brand-border/50 bg-gradient-to-r from-white to-white px-4 py-2 sm:px-10 sm:py-5">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center justify-start">
-                <button
-                  type="button"
-                  onClick={() => navigate('/test-assistant')}
-                  className="inline-flex items-center gap-2 rounded-xl border border-brand-primary/30 bg-white/80 px-4 py-2 text-xs font-semibold text-brand-primary shadow-sm transition hover:bg-brand-primary/10"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+        <header className="sticky top-0 z-30 flex-shrink-0 border-b border-brand-border/50 bg-gradient-to-r from-white to-white px-4 py-3 sm:px-6 sm:py-4 lg:px-10">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
+            <div className="order-1 flex min-w-0 flex-col items-center gap-2 text-center md:order-2 md:flex-1 md:flex-row md:justify-center md:gap-3">
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-brand-dark sm:text-base md:text-lg">
+                {contactDisplayName ?? t('testAssistant.clientLabel', 'Cliente de prueba')}
+              </p>
+              <div className="flex items-center justify-center gap-2 rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-semibold text-brand-primary sm:px-4 sm:py-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                {isAssistantTyping
+                  ? t('testAssistant.typing', 'El asistente está respondiendo...')
+                  : t('testAssistant.ready', 'Listo para probar')}
+              </div>
+            </div>
+            <div className="order-3 flex w-full items-center justify-between gap-3 md:order-1 md:w-auto md:justify-start">
+              <button
+                type="button"
+                onClick={() => navigate('/test-assistant')}
+                className="inline-flex items-center gap-2 rounded-xl border border-brand-primary/30 bg-white/80 px-3 py-2 text-xs font-semibold text-brand-primary shadow-sm transition hover:bg-brand-primary/10"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                  <path
+                    fillRule="evenodd"
+                    d="M12.78 15.78a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 1 1 1.06 1.06L8.56 10l4.22 4.22a.75.75 0 0 1 0 1.06Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {t('testAssistant.backToList', 'Ver todas las simulaciones')}
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteChat}
+                disabled={
+                  isDeletingChat ||
+                  isLoadingHistory ||
+                  (!contactId && !currentChatId && !activeChatId)
+                }
+                aria-label={t('testAssistant.deleteSimulation', 'Eliminar simulación')}
+                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 shadow-sm transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 md:hidden"
+              >
+                {isDeletingChat ? (
+                  <Spinner small />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
                     <path
                       fillRule="evenodd"
-                      d="M7.22 4.22a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06-1.06L10.94 10l-3.72-3.72a.75.75 0 0 1 0-1.06Z"
+                      d="M8.5 3a1 1 0 0 0-.894.553L7.382 4.5H5a.75.75 0 0 0 0 1.5h10a.75.75 0 0 0 0-1.5h-2.382l-.224-.447A1 1 0 0 0 11.5 3h-3Zm-2.958 4.5a.75.75 0 0 0-.742.651l-.75 6.75A2.25 2.25 0 0 0 6.29 17.5h7.42a2.25 2.25 0 0 0 2.24-2.599l-.75-6.75a.75.75 0 0 0-.742-.651H5.542Z"
                       clipRule="evenodd"
                     />
                   </svg>
-                  {t('testAssistant.backToList', 'Ver todas las simulaciones')}
-                </button>
+                )}
+              </button>
             </div>
-            <div className="flex flex-col gap-2 text-center md:flex-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand-muted">
-                  {t('testAssistant.simulationLabel', 'Simulación')}
-                </p>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-center sm:gap-3">
-                  <p className="text-lg font-semibold text-brand-dark">
-                    {contactDisplayName ?? t('testAssistant.clientLabel', 'Cliente de prueba')}
-                  </p>
-                  <div className="flex items-center gap-3 rounded-full bg-brand-primary/10 px-4 py-1 text-xs font-semibold text-brand-primary">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    {isAssistantTyping
-                      ? t('testAssistant.typing', 'El asistente está respondiendo...')
-                      : t('testAssistant.ready', 'Listo para probar')}
-                  </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-end">
-                <button
-                  type="button"
-                  onClick={handleDeleteChat}
-                  disabled={
-                    isDeletingChat ||
-                    isLoadingHistory ||
-                    (!contactId && !currentChatId && !activeChatId)
-                  }
-                  aria-label={t('testAssistant.deleteSimulation', 'Eliminar simulación')}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 shadow-sm transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isDeletingChat ? (
-                    <Spinner small />
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
-                      <path
-                        fillRule="evenodd"
-                        d="M8.5 3a1 1 0 0 0-.894.553L7.382 4.5H5a.75.75 0 0 0 0 1.5h10a.75.75 0 0 0 0-1.5h-2.382l-.224-.447A1 1 0 0 0 11.5 3h-3Zm-2.958 4.5a.75.75 0 0 0-.742.651l-.75 6.75A2.25 2.25 0 0 0 6.29 17.5h7.42a2.25 2.25 0 0 0 2.24-2.599l-.75-6.75a.75.75 0 0 0-.742-.651H5.542Z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
-                </button>
+            <div className="hidden items-center justify-end md:order-3 md:flex">
+              <button
+                type="button"
+                onClick={handleDeleteChat}
+                disabled={
+                  isDeletingChat ||
+                  isLoadingHistory ||
+                  (!contactId && !currentChatId && !activeChatId)
+                }
+                aria-label={t('testAssistant.deleteSimulation', 'Eliminar simulación')}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 shadow-sm transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isDeletingChat ? (
+                  <Spinner small />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                    <path
+                      fillRule="evenodd"
+                      d="M8.5 3a1 1 0 0 0-.894.553L7.382 4.5H5a.75.75 0 0 0 0 1.5h10a.75.75 0 0 0 0-1.5h-2.382l-.224-.447A1 1 0 0 0 11.5 3h-3Zm-2.958 4.5a.75.75 0 0 0-.742.651l-.75 6.75A2.25 2.25 0 0 0 6.29 17.5h7.42a2.25 2.25 0 0 0 2.24-2.599l-.75-6.75a.75.75 0 0 0-.742-.651H5.542Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </button>
             </div>
           </div>
         </header>
 
           {(!isKnownSimulation || deleteError) && (
-            <div className="space-y-3 border-b border-brand-border/40 bg-white/80 px-6 py-4 text-xs">
+            <div className="space-y-3 border-b border-brand-border/40 bg-white/80 px-4 py-3 text-xs sm:px-6 sm:py-4">
               {!isKnownSimulation && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-700">
                   {t(
@@ -779,7 +797,7 @@ const TestAssistant: React.FC = () => {
 
           <div className="flex-1 min-h-0 bg-brand-background/70">
             <div className="flex h-full min-h-0 flex-col">
-              <div className="flex-1 min-h-0 space-y-4 overflow-y-auto px-4 py-6 pb-4 sm:px-8 lg:px-12">
+              <div className="flex-1 min-h-0 space-y-3 overflow-y-auto px-4 py-4 pb-4 sm:space-y-4 sm:px-6 sm:py-5 lg:px-10">
                 {messages.length > 0 ? (
                   messages.map((msg) => {
                     const isUser = msg.role === 'user';
@@ -791,7 +809,7 @@ const TestAssistant: React.FC = () => {
                     return (
                       <div key={msg.id} className={`flex ${isUser ? 'justify-start' : 'justify-end'}`}>
                         <div
-                          className={`max-w-xl space-y-1 rounded-2xl px-4 py-3 shadow-sm ${
+                          className={`max-w-[90%] space-y-1 rounded-2xl px-4 py-3 shadow-sm sm:max-w-2xl ${
                             isUser
                               ? 'bg-brand-primary text-white'
                               : 'border border-brand-border/40 bg-white text-brand-dark'
@@ -827,12 +845,12 @@ const TestAssistant: React.FC = () => {
             </div>
           </div>
 
-          <div className="sticky bottom-0 z-30 flex-shrink-0 border-t border-brand-border/50 bg-white/90 px-4 py-2 shadow-brand-soft backdrop-blur sm:px-10">
+          <div className="sticky bottom-0 z-30 flex-shrink-0 border-t border-brand-border/50 bg-white/90 px-4 py-3 shadow-brand-soft backdrop-blur sm:px-8 sm:py-4 lg:px-10">
             <form onSubmit={handleSendClientMessage} className="flex flex-col gap-3">
-              <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <textarea
-                  className="w-full resize-none rounded-xl border border-brand-border/50 bg-white px-4 py-2 text-sm text-brand-dark placeholder-brand-muted transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 sm:flex-1"
-                  rows={2}
+                  className="w-full resize-none rounded-xl border border-brand-border/50 bg-white px-4 py-3 text-sm text-brand-dark placeholder-brand-muted transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 sm:flex-1 sm:px-5 sm:py-4"
+                  rows={3}
                   value={clientMessage}
                   onChange={(e) => setClientMessage(e.target.value)}
                   onKeyDown={handleClientMessageKeyDown}
@@ -843,7 +861,7 @@ const TestAssistant: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSendingClient || !clientMessage.trim()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-primary px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:self-center"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:self-center"
                 >
                   {isSendingClient ? (
                     <>
