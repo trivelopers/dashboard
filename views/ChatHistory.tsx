@@ -129,6 +129,83 @@ const resolveContactPhone = (contact: unknown): string | null => {
   return extractPhone(contact);
 };
 
+type FormattedPart = {
+  type: 'text' | 'bold' | 'italic';
+  content: string;
+};
+
+const parseFormattedText = (input: string): FormattedPart[] => {
+  const parts: FormattedPart[] = [];
+  const regex = /(\*[^*]+\*|_[^_]+_)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(input)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({
+        type: 'text',
+        content: input.slice(lastIndex, match.index),
+      });
+    }
+
+    const raw = match[0];
+    const content = raw.slice(1, -1);
+    parts.push({
+      type: raw.startsWith('*') ? 'bold' : 'italic',
+      content,
+    });
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < input.length) {
+    parts.push({
+      type: 'text',
+      content: input.slice(lastIndex),
+    });
+  }
+
+  return parts;
+};
+
+const renderFormattedText = (text: string) => {
+  const parts = parseFormattedText(text);
+
+  const renderWithLineBreaks = (value: string) =>
+    value.split('\n').map((segment, index) =>
+      index === 0 ? (
+        segment
+      ) : (
+        <React.Fragment key={`br-${index}`}>
+          <br />
+          {segment}
+        </React.Fragment>
+      )
+    );
+
+  return parts.map((part, index) => {
+    const content = renderWithLineBreaks(part.content);
+
+    if (part.type === 'bold') {
+      return (
+        <strong key={`bold-${index}`} className="font-semibold">
+          {content}
+        </strong>
+      );
+    }
+
+    if (part.type === 'italic') {
+      return (
+        <em key={`italic-${index}`} className="italic">
+          {content}
+        </em>
+      );
+    }
+
+    return <React.Fragment key={`text-${index}`}>{content}</React.Fragment>;
+  });
+};
+
 const ChatHistory: React.FC = () => {
   const { contactId } = useParams<{ contactId: string }>();
   const { t } = useTranslation();
@@ -339,7 +416,7 @@ const ChatHistory: React.FC = () => {
                     <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
                       {labelText}
                     </p>
-                    <p className="text-sm leading-relaxed">{msg.text}</p>
+                    <p className="text-sm leading-relaxed">{renderFormattedText(msg.text)}</p>
                     <p className="mt-1 text-right text-xs text-brand-muted">{formattedTime}</p>
                   </div>
                 </div>
