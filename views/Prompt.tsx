@@ -1062,6 +1062,29 @@ const Prompt: React.FC = () => {
 
 
 
+
+  const handleNegativePromptChange = (value: string) => {
+
+    if (userRole !== 'admin') return;
+
+    setPromptData((prev) => ({
+      ...prev,
+      negativePrompt: value
+    }));
+  };
+
+
+  const handleToolsChange = (value: string) => {
+
+    if (userRole !== 'admin') return;
+
+    setPromptData((prev) => ({
+      ...prev,
+      tools: value
+    }));
+  };
+
+
   const handleExampleChange = (id: string, field: 'pregunta' | 'respuesta', value: string) => {
 
 
@@ -2002,6 +2025,10 @@ const Prompt: React.FC = () => {
 
 
 
+        <>
+
+
+
         <GradientSection
 
 
@@ -2287,6 +2314,174 @@ const Prompt: React.FC = () => {
 
 
         </GradientSection>
+
+
+
+        <GradientSection
+
+
+
+          tone="warm"
+
+
+
+          eyebrow="Solo administradores"
+
+
+
+          title="Prompt negativo"
+
+
+
+          description="Define lo que el asistente no debe hacer o decir para mantener el foco."
+
+
+
+        >
+
+
+
+          <label className="flex flex-col gap-2">
+
+
+
+            <span className="text-sm font-medium text-brand-dark/90">Bloque negativo</span>
+
+
+
+            <ExpandableTextarea
+
+
+
+              value={promptData.negativePrompt}
+
+
+
+              onChange={(event) => handleNegativePromptChange(event.target.value)}
+
+
+
+              readOnly={userRole !== 'admin'}
+
+
+
+              minRows={4}
+
+
+
+              maxRows={14}
+
+
+
+              className="w-full rounded-2xl border border-brand-warm/50 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/30"
+
+
+
+              placeholder="Define las indicaciones que el asistente debe evitar."
+
+
+
+            />
+
+
+
+          </label>
+
+
+
+        </GradientSection>
+
+
+
+        <GradientSection
+
+
+
+          tone="warm"
+
+
+
+          eyebrow="Solo administradores"
+
+
+
+          title="Herramientas / funciones"
+
+
+
+          description="Documenta las funciones disponibles y sus parámetros para guiar al asistente."
+
+
+
+        >
+
+
+
+          <div className="space-y-3">
+
+
+
+            <label className="flex flex-col gap-2">
+
+
+
+              <span className="text-sm font-medium text-brand-dark/90">Listado de tools</span>
+
+
+
+              <textarea
+
+
+
+                value={promptData.tools}
+
+
+
+                onChange={(event) => handleToolsChange(event.target.value)}
+
+
+
+                spellCheck={false}
+
+
+
+                className="min-h-[280px] w-full rounded-2xl border border-brand-dark/50 bg-slate-950/90 px-4 py-3 font-mono text-xs leading-relaxed text-slate-100 shadow-inner transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+
+
+
+                placeholder="Pega aquí el bloque de tools en formato JSON o XML."
+
+
+
+              />
+
+
+
+            </label>
+
+
+
+            <p className="text-xs text-brand-muted">
+
+
+
+              Este bloque se muestra solo a administradores para documentar las funciones disponibles.
+
+
+
+            </p>
+
+
+
+          </div>
+
+
+
+        </GradientSection>
+
+
+
+        </>
 
 
 

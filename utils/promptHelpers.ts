@@ -32,6 +32,8 @@ export interface PromptData {
   purpose: string;
   coreRules: RuleItem[];
   behaviorRules: RuleItem[];
+  negativePrompt: string;
+  tools: string;
   company: CompanyInfo;
   branches: BranchInfo[];
   examples: ExampleItem[];
@@ -44,6 +46,8 @@ export const createEmptyPromptData = (): PromptData => ({
   purpose: '',
   coreRules: [],
   behaviorRules: [],
+  negativePrompt: '',
+  tools: '',
   company: {
     acerca: '',
     servicios: []
@@ -156,6 +160,13 @@ const parseNameFromTag = (tag: string): string => {
   return withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
 };
 
+const indentBlock = (value: string, indent: string): string => {
+  return value
+    .split('\n')
+    .map((line) => `${indent}${line}`)
+    .join('\n');
+};
+
 export const parseXMLPrompt = (xmlString: string): PromptData => {
   const data: PromptData = createEmptyPromptData();
 
@@ -183,6 +194,16 @@ export const parseXMLPrompt = (xmlString: string): PromptData => {
     const behaviorRulesMatch = xmlString.match(/<behavior_rules>([\s\S]*?)<\/behavior_rules>/);
     if (behaviorRulesMatch) {
       data.behaviorRules = parseRuleSection(behaviorRulesMatch[1]);
+    }
+
+    const negativePromptMatch = xmlString.match(/<negative_prompt>([\s\S]*?)<\/negative_prompt>/);
+    if (negativePromptMatch) {
+      data.negativePrompt = negativePromptMatch[1].trim();
+    }
+
+    const toolsMatch = xmlString.match(/<tools>([\s\S]*?)<\/tools>/);
+    if (toolsMatch) {
+      data.tools = toolsMatch[1].trim();
     }
 
     const companyMatch = xmlString.match(/<company>([\s\S]*?)<\/company>/);
@@ -460,6 +481,20 @@ export const generateXMLPrompt = (data: PromptData): string => {
       xmlString += `    <rule>${rule}</rule>\n`;
     });
     xmlString += '  </behavior_rules>\n';
+  }
+
+  const negativePrompt = data.negativePrompt.trim();
+  if (negativePrompt) {
+    xmlString += '  <negative_prompt>\n';
+    xmlString += `${indentBlock(negativePrompt, '    ')}\n`;
+    xmlString += '  </negative_prompt>\n';
+  }
+
+  const tools = data.tools.trim();
+  if (tools) {
+    xmlString += '  <tools>\n';
+    xmlString += `${indentBlock(tools, '    ')}\n`;
+    xmlString += '  </tools>\n';
   }
 
   const detailedLocations = data.branches.filter((branch) => {
