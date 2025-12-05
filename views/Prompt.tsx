@@ -63,6 +63,96 @@ import {
 
 
 
+interface ToolFunctionEntry {
+  id: string;
+  name: string;
+  when: string;
+  notes: string;
+  args: string;
+}
+
+const extractTagContent = (source: string, tag: string): string => {
+  const match = source.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+  return match ? match[1].trim() : '';
+};
+
+const parseToolsContent = (
+  toolsText: string
+): { functions: ToolFunctionEntry[]; extra: string } => {
+  if (!toolsText.trim()) {
+    return { functions: [], extra: '' };
+  }
+
+  const matches = Array.from(
+    toolsText.matchAll(/<function\s+name="([^"]+)">([\s\S]*?)<\/function>/gi)
+  );
+
+  if (!matches.length) {
+    return { functions: [], extra: toolsText };
+  }
+
+  const functions: ToolFunctionEntry[] = matches.map((match, index) => {
+    const fullBlock = match[0];
+    const name = match[1]?.trim() || `tool_${index + 1}`;
+    const content = fullBlock.replace(/<function\s+name="[^"]+">([\s\S]*?)<\/function>/i, '$1');
+    const when = extractTagContent(content, 'when');
+    const notes = extractTagContent(content, 'notes');
+    const args = extractTagContent(content, 'args');
+
+    return {
+      id: `tool-${index}`,
+      name,
+      when,
+      notes,
+      args
+    };
+  });
+
+  const extra = toolsText
+    .replace(/<function\s+name="[^"]+">[\s\S]*?<\/function>/gi, '')
+    .trim();
+
+  return { functions, extra };
+};
+
+const indentMultiline = (value: string, indent = '    '): string => {
+  if (!value.trim()) return '';
+  return value
+    .split('\n')
+    .map((line) => `${indent}${line}`)
+    .join('\n');
+};
+
+const serializeToolFunctions = (functions: ToolFunctionEntry[], extra: string): string => {
+  const blocks = functions.map((tool) => {
+    const name = tool.name.trim() || 'tool';
+    const when = tool.when.trim();
+    const notes = tool.notes.trim();
+    const args = tool.args.trim();
+
+    let block = `<function name="${name}">`;
+    if (when) {
+      block += `\n  <when>\n${indentMultiline(when)}\n  </when>`;
+    }
+    if (notes) {
+      block += `\n  <notes>\n${indentMultiline(notes)}\n  </notes>`;
+    }
+    if (args) {
+      block += `\n  <args>\n${indentMultiline(args)}\n  </args>`;
+    }
+    block += `\n</function>`;
+    return block;
+  });
+
+  const cleanedExtra = extra.trim();
+  const parts = blocks.filter(Boolean);
+  if (cleanedExtra) {
+    parts.push(cleanedExtra);
+  }
+
+  return parts.join('\n\n').trim();
+};
+
 const CHANGE_TYPE_LABELS: Record<string, string> = {
   manual: 'Actualización general',
   'rule-added': 'Agregó una guía',
@@ -145,6 +235,14 @@ const Prompt: React.FC = () => {
 
 
 
+  const [toolFunctions, setToolFunctions] = useState<ToolFunctionEntry[]>([]);
+
+
+
+  const [toolsExtraContent, setToolsExtraContent] = useState('');
+
+
+
 
 
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
@@ -184,6 +282,10 @@ const Prompt: React.FC = () => {
 
 
   const hasChanges = currentPromptSnapshot !== initialPromptSnapshot;
+
+
+
+  const hasStructuredTools = toolFunctions.length > 0;
 
 
 
@@ -345,6 +447,26 @@ const Prompt: React.FC = () => {
 
 
   }, [fetchSettings, fetchHistory]);
+
+
+
+  useEffect(() => {
+
+
+
+    const parsedTools = parseToolsContent(promptData.tools);
+
+
+
+    setToolFunctions(parsedTools.functions);
+
+
+
+    setToolsExtraContent(parsedTools.extra);
+
+
+
+  }, [promptData.tools]);
 
 
 
@@ -1063,6 +1185,167 @@ const Prompt: React.FC = () => {
 
 
 
+
+
+
+  const updateToolsPromptData = (
+
+
+
+    nextFunctions: ToolFunctionEntry[],
+
+
+
+    extraContent: string = toolsExtraContent
+
+
+
+  ) => {
+
+
+
+    const serialized = serializeToolFunctions(nextFunctions, extraContent);
+
+
+
+    setPromptData((prev) => ({
+
+
+
+      ...prev,
+
+
+
+      tools: serialized
+
+
+
+    }));
+
+
+
+  };
+
+
+
+
+
+
+  const handleToolFieldChange = (
+
+
+
+    id: string,
+
+
+
+    field: 'name' | 'when' | 'notes' | 'args',
+
+
+
+    value: string
+
+
+
+  ) => {
+
+
+
+    if (userRole !== 'admin') return;
+
+
+
+    setToolFunctions((prev) => {
+      const updated = prev.map((tool) =>
+        tool.id === id ? { ...tool, [field]: value } : tool
+      );
+      updateToolsPromptData(updated);
+      return updated;
+    });
+
+
+
+  };
+
+
+
+
+
+
+  const handleAddToolFunction = () => {
+
+
+
+    if (userRole !== 'admin') return;
+
+
+
+    const newTool: ToolFunctionEntry = {
+      id: `tool-${createId()}`,
+      name: '',
+      when: '',
+      notes: '',
+      args: ''
+    };
+
+    setToolFunctions((prev) => {
+      const next = [...prev, newTool];
+      updateToolsPromptData(next);
+      return next;
+    });
+
+
+
+  };
+
+
+
+
+
+
+  const handleRemoveToolFunction = (id: string) => {
+
+
+
+    if (userRole !== 'admin') return;
+
+
+
+    setToolFunctions((prev) => {
+      const next = prev.filter((tool) => tool.id !== id);
+      updateToolsPromptData(next);
+      return next;
+    });
+
+
+
+  };
+
+
+
+
+
+
+  const handleToolsExtraChange = (value: string) => {
+
+
+
+    if (userRole !== 'admin') return;
+
+
+
+    setToolsExtraContent(value);
+
+
+
+    updateToolsPromptData(toolFunctions, value);
+
+
+
+  };
+
+
+
   const handleNegativePromptChange = (value: string) => {
 
     if (userRole !== 'admin') return;
@@ -1075,8 +1358,11 @@ const Prompt: React.FC = () => {
 
 
   const handleToolsChange = (value: string) => {
-
     if (userRole !== 'admin') return;
+
+    const parsed = parseToolsContent(value);
+    setToolFunctions(parsed.functions);
+    setToolsExtraContent(parsed.extra);
 
     setPromptData((prev) => ({
       ...prev,
@@ -2417,59 +2703,563 @@ const Prompt: React.FC = () => {
 
 
 
-          <div className="space-y-3">
+          <div className="space-y-4">
 
 
 
-            <label className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-start justify-between gap-3">
 
 
 
-              <span className="text-sm font-medium text-brand-dark/90">Listado de tools</span>
+              <div className="space-y-1">
 
 
 
-              <textarea
+                <span className="text-sm font-medium text-brand-dark/90">Listado de tools</span>
 
 
 
-                value={promptData.tools}
+                <p className="text-xs text-brand-muted">
 
 
 
-                onChange={(event) => handleToolsChange(event.target.value)}
+                  Este bloque se muestra solo a administradores para documentar las funciones disponibles.
 
 
 
-                spellCheck={false}
+                </p>
 
 
 
-                className="min-h-[280px] w-full rounded-2xl border border-brand-dark/50 bg-slate-950/90 px-4 py-3 font-mono text-xs leading-relaxed text-slate-100 shadow-inner transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+              </div>
 
 
 
-                placeholder="Pega aquí el bloque de tools en formato JSON o XML."
+              {userRole === 'admin' && (
 
 
 
-              />
+                <button
 
 
 
-            </label>
+                  type="button"
 
 
 
-            <p className="text-xs text-brand-muted">
+                  onClick={handleAddToolFunction}
 
 
 
-              Este bloque se muestra solo a administradores para documentar las funciones disponibles.
+                  className="rounded-full border border-brand-warm/60 px-4 py-2 text-xs font-semibold text-brand-warm transition hover:border-brand-warm/80 hover:bg-brand-warm/15"
 
 
 
-            </p>
+                >
+
+
+
+                  Agregar tool
+
+
+
+                </button>
+
+
+
+              )}
+
+
+
+            </div>
+
+
+
+            {hasStructuredTools ? (
+
+
+
+              <div className="space-y-3">
+
+
+
+                {toolFunctions.map((tool, index) => (
+
+
+
+                  <article
+
+
+
+                    key={tool.id}
+
+
+
+                    className="rounded-2xl border border-brand-warm/50 bg-white/95 p-4 shadow-sm"
+
+
+
+                  >
+
+
+
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+
+
+
+                      <div className="space-y-1">
+
+
+
+                        <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/80">
+
+
+
+                          Tool #{index + 1}
+
+
+
+                        </p>
+
+
+
+                        <input
+
+
+
+                          type="text"
+
+
+
+                          value={tool.name}
+
+
+
+                          onChange={(event) =>
+
+
+
+                            handleToolFieldChange(tool.id, 'name', event.target.value)
+
+
+
+                          }
+
+
+
+                          readOnly={userRole !== 'admin'}
+
+
+
+                          className="w-full rounded-xl border border-brand-warm/50 bg-white px-3 py-2 text-sm text-brand-dark shadow-inner transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/30 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                          placeholder='Nombre de la función (ej: "getCategories")'
+
+
+
+                        />
+
+
+
+                      </div>
+
+
+
+                      {userRole === 'admin' && (
+
+
+
+                        <button
+
+
+
+                          type="button"
+
+
+
+                          onClick={() => handleRemoveToolFunction(tool.id)}
+
+
+
+                          className="text-xs font-semibold text-brand-warm underline-offset-4 hover:underline"
+
+
+
+                        >
+
+
+
+                          Quitar
+
+
+
+                        </button>
+
+
+
+                      )}
+
+
+
+                    </div>
+
+
+
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+
+
+
+                      <label className="flex flex-col gap-2">
+
+
+
+                        <span className="text-xs font-semibold uppercase tracking-wide text-brand-dark/70">
+
+
+
+                          &lt;when&gt; Cuándo usarla
+
+
+
+                        </span>
+
+
+
+                        <ExpandableTextarea
+
+
+
+                          value={tool.when}
+
+
+
+                          onChange={(event) =>
+
+
+
+                            handleToolFieldChange(tool.id, 'when', event.target.value)
+
+
+
+                          }
+
+
+
+                          readOnly={userRole !== 'admin'}
+
+
+
+                          minRows={3}
+
+
+
+                          className="w-full rounded-2xl border border-brand-warm/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/25 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                          placeholder="Describe en qué situaciones se debe llamar esta función."
+
+
+
+                        />
+
+
+
+                      </label>
+
+
+
+                      <label className="flex flex-col gap-2">
+
+
+
+                        <span className="text-xs font-semibold uppercase tracking-wide text-brand-dark/70">
+
+
+
+                          &lt;notes&gt; Detalles clave
+
+
+
+                        </span>
+
+
+
+                        <ExpandableTextarea
+
+
+
+                          value={tool.notes}
+
+
+
+                          onChange={(event) =>
+
+
+
+                            handleToolFieldChange(tool.id, 'notes', event.target.value)
+
+
+
+                          }
+
+
+
+                          readOnly={userRole !== 'admin'}
+
+
+
+                          minRows={3}
+
+
+
+                          className="w-full rounded-2xl border border-brand-warm/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/25 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                          placeholder="Notas finales (ej: Listar nombres sin IDs.)"
+
+
+
+                        />
+
+
+
+                      </label>
+
+
+
+                    </div>
+
+
+
+                    <label className="mt-3 flex flex-col gap-2">
+
+
+
+                      <span className="text-xs font-semibold uppercase tracking-wide text-brand-dark/70">
+
+
+
+                        &lt;args&gt; Esquema de parámetros
+
+
+
+                      </span>
+
+
+
+                      <textarea
+
+
+
+                        value={tool.args}
+
+
+
+                        onChange={(event) =>
+
+
+
+                          handleToolFieldChange(tool.id, 'args', event.target.value)
+
+
+
+                        }
+
+
+
+                        readOnly={userRole !== 'admin'}
+
+
+
+                        spellCheck={false}
+
+
+
+                        className="min-h-[140px] w-full rounded-2xl border border-brand-warm/60 bg-amber-50/90 px-4 py-3 font-mono text-xs leading-relaxed text-slate-900 transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/30 disabled:cursor-not-allowed disabled:border-brand-border disabled:bg-brand-background disabled:text-brand-muted"
+
+
+
+                        placeholder="Pega solo el contenido de la etiqueta <args> con el esquema en JSON."
+
+
+
+                      />
+
+
+
+                    </label>
+
+
+
+                  </article>
+
+
+
+                ))}
+
+
+
+                {userRole === 'admin' && (
+
+
+
+                  <div className="flex justify-end">
+
+
+
+                    <button
+
+
+
+                      type="button"
+
+
+
+                      onClick={handleAddToolFunction}
+
+
+
+                      className="inline-flex items-center gap-2 rounded-full border border-brand-warm/60 px-4 py-2 text-xs font-semibold text-brand-warm transition hover:border-brand-warm/80 hover:bg-brand-warm/15"
+
+
+
+                    >
+
+
+
+                      Agregar otra tool
+
+
+
+                    </button>
+
+
+
+                  </div>
+
+
+
+                )}
+
+
+
+                {toolsExtraContent.trim() ? (
+
+
+
+                  <label className="flex flex-col gap-2 rounded-2xl border border-dashed border-brand-warm/50 bg-brand-warm/5 p-4">
+
+
+
+                    <span className="text-xs font-semibold uppercase tracking-wide text-brand-warm">
+
+
+
+                      Contenido adicional sin etiquetar
+
+
+
+                    </span>
+
+
+
+                    <ExpandableTextarea
+
+
+
+                      value={toolsExtraContent}
+
+
+
+                      onChange={(event) => handleToolsExtraChange(event.target.value)}
+
+
+
+                      readOnly={userRole !== 'admin'}
+
+
+
+                      minRows={3}
+
+
+
+                      className="w-full rounded-2xl border border-brand-warm/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/25 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                      placeholder="Texto adicional que acompaña a las funciones."
+
+
+
+                    />
+
+
+
+                  </label>
+
+
+
+                ) : null}
+
+
+
+              </div>
+
+
+
+            ) : (
+
+
+
+              <label className="flex flex-col gap-2">
+
+
+
+                <span className="text-sm font-medium text-brand-dark/90">Editar en texto plano</span>
+
+
+
+                <ExpandableTextarea
+
+
+
+                  value={promptData.tools}
+
+
+
+                  onChange={(event) => handleToolsChange(event.target.value)}
+
+
+
+                  readOnly={userRole !== 'admin'}
+
+
+
+                  minRows={8}
+
+
+
+                  className="w-full rounded-2xl border border-brand-warm/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/25 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                  placeholder="Pega el bloque de tools en XML. Las etiquetas <function>, <when> y <notes> se mostrarán en tarjetas, y solo <args> conservará el estilo de código."
+
+
+
+                />
+
+
+
+              </label>
+
+
+
+            )}
 
 
 
