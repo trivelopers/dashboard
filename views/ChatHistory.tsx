@@ -4,9 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { Message, Role } from '../types';
 import Spinner from '../components/Spinner';
 import GradientSection from '../components/GradientSection';
+import ChatImageMessage from '../components/ChatImageMessage';
+import ImageUploadButton from '../components/ImageUploadButton';
+import ImagePreviewModal from '../components/ImagePreviewModal';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
-import api from '../services/api';
+import api, { uploadContactImage } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 
 const formatApiMessage = (message: any): Message | null => {
@@ -44,6 +47,12 @@ const formatApiMessage = (message: any): Message | null => {
     text: message.text || '',
     timestamp,
     sender: rawSender,
+    // Campos multimedia
+    type: message.type || 'text',
+    mediaUrl: message.mediaUrl || null,
+    mediaType: message.mediaType || null,
+    fileName: message.fileName || null,
+    fileSize: message.fileSize || null,
   };
 };
 
@@ -219,6 +228,11 @@ const ChatHistory: React.FC = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
+  // Estados para manejo de imágenes
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   // ✅ Todos los roles pueden responder
   const canRespond = true;
 
@@ -305,6 +319,58 @@ const ChatHistory: React.FC = () => {
     return isOutside24Hours;
   }, [isOutside24Hours, messages.length]);
 
+  // Handlers para manejo de imágenes
+  const handleImageSelect = (file: File) => {
+    setSelectedImage(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleCancelImage = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
+  const handleSendImage = async () => {
+    if (!selectedImage || !contactId) return;
+
+    try {
+      setIsUploading(true);
+      setSendError(null);
+      setSendWarning(null);
+
+      // 1. Subir imagen
+      const uploadResult = await uploadContactImage(contactId, selectedImage);
+
+      // 2. Enviar mensaje con imagen
+      const response = await api.post(`/dashboard/contacts/${contactId}/respond`, {
+        message: newMessage.trim(),
+        imageUrl: uploadResult.url,
+        imageKey: uploadResult.key,
+        fileName: uploadResult.fileName,
+        fileSize: uploadResult.fileSize,
+        mimeType: uploadResult.mimeType,
+      });
+
+      const formatted = formatApiMessage(response.data?.message);
+      if (formatted) setMessages((prev) => [...prev, formatted]);
+
+      setNewMessage('');
+      handleCancelImage();
+
+      const webhookDetails = response.data?.webhookError;
+      if (webhookDetails?.message) {
+        setSendWarning(webhookDetails.message);
+      }
+    } catch (error: any) {
+      setSendError(error?.response?.data?.message || 'Error al enviar la imagen');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSendMessage = async (
     event: FormEvent<HTMLFormElement> | KeyboardEvent<HTMLTextAreaElement>
   ) => {
@@ -351,7 +417,7 @@ const ChatHistory: React.FC = () => {
       !event.ctrlKey &&
       !event.altKey &&
       !event.metaKey &&
-      !event.isComposing &&
+      !(event.nativeEvent as any).isComposing &&
       newMessage.trim() &&
       !isSending &&
       !isManualReplyBlocked
@@ -416,7 +482,16 @@ const ChatHistory: React.FC = () => {
                     <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
                       {labelText}
                     </p>
-                    <p className="text-sm leading-relaxed">{renderFormattedText(msg.text)}</p>
+                    {/* Renderizar imagen si existe */}
+                    {msg.type === 'image' && msg.mediaUrl ? (
+                      <ChatImageMessage
+                        url={msg.mediaUrl}
+                        fileName={msg.fileName || undefined}
+                        text={msg.text || undefined}
+                      />
+                    ) : (
+                      <p className="text-sm leading-relaxed">{renderFormattedText(msg.text)}</p>
+                    )}
                     <p className="mt-1 text-right text-xs text-brand-muted">{formattedTime}</p>
                   </div>
                 </div>
@@ -468,6 +543,12 @@ const ChatHistory: React.FC = () => {
                 {t('chatHistory.reply', 'Responder manualmente')}
               </label>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                {/* Botón para adjuntar imagen */}
+                <ImageUploadButton
+                  onSelect={handleImageSelect}
+                  disabled={isManualReplyBlocked || isSending}
+                  isUploading={isUploading}
+                />
                 <textarea
                   id="manual-response"
                   value={newMessage}
@@ -495,6 +576,17 @@ const ChatHistory: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de preview de imagen */}
+      {selectedImage && imagePreview && (
+        <ImagePreviewModal
+          file={selectedImage}
+          previewUrl={imagePreview}
+          onConfirm={handleSendImage}
+          onCancel={handleCancelImage}
+          isUploading={isUploading}
+        />
+      )}
     </GradientSection>
   );
 };

@@ -26,6 +26,12 @@ export interface Message {
   text: string;
   timestamp: string | null;
   sender?: string | null;
+  // Campos multimedia
+  type?: 'text' | 'image' | 'file' | 'audio' | 'video';
+  mediaUrl?: string | null;
+  mediaType?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
 }
 
 export interface BotSettings {
