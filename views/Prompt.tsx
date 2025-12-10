@@ -248,36 +248,10 @@ const Prompt: React.FC = () => {
 
 
   const [changeDetail, setChangeDetail] = useState('');
-
-
-
   const [toolFunctions, setToolFunctions] = useState<ToolFunctionEntry[]>([]);
-
-
-
   const [toolsExtraContent, setToolsExtraContent] = useState('');
-
-
-
   const [lastSerializedTools, setLastSerializedTools] = useState('');
-
-
-
-
-
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
-
-
-
-
-
-  const [summaryDraft, setSummaryDraft] = useState('');
-
-
-
-
-
-  const [summaryError, setSummaryError] = useState<string | null>(null);
 
 
 
@@ -610,12 +584,6 @@ const Prompt: React.FC = () => {
   const handleSave = () => {
 
 
-    setSummaryError(null);
-
-
-    setSummaryDraft(changeDetail);
-
-
     setIsSummaryModalOpen(true);
 
 
@@ -625,25 +593,13 @@ const Prompt: React.FC = () => {
   const confirmSummary = async () => {
 
 
-    const trimmed = summaryDraft.trim();
-
-
-    if (!trimmed) {
-
-
-      setSummaryError('Describe brevemente qué cambiaste antes de continuar.');
-
-
-      return;
-
-
-    }
+    const detail = changeDetail.trim();
 
 
     setIsSummaryModalOpen(false);
 
 
-    await performSave(trimmed);
+    await performSave(detail);
 
 
   };
@@ -653,9 +609,6 @@ const Prompt: React.FC = () => {
 
 
     setIsSummaryModalOpen(false);
-
-
-    setSummaryError(null);
 
 
   };
@@ -3505,19 +3458,36 @@ const Prompt: React.FC = () => {
       {isSummaryModalOpen && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-slate-50 p-6 shadow-xl">
-            <h3 className="text-base font-semibold text-brand-dark">Resumen del cambio</h3>
+            <h3 className="text-base font-semibold text-brand-dark">Registro de cambios</h3>
             <p className="mt-2 text-xs text-brand-dark/70">
-              Describe brevemente qué cambiaste en esta nueva versión.
+              Selecciona el tipo de cambio y describe brevemente que modificaste antes de guardar.
             </p>
-            <textarea
-              rows={4}
-              className="mt-4 w-full rounded-lg border border-brand-primary/40 bg-white p-3 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-              value={summaryDraft}
-              onChange={(event) => setSummaryDraft(event.target.value)}
-            />
-            {summaryError && (
-              <p className="mt-2 text-xs text-rose-600">{summaryError}</p>
-            )}
+            <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark">
+                Tipo de cambio
+                <select
+                  value={changeType}
+                  onChange={(event) => setChangeType(event.target.value)}
+                  className="mt-1 rounded-lg border border-brand-primary/40 bg-white px-3 py-2 text-xs text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                >
+                  {changeTypeOptions.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="sm:col-span-2 flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark">
+                Detalle del cambio (opcional)
+                <textarea
+                  rows={2}
+                  value={changeDetail}
+                  onChange={(event) => setChangeDetail(event.target.value)}
+                  placeholder="Se elimino/agrega una regla de comportamiento"
+                  className="mt-1 rounded-lg border border-brand-primary/40 bg-white px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                />
+              </label>
+            </div>
             <div className="mt-4 flex justify-end gap-3">
               <button
                 type="button"
@@ -3540,181 +3510,20 @@ const Prompt: React.FC = () => {
 
       {hasChanges && (
 
-
-
-        <>
-
-
-
-          <div className="mb-6 rounded-2xl border border-dashed border-brand-primary/40 bg-white/90 p-4 text-sm text-brand-dark shadow-lg">
-
-
-
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand-muted">Registro de cambios</p>
-
-
-
-            <p className="mt-1 text-xs text-brand-dark/80">Selecciona el tipo de cambio y describe brevemente qué modificaste antes de guardar.</p>
-
-
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-
-
-
-              <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark">
-
-
-
-                Tipo de cambio
-
-
-
-                <select
-
-
-
-                  value={changeType}
-
-
-
-                  onChange={(event) => setChangeType(event.target.value)}
-
-
-
-                  className="mt-1 rounded-lg border border-brand-primary/40 bg-white px-3 py-2 text-xs text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-
-
-
-                >
-
-
-
-                  {changeTypeOptions.map(([value, label]) => (
-
-
-
-                    <option key={value} value={value}>
-
-
-
-                      {label}
-
-
-
-                    </option>
-
-
-
-                  ))}
-
-
-
-                </select>
-
-
-
-              </label>
-
-
-
-              <label className="sm:col-span-2 flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark">
-
-
-
-                Detalle del cambio (opcional)
-
-
-
-                <textarea
-
-
-
-                  rows={2}
-
-
-
-                  value={changeDetail}
-
-
-
-                  onChange={(event) => setChangeDetail(event.target.value)}
-
-
-
-                  placeholder="Se eliminó/agrega una regla de comportamiento"
-
-
-
-                  className="mt-1 rounded-lg border border-brand-primary/40 bg-white px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-
-
-
-                />
-
-
-
-              </label>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <div className="pointer-events-none fixed bottom-6 right-6 z-20 flex justify-end">
-
-
-
-            <button
-
-
-
-              type="button"
-
-
-
-              onClick={handleSave}
-
-
-
-              disabled={isSaving}
-
-
-
-              className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-brand-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-brand-primary/40 disabled:cursor-not-allowed disabled:bg-brand-disabled"
-
-
-
-            >
-
-
-
-              {isSaving && <Spinner />}
-
-
-
-              {isSaving ? 'Guardando...' : 'Guardar cambios'}
-
-
-
-            </button>
-
-
-
-          </div>
-
-
-
-        </>
-
-
+        <div className="pointer-events-none fixed bottom-6 right-6 z-20 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-brand-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-brand-primary/40 disabled:cursor-not-allowed disabled:bg-brand-disabled"
+          >
+            {isSaving && <Spinner />}
+            {isSaving ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
 
       )}
+
 
 
 
