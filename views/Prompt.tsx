@@ -100,11 +100,11 @@ const parseToolsContent = (
     const args = extractTagContent(content, 'args');
 
     return {
-      id: `tool-${index}`,
-      name,
-      when,
-      notes,
-      args
+      id: `tool-${createId()}`,
+      name: sanitizeToolName(name),
+      when: stripSharedIndent(when),
+      notes: stripSharedIndent(notes),
+      args: stripSharedIndent(args)
     };
   });
 
@@ -153,11 +153,27 @@ const serializeToolFunctions = (functions: ToolFunctionEntry[], extra: string): 
   return parts.join('\n\n').trim();
 };
 
+const stripSharedIndent = (value: string): string => {
+  const lines = value.split('\n');
+  const nonEmpty = lines.filter((line) => line.trim().length > 0);
+  if (!nonEmpty.length) return value.trim();
+  const minIndent = nonEmpty.reduce((min, line) => {
+    const current = (line.match(/^[ \t]*/) || [''])[0].length;
+    return Math.min(min, current);
+  }, Number.POSITIVE_INFINITY);
+  return lines
+    .map((line) => line.slice(minIndent))
+    .join('\n')
+    .trim();
+};
+
+const sanitizeToolName = (value: string): string => value.replace(/[^a-zA-Z0-9]/g, '');
+
 const CHANGE_TYPE_LABELS: Record<string, string> = {
   manual: 'Actualización general',
-  'rule-added': 'Agregó una guía',
-  'rule-modified': 'Modificó una guía',
-  'rule-deleted': 'Eliminó una guía',
+  'rule-added': 'Agregó una regla',
+  'rule-modified': 'Modificó una regla',
+  'rule-deleted': 'Eliminó una regla',
   revert: 'Restauración de versión',
 };
 
@@ -240,6 +256,10 @@ const Prompt: React.FC = () => {
 
 
   const [toolsExtraContent, setToolsExtraContent] = useState('');
+
+
+
+  const [lastSerializedTools, setLastSerializedTools] = useState('');
 
 
 
@@ -454,6 +474,17 @@ const Prompt: React.FC = () => {
 
 
 
+    if (!promptData.tools.trim()) {
+      setToolFunctions([]);
+      setToolsExtraContent('');
+      setLastSerializedTools('');
+      return;
+    }
+
+    if (promptData.tools === lastSerializedTools) {
+      return;
+    }
+
     const parsedTools = parseToolsContent(promptData.tools);
 
 
@@ -464,9 +495,11 @@ const Prompt: React.FC = () => {
 
     setToolsExtraContent(parsedTools.extra);
 
+    setLastSerializedTools(promptData.tools);
 
 
-  }, [promptData.tools]);
+
+  }, [promptData.tools, lastSerializedTools]);
 
 
 
@@ -1208,6 +1241,10 @@ const Prompt: React.FC = () => {
 
 
 
+    setLastSerializedTools(serialized);
+
+
+
     setPromptData((prev) => ({
 
 
@@ -1255,9 +1292,11 @@ const Prompt: React.FC = () => {
 
 
 
+    const nextValue = field === 'name' ? sanitizeToolName(value) : value;
+
     setToolFunctions((prev) => {
       const updated = prev.map((tool) =>
-        tool.id === id ? { ...tool, [field]: value } : tool
+        tool.id === id ? { ...tool, [field]: nextValue } : tool
       );
       updateToolsPromptData(updated);
       return updated;
@@ -1363,6 +1402,7 @@ const Prompt: React.FC = () => {
     const parsed = parseToolsContent(value);
     setToolFunctions(parsed.functions);
     setToolsExtraContent(parsed.extra);
+    setLastSerializedTools('');
 
     setPromptData((prev) => ({
       ...prev,
@@ -2015,7 +2055,7 @@ const Prompt: React.FC = () => {
 
 
 
-        title="Guías de comportamiento"
+        title="Reglas de comportamiento"
 
 
 
@@ -2087,7 +2127,7 @@ const Prompt: React.FC = () => {
 
 
 
-                    Guía de comportamiento #{index + 1}
+                    Regla de comportamiento #{index + 1}
 
 
 
@@ -2247,7 +2287,7 @@ const Prompt: React.FC = () => {
 
 
 
-              Todavía no definiste guías de comportamiento.
+              Todavía no definiste reglas de comportamiento.
 
 
 
@@ -2291,7 +2331,7 @@ const Prompt: React.FC = () => {
 
 
 
-            Agregar guía de comportamiento
+            Agregar regla de comportamiento
 
 
 
@@ -2383,7 +2423,7 @@ const Prompt: React.FC = () => {
 
 
 
-                        Guía técnica #{index + 1}
+                        Regla técnica #{index + 1}
 
 
 
@@ -3602,7 +3642,7 @@ const Prompt: React.FC = () => {
 
 
 
-                  placeholder="Se eliminó/agrega una guía de comportamiento"
+                  placeholder="Se eliminó/agrega una regla de comportamiento"
 
 
 

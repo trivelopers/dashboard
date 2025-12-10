@@ -42,7 +42,7 @@
   },
   "help": {
     "title": "Centro de ayuda",
-    "description": "Encuentra guías, preguntas frecuentes y buenas prácticas para administrar tu asistente.",
+    "description": "Encuentra reglas, preguntas frecuentes y buenas prácticas para administrar tu asistente.",
     "quickLinkOneTitle": "Guía de inicio",
     "quickLinkOneDescription": "Configura tu asistente, invita al equipo y crea tu primer flujo.",
     "quickLinkTwoTitle": "Consejos de prompts",
