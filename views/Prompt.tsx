@@ -1324,7 +1324,7 @@ const Prompt: React.FC = () => {
       name: '',
       when: '',
       notes: '',
-      args: ''
+      args: '{}'
     };
 
     setToolFunctions((prev) => {
