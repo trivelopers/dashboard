@@ -175,6 +175,11 @@ const Contacts: React.FC = () => {
 
   const sortedContacts = useMemo(() => {
     return [...contacts].sort((a, b) => {
+      const needsAdminA = a.requireAdmin ? 1 : 0;
+      const needsAdminB = b.requireAdmin ? 1 : 0;
+      if (needsAdminA !== needsAdminB) {
+        return needsAdminB - needsAdminA;
+      }
       const nameA = (a.name || a.username || a.userName || '').toLocaleLowerCase();
       const nameB = (b.name || b.username || b.userName || '').toLocaleLowerCase();
       return nameA.localeCompare(nameB);
