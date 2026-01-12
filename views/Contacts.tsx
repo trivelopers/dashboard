@@ -211,7 +211,7 @@ const Contacts: React.FC = () => {
   const [contacts, setContacts] = useState<ExtendedContact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('');
-  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'interaction-desc' | 'interaction-asc'>('name-asc');
+  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'interaction-desc' | 'interaction-asc'>('interaction-desc');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
   const [draftPhone, setDraftPhone] = useState('');
