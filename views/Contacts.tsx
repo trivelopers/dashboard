@@ -23,6 +23,10 @@ type ExtendedContact = Contact & {
   latestChannel?: Record<string, any> | string | null;
 };
 
+type EnrichedContact = ExtendedContact & {
+  lastInteractionDate: Date | null;
+};
+
 const getPlatformValue = (record: unknown): string | null => {
   if (!record) {
     return null;
@@ -59,6 +63,74 @@ const getPlatformValue = (record: unknown): string | null => {
       const value = source[key];
       if (typeof value === 'string' && value.trim()) {
         return value.trim().toLowerCase();
+      }
+    }
+  }
+
+  return null;
+};
+
+const asDate = (value: unknown): Date | null => {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return null;
+};
+
+const resolveDateField = (record: Record<string, any> | null | undefined, keys: string[]): Date | null => {
+  if (!record) {
+    return null;
+  }
+
+  for (const key of keys) {
+    const candidate = asDate(record?.[key]);
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return null;
+};
+
+const resolveLastInteractionDate = (contact: ExtendedContact): Date | null => {
+  const direct = resolveDateField(contact as Record<string, any>, [
+    'lastMessageAt',
+    'lastInteractionAt',
+    'updatedAt',
+    'updated_at',
+    'latestMessageAt',
+    'lastActivityAt',
+  ]);
+  if (direct) {
+    return direct;
+  }
+
+  const nestedCandidates: Array<unknown> = [contact.lastChannel, contact.latestChannel, contact.metadata];
+  for (const candidate of nestedCandidates) {
+    if (candidate && typeof candidate === 'object') {
+      const nested = resolveDateField(candidate as Record<string, any>, [
+        'lastMessageAt',
+        'lastInteractionAt',
+        'updatedAt',
+        'updated_at',
+        'latestMessageAt',
+        'lastActivityAt',
+        'timestamp',
+      ]);
+      if (nested) {
+        return nested;
       }
     }
   }
@@ -139,6 +211,7 @@ const Contacts: React.FC = () => {
   const [contacts, setContacts] = useState<ExtendedContact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'interaction-desc' | 'interaction-asc'>('name-asc');
   
   const canEdit = user?.role === Role.ADMIN || user?.role === Role.EDITOR;
 
@@ -173,18 +246,61 @@ const Contacts: React.FC = () => {
     }
   };
 
+  const enrichedContacts = useMemo<EnrichedContact[]>(() => {
+    return contacts.map((contact) => ({
+      ...contact,
+      lastInteractionDate: resolveLastInteractionDate(contact),
+    }));
+  }, [contacts]);
+
   const sortedContacts = useMemo(() => {
-    return [...contacts].sort((a, b) => {
+    const compareByName = (a: EnrichedContact, b: EnrichedContact) => {
+      const nameA = (a.name || a.username || a.userName || '').toLocaleLowerCase();
+      const nameB = (b.name || b.username || b.userName || '').toLocaleLowerCase();
+      return nameA.localeCompare(nameB);
+    };
+
+    const compareByInteraction = (a: EnrichedContact, b: EnrichedContact, direction: 'asc' | 'desc') => {
+      const timeA = a.lastInteractionDate ? a.lastInteractionDate.getTime() : null;
+      const timeB = b.lastInteractionDate ? b.lastInteractionDate.getTime() : null;
+
+      if (timeA === null && timeB === null) {
+        return 0;
+      }
+      if (timeA === null) {
+        return 1;
+      }
+      if (timeB === null) {
+        return -1;
+      }
+
+      return direction === 'desc' ? timeB - timeA : timeA - timeB;
+    };
+
+    return [...enrichedContacts].sort((a, b) => {
       const needsAdminA = a.requireAdmin ? 1 : 0;
       const needsAdminB = b.requireAdmin ? 1 : 0;
       if (needsAdminA !== needsAdminB) {
         return needsAdminB - needsAdminA;
       }
-      const nameA = (a.name || a.username || a.userName || '').toLocaleLowerCase();
-      const nameB = (b.name || b.username || b.userName || '').toLocaleLowerCase();
-      return nameA.localeCompare(nameB);
+
+      if (sortBy === 'name-desc') {
+        return compareByName(b, a);
+      }
+
+      if (sortBy === 'interaction-desc') {
+        const byInteraction = compareByInteraction(a, b, 'desc');
+        return byInteraction !== 0 ? byInteraction : compareByName(a, b);
+      }
+
+      if (sortBy === 'interaction-asc') {
+        const byInteraction = compareByInteraction(a, b, 'asc');
+        return byInteraction !== 0 ? byInteraction : compareByName(a, b);
+      }
+
+      return compareByName(a, b);
     });
-  }, [contacts]);
+  }, [enrichedContacts, sortBy]);
 
   const resolveContactPhone = (contact: ExtendedContact): string => {
     const phoneKeys = [
@@ -297,13 +413,31 @@ const Contacts: React.FC = () => {
       <GradientSection
         title={t('contacts.title')}
         actions={
-          <input
-            type="text"
-            placeholder={`${t('contacts.filterPlaceholder')}...`}
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
-            className="w-64 rounded-full border border-brand-border/60 bg-white px-4 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-          />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <input
+              type="text"
+              placeholder={`${t('contacts.filterPlaceholder')}...`}
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+              className="w-full rounded-full border border-brand-border/60 bg-white px-4 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 sm:w-64"
+            />
+            <div className="w-full sm:w-60">
+              <label htmlFor="contacts-sort" className="sr-only">
+                Ordenar contactos
+              </label>
+              <select
+                id="contacts-sort"
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value as typeof sortBy)}
+                className="w-full rounded-full border border-brand-border/60 bg-white px-4 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+              >
+                <option value="name-asc">Nombre A-Z</option>
+                <option value="name-desc">Nombre Z-A</option>
+                <option value="interaction-desc">Actividad reciente</option>
+                <option value="interaction-asc">Actividad menos reciente</option>
+              </select>
+            </div>
+          </div>
         }
       >
         <div className="overflow-x-auto">
