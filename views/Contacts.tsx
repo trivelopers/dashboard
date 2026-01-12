@@ -395,6 +395,9 @@ const Contacts: React.FC = () => {
   };
 
   const startEditing = (contact: ExtendedContact) => {
+    if (!canEdit) {
+      return;
+    }
     setEditingId(contact.id);
     setDraftName(contact.name || contact.username || contact.userName || '');
     setDraftPhone(resolveContactPhone(contact));
@@ -407,6 +410,9 @@ const Contacts: React.FC = () => {
   };
 
   const saveEditing = async (contact: ExtendedContact) => {
+    if (!canEdit) {
+      return;
+    }
     const originalContacts = [...contacts];
     const updatedName = draftName.trim();
     const updatedPhone = draftPhone.trim();
