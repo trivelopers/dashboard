@@ -212,6 +212,9 @@ const Contacts: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'interaction-desc' | 'interaction-asc'>('name-asc');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState('');
+  const [draftPhone, setDraftPhone] = useState('');
   
   const canEdit = user?.role === Role.ADMIN || user?.role === Role.EDITOR;
 
@@ -390,6 +393,48 @@ const Contacts: React.FC = () => {
     const sanitized = phone.replace(/[^\d]/g, '');
     return sanitized ? `https://wa.me/${sanitized}` : '';
   };
+
+  const startEditing = (contact: ExtendedContact) => {
+    setEditingId(contact.id);
+    setDraftName(contact.name || contact.username || contact.userName || '');
+    setDraftPhone(resolveContactPhone(contact));
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setDraftName('');
+    setDraftPhone('');
+  };
+
+  const saveEditing = async (contact: ExtendedContact) => {
+    const originalContacts = [...contacts];
+    const updatedName = draftName.trim();
+    const updatedPhone = draftPhone.trim();
+
+    setContacts((prev) =>
+      prev.map((item) =>
+        item.id === contact.id
+          ? {
+              ...item,
+              name: updatedName,
+              phoneNumber: updatedPhone,
+            }
+          : item,
+      ),
+    );
+    setEditingId(null);
+
+    try {
+      await api.put(`/dashboard/contacts/${contact.id}`, {
+        name: updatedName,
+        phoneNumber: updatedPhone,
+      });
+    } catch (error) {
+      console.error('Failed to update contact', error);
+      setContacts(originalContacts);
+      setEditingId(contact.id);
+    }
+  };
   
   const filteredContacts = useMemo(() => {
     const loweredFilter = filter.toLowerCase();
@@ -468,17 +513,30 @@ const Contacts: React.FC = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                     {t('contacts.requiresAdmin')}
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                    {t('contacts.edit', 'Editar')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-border/60 bg-white/85">
                 {filteredContacts.map((contact) => {
                   const phoneValue = resolveContactPhone(contact);
                   const whatsappUrl = buildWhatsappLink(phoneValue);
+                  const isEditing = editingId === contact.id;
 
                   return (
                     <tr key={contact.id} className="transition-colors hover:bg-brand-background/50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-dark">
-                        {contact.name || contact.username || contact.userName || 'Sin nombre'}
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={draftName}
+                            onChange={(event) => setDraftName(event.target.value)}
+                            className="w-full min-w-[160px] rounded-full border border-brand-border/60 bg-white px-3 py-2 text-sm text-brand-dark shadow-sm focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                          />
+                        ) : (
+                          contact.name || contact.username || contact.userName || 'Sin nombre'
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link
@@ -489,7 +547,14 @@ const Contacts: React.FC = () => {
                         </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-muted">
-                        {whatsappUrl ? (
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={draftPhone}
+                            onChange={(event) => setDraftPhone(event.target.value)}
+                            className="w-full min-w-[140px] rounded-full border border-brand-border/60 bg-white px-3 py-2 text-sm text-brand-dark shadow-sm focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                          />
+                        ) : whatsappUrl ? (
                           <a
                             href={whatsappUrl}
                             target="_blank"
@@ -530,6 +595,41 @@ const Contacts: React.FC = () => {
                             <div className={`dot absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow transition ${contact.requireAdmin ? 'translate-x-6' : ''}`} />
                           </div>
                         </label>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {isEditing ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => saveEditing(contact)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 transition hover:border-emerald-300 hover:bg-emerald-100"
+                              aria-label="Guardar cambios"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditing}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600 transition hover:border-red-300 hover:bg-red-100"
+                              aria-label="Descartar cambios"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => startEditing(contact)}
+                            disabled={!canEdit}
+                            className="inline-flex items-center rounded-full border border-brand-border/60 bg-white px-4 py-2 text-xs font-semibold text-brand-dark shadow-sm transition hover:border-brand-primary hover:text-brand-primary disabled:cursor-not-allowed disabled:text-brand-muted"
+                          >
+                            {t('contacts.edit', 'Editar')}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
