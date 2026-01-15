@@ -23,6 +23,10 @@ type ExtendedContact = Contact & {
   latestChannel?: Record<string, any> | string | null;
 };
 
+type EnrichedContact = ExtendedContact & {
+  lastInteractionDate: Date | null;
+};
+
 const getPlatformValue = (record: unknown): string | null => {
   if (!record) {
     return null;
@@ -59,6 +63,74 @@ const getPlatformValue = (record: unknown): string | null => {
       const value = source[key];
       if (typeof value === 'string' && value.trim()) {
         return value.trim().toLowerCase();
+      }
+    }
+  }
+
+  return null;
+};
+
+const asDate = (value: unknown): Date | null => {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return null;
+};
+
+const resolveDateField = (record: Record<string, any> | null | undefined, keys: string[]): Date | null => {
+  if (!record) {
+    return null;
+  }
+
+  for (const key of keys) {
+    const candidate = asDate(record?.[key]);
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return null;
+};
+
+const resolveLastInteractionDate = (contact: ExtendedContact): Date | null => {
+  const direct = resolveDateField(contact as Record<string, any>, [
+    'lastMessageAt',
+    'lastInteractionAt',
+    'updatedAt',
+    'updated_at',
+    'latestMessageAt',
+    'lastActivityAt',
+  ]);
+  if (direct) {
+    return direct;
+  }
+
+  const nestedCandidates: Array<unknown> = [contact.lastChannel, contact.latestChannel, contact.metadata];
+  for (const candidate of nestedCandidates) {
+    if (candidate && typeof candidate === 'object') {
+      const nested = resolveDateField(candidate as Record<string, any>, [
+        'lastMessageAt',
+        'lastInteractionAt',
+        'updatedAt',
+        'updated_at',
+        'latestMessageAt',
+        'lastActivityAt',
+        'timestamp',
+      ]);
+      if (nested) {
+        return nested;
       }
     }
   }
@@ -139,6 +211,10 @@ const Contacts: React.FC = () => {
   const [contacts, setContacts] = useState<ExtendedContact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'interaction-desc' | 'interaction-asc'>('interaction-desc');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState('');
+  const [draftPhone, setDraftPhone] = useState('');
   
   const canEdit = user?.role === Role.ADMIN || user?.role === Role.EDITOR;
 
@@ -173,13 +249,61 @@ const Contacts: React.FC = () => {
     }
   };
 
+  const enrichedContacts = useMemo<EnrichedContact[]>(() => {
+    return contacts.map((contact) => ({
+      ...contact,
+      lastInteractionDate: resolveLastInteractionDate(contact),
+    }));
+  }, [contacts]);
+
   const sortedContacts = useMemo(() => {
-    return [...contacts].sort((a, b) => {
+    const compareByName = (a: EnrichedContact, b: EnrichedContact) => {
       const nameA = (a.name || a.username || a.userName || '').toLocaleLowerCase();
       const nameB = (b.name || b.username || b.userName || '').toLocaleLowerCase();
       return nameA.localeCompare(nameB);
+    };
+
+    const compareByInteraction = (a: EnrichedContact, b: EnrichedContact, direction: 'asc' | 'desc') => {
+      const timeA = a.lastInteractionDate ? a.lastInteractionDate.getTime() : null;
+      const timeB = b.lastInteractionDate ? b.lastInteractionDate.getTime() : null;
+
+      if (timeA === null && timeB === null) {
+        return 0;
+      }
+      if (timeA === null) {
+        return 1;
+      }
+      if (timeB === null) {
+        return -1;
+      }
+
+      return direction === 'desc' ? timeB - timeA : timeA - timeB;
+    };
+
+    return [...enrichedContacts].sort((a, b) => {
+      const needsAdminA = a.requireAdmin ? 1 : 0;
+      const needsAdminB = b.requireAdmin ? 1 : 0;
+      if (needsAdminA !== needsAdminB) {
+        return needsAdminB - needsAdminA;
+      }
+
+      if (sortBy === 'name-desc') {
+        return compareByName(b, a);
+      }
+
+      if (sortBy === 'interaction-desc') {
+        const byInteraction = compareByInteraction(a, b, 'desc');
+        return byInteraction !== 0 ? byInteraction : compareByName(a, b);
+      }
+
+      if (sortBy === 'interaction-asc') {
+        const byInteraction = compareByInteraction(a, b, 'asc');
+        return byInteraction !== 0 ? byInteraction : compareByName(a, b);
+      }
+
+      return compareByName(a, b);
     });
-  }, [contacts]);
+  }, [enrichedContacts, sortBy]);
 
   const resolveContactPhone = (contact: ExtendedContact): string => {
     const phoneKeys = [
@@ -269,6 +393,54 @@ const Contacts: React.FC = () => {
     const sanitized = phone.replace(/[^\d]/g, '');
     return sanitized ? `https://wa.me/${sanitized}` : '';
   };
+
+  const startEditing = (contact: ExtendedContact) => {
+    if (!canEdit) {
+      return;
+    }
+    setEditingId(contact.id);
+    setDraftName(contact.name || contact.username || contact.userName || '');
+    setDraftPhone(resolveContactPhone(contact));
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setDraftName('');
+    setDraftPhone('');
+  };
+
+  const saveEditing = async (contact: ExtendedContact) => {
+    if (!canEdit) {
+      return;
+    }
+    const originalContacts = [...contacts];
+    const updatedName = draftName.trim();
+    const updatedPhone = draftPhone.trim();
+
+    setContacts((prev) =>
+      prev.map((item) =>
+        item.id === contact.id
+          ? {
+              ...item,
+              name: updatedName,
+              phoneNumber: updatedPhone,
+            }
+          : item,
+      ),
+    );
+    setEditingId(null);
+
+    try {
+      await api.put(`/dashboard/contacts/${contact.id}`, {
+        name: updatedName,
+        phoneNumber: updatedPhone,
+      });
+    } catch (error) {
+      console.error('Failed to update contact', error);
+      setContacts(originalContacts);
+      setEditingId(contact.id);
+    }
+  };
   
   const filteredContacts = useMemo(() => {
     const loweredFilter = filter.toLowerCase();
@@ -292,13 +464,31 @@ const Contacts: React.FC = () => {
       <GradientSection
         title={t('contacts.title')}
         actions={
-          <input
-            type="text"
-            placeholder={`${t('contacts.filterPlaceholder')}...`}
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
-            className="w-64 rounded-full border border-brand-border/60 bg-white px-4 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-          />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <input
+              type="text"
+              placeholder={`${t('contacts.filterPlaceholder')}...`}
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+              className="w-full rounded-full border border-brand-border/60 bg-white px-4 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 sm:w-64"
+            />
+            <div className="w-full sm:w-60">
+              <label htmlFor="contacts-sort" className="sr-only">
+                Ordenar contactos
+              </label>
+              <select
+                id="contacts-sort"
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value as typeof sortBy)}
+                className="w-full rounded-full border border-brand-border/60 bg-white px-4 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+              >
+                <option value="name-asc">Nombre A-Z</option>
+                <option value="name-desc">Nombre Z-A</option>
+                <option value="interaction-desc">Actividad reciente</option>
+                <option value="interaction-asc">Actividad menos reciente</option>
+              </select>
+            </div>
+          </div>
         }
       >
         <div className="overflow-x-auto">
@@ -329,17 +519,30 @@ const Contacts: React.FC = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                     {t('contacts.requiresAdmin')}
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                    {t('contacts.edit', 'Editar')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-border/60 bg-white/85">
                 {filteredContacts.map((contact) => {
                   const phoneValue = resolveContactPhone(contact);
                   const whatsappUrl = buildWhatsappLink(phoneValue);
+                  const isEditing = editingId === contact.id;
 
                   return (
                     <tr key={contact.id} className="transition-colors hover:bg-brand-background/50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-dark">
-                        {contact.name || contact.username || contact.userName || 'Sin nombre'}
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={draftName}
+                            onChange={(event) => setDraftName(event.target.value)}
+                            className="w-full min-w-[160px] rounded-full border border-brand-border/60 bg-white px-3 py-2 text-sm text-brand-dark shadow-sm focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                          />
+                        ) : (
+                          contact.name || contact.username || contact.userName || 'Sin nombre'
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link
@@ -350,7 +553,14 @@ const Contacts: React.FC = () => {
                         </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-muted">
-                        {whatsappUrl ? (
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={draftPhone}
+                            onChange={(event) => setDraftPhone(event.target.value)}
+                            className="w-full min-w-[140px] rounded-full border border-brand-border/60 bg-white px-3 py-2 text-sm text-brand-dark shadow-sm focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                          />
+                        ) : whatsappUrl ? (
                           <a
                             href={whatsappUrl}
                             target="_blank"
@@ -391,6 +601,41 @@ const Contacts: React.FC = () => {
                             <div className={`dot absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow transition ${contact.requireAdmin ? 'translate-x-6' : ''}`} />
                           </div>
                         </label>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {isEditing ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => saveEditing(contact)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 transition hover:border-emerald-300 hover:bg-emerald-100"
+                              aria-label="Guardar cambios"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditing}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600 transition hover:border-red-300 hover:bg-red-100"
+                              aria-label="Descartar cambios"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => startEditing(contact)}
+                            disabled={!canEdit}
+                            className="inline-flex items-center rounded-full border border-brand-border/60 bg-white px-4 py-2 text-xs font-semibold text-brand-dark shadow-sm transition hover:border-brand-primary hover:text-brand-primary disabled:cursor-not-allowed disabled:text-brand-muted"
+                          >
+                            {t('contacts.edit', 'Editar')}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

@@ -63,11 +63,117 @@ import {
 
 
 
+interface ToolFunctionEntry {
+  id: string;
+  name: string;
+  when: string;
+  notes: string;
+  args: string;
+}
+
+const extractTagContent = (source: string, tag: string): string => {
+  const match = source.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+  return match ? match[1].trim() : '';
+};
+
+const parseToolsContent = (
+  toolsText: string
+): { functions: ToolFunctionEntry[]; extra: string } => {
+  if (!toolsText.trim()) {
+    return { functions: [], extra: '' };
+  }
+
+  const matches = Array.from(
+    toolsText.matchAll(/<function\s+name="([^"]+)">([\s\S]*?)<\/function>/gi)
+  );
+
+  if (!matches.length) {
+    return { functions: [], extra: toolsText };
+  }
+
+  const functions: ToolFunctionEntry[] = matches.map((match, index) => {
+    const fullBlock = match[0];
+    const name = match[1]?.trim() || `tool_${index + 1}`;
+    const content = fullBlock.replace(/<function\s+name="[^"]+">([\s\S]*?)<\/function>/i, '$1');
+    const when = extractTagContent(content, 'when');
+    const notes = extractTagContent(content, 'notes');
+    const args = extractTagContent(content, 'args');
+
+    return {
+      id: `tool-${createId()}`,
+      name: sanitizeToolName(name),
+      when: stripSharedIndent(when),
+      notes: stripSharedIndent(notes),
+      args: stripSharedIndent(args)
+    };
+  });
+
+  const extra = toolsText
+    .replace(/<function\s+name="[^"]+">[\s\S]*?<\/function>/gi, '')
+    .trim();
+
+  return { functions, extra };
+};
+
+const indentMultiline = (value: string, indent = '    '): string => {
+  if (!value.trim()) return '';
+  return value
+    .split('\n')
+    .map((line) => `${indent}${line}`)
+    .join('\n');
+};
+
+const serializeToolFunctions = (functions: ToolFunctionEntry[], extra: string): string => {
+  const blocks = functions.map((tool) => {
+    const name = tool.name.trim() || 'tool';
+    const when = tool.when.trim();
+    const notes = tool.notes.trim();
+    const args = tool.args.trim();
+
+    let block = `<function name="${name}">`;
+    if (when) {
+      block += `\n  <when>\n${indentMultiline(when)}\n  </when>`;
+    }
+    if (notes) {
+      block += `\n  <notes>\n${indentMultiline(notes)}\n  </notes>`;
+    }
+    if (args) {
+      block += `\n  <args>\n${indentMultiline(args)}\n  </args>`;
+    }
+    block += `\n</function>`;
+    return block;
+  });
+
+  const cleanedExtra = extra.trim();
+  const parts = blocks.filter(Boolean);
+  if (cleanedExtra) {
+    parts.push(cleanedExtra);
+  }
+
+  return parts.join('\n\n').trim();
+};
+
+const stripSharedIndent = (value: string): string => {
+  const lines = value.split('\n');
+  const nonEmpty = lines.filter((line) => line.trim().length > 0);
+  if (!nonEmpty.length) return value.trim();
+  const minIndent = nonEmpty.reduce((min, line) => {
+    const current = (line.match(/^[ \t]*/) || [''])[0].length;
+    return Math.min(min, current);
+  }, Number.POSITIVE_INFINITY);
+  return lines
+    .map((line) => line.slice(minIndent))
+    .join('\n')
+    .trim();
+};
+
+const sanitizeToolName = (value: string): string => value.replace(/[^a-zA-Z0-9]/g, '');
+
 const CHANGE_TYPE_LABELS: Record<string, string> = {
   manual: 'Actualización general',
-  'rule-added': 'Agregó una guía',
-  'rule-modified': 'Modificó una guía',
-  'rule-deleted': 'Eliminó una guía',
+  'rule-added': 'Agregó una regla',
+  'rule-modified': 'Modificó una regla',
+  'rule-deleted': 'Eliminó una regla',
   revert: 'Restauración de versión',
 };
 
@@ -142,24 +248,10 @@ const Prompt: React.FC = () => {
 
 
   const [changeDetail, setChangeDetail] = useState('');
-
-
-
-
-
+  const [toolFunctions, setToolFunctions] = useState<ToolFunctionEntry[]>([]);
+  const [toolsExtraContent, setToolsExtraContent] = useState('');
+  const [lastSerializedTools, setLastSerializedTools] = useState('');
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
-
-
-
-
-
-  const [summaryDraft, setSummaryDraft] = useState('');
-
-
-
-
-
-  const [summaryError, setSummaryError] = useState<string | null>(null);
 
 
 
@@ -184,6 +276,10 @@ const Prompt: React.FC = () => {
 
 
   const hasChanges = currentPromptSnapshot !== initialPromptSnapshot;
+
+
+
+  const hasStructuredTools = toolFunctions.length > 0;
 
 
 
@@ -348,6 +444,39 @@ const Prompt: React.FC = () => {
 
 
 
+  useEffect(() => {
+
+
+
+    if (!promptData.tools.trim()) {
+      setToolFunctions([]);
+      setToolsExtraContent('');
+      setLastSerializedTools('');
+      return;
+    }
+
+    if (promptData.tools === lastSerializedTools) {
+      return;
+    }
+
+    const parsedTools = parseToolsContent(promptData.tools);
+
+
+
+    setToolFunctions(parsedTools.functions);
+
+
+
+    setToolsExtraContent(parsedTools.extra);
+
+    setLastSerializedTools(promptData.tools);
+
+
+
+  }, [promptData.tools, lastSerializedTools]);
+
+
+
 
 
 
@@ -455,12 +584,6 @@ const Prompt: React.FC = () => {
   const handleSave = () => {
 
 
-    setSummaryError(null);
-
-
-    setSummaryDraft(changeDetail);
-
-
     setIsSummaryModalOpen(true);
 
 
@@ -470,25 +593,13 @@ const Prompt: React.FC = () => {
   const confirmSummary = async () => {
 
 
-    const trimmed = summaryDraft.trim();
-
-
-    if (!trimmed) {
-
-
-      setSummaryError('Describe brevemente qué cambiaste antes de continuar.');
-
-
-      return;
-
-
-    }
+    const detail = changeDetail.trim();
 
 
     setIsSummaryModalOpen(false);
 
 
-    await performSave(trimmed);
+    await performSave(detail);
 
 
   };
@@ -498,9 +609,6 @@ const Prompt: React.FC = () => {
 
 
     setIsSummaryModalOpen(false);
-
-
-    setSummaryError(null);
 
 
   };
@@ -1060,6 +1168,200 @@ const Prompt: React.FC = () => {
 
 
 
+
+
+
+
+
+
+  const updateToolsPromptData = (
+
+
+
+    nextFunctions: ToolFunctionEntry[],
+
+
+
+    extraContent: string = toolsExtraContent
+
+
+
+  ) => {
+
+
+
+    const serialized = serializeToolFunctions(nextFunctions, extraContent);
+
+
+
+    setLastSerializedTools(serialized);
+
+
+
+    setPromptData((prev) => ({
+
+
+
+      ...prev,
+
+
+
+      tools: serialized
+
+
+
+    }));
+
+
+
+  };
+
+
+
+
+
+
+  const handleToolFieldChange = (
+
+
+
+    id: string,
+
+
+
+    field: 'name' | 'when' | 'notes' | 'args',
+
+
+
+    value: string
+
+
+
+  ) => {
+
+
+
+    if (userRole !== 'admin') return;
+
+
+
+    const nextValue = field === 'name' ? sanitizeToolName(value) : value;
+
+    setToolFunctions((prev) => {
+      const updated = prev.map((tool) =>
+        tool.id === id ? { ...tool, [field]: nextValue } : tool
+      );
+      updateToolsPromptData(updated);
+      return updated;
+    });
+
+
+
+  };
+
+
+
+
+
+
+  const handleAddToolFunction = () => {
+
+
+
+    if (userRole !== 'admin') return;
+
+
+
+    const newTool: ToolFunctionEntry = {
+      id: `tool-${createId()}`,
+      name: '',
+      when: '',
+      notes: '',
+      args: '{}'
+    };
+
+    setToolFunctions((prev) => {
+      const next = [...prev, newTool];
+      updateToolsPromptData(next);
+      return next;
+    });
+
+
+
+  };
+
+
+
+
+
+
+  const handleRemoveToolFunction = (id: string) => {
+
+
+
+    if (userRole !== 'admin') return;
+
+
+
+    setToolFunctions((prev) => {
+      const next = prev.filter((tool) => tool.id !== id);
+      updateToolsPromptData(next);
+      return next;
+    });
+
+
+
+  };
+
+
+
+
+
+
+  const handleToolsExtraChange = (value: string) => {
+
+
+
+    if (userRole !== 'admin') return;
+
+
+
+    setToolsExtraContent(value);
+
+
+
+    updateToolsPromptData(toolFunctions, value);
+
+
+
+  };
+
+
+
+  const handleNegativePromptChange = (value: string) => {
+
+    if (userRole !== 'admin') return;
+
+    setPromptData((prev) => ({
+      ...prev,
+      negativePrompt: value
+    }));
+  };
+
+
+  const handleToolsChange = (value: string) => {
+    if (userRole !== 'admin') return;
+
+    const parsed = parseToolsContent(value);
+    setToolFunctions(parsed.functions);
+    setToolsExtraContent(parsed.extra);
+    setLastSerializedTools('');
+
+    setPromptData((prev) => ({
+      ...prev,
+      tools: value
+    }));
+  };
 
 
   const handleExampleChange = (id: string, field: 'pregunta' | 'respuesta', value: string) => {
@@ -1706,7 +2008,7 @@ const Prompt: React.FC = () => {
 
 
 
-        title="Guías de comportamiento"
+        title="Reglas de comportamiento"
 
 
 
@@ -1778,7 +2080,7 @@ const Prompt: React.FC = () => {
 
 
 
-                    Guía de comportamiento #{index + 1}
+                    Regla de comportamiento #{index + 1}
 
 
 
@@ -1938,7 +2240,7 @@ const Prompt: React.FC = () => {
 
 
 
-              Todavía no definiste guías de comportamiento.
+              Todavía no definiste reglas de comportamiento.
 
 
 
@@ -1982,7 +2284,7 @@ const Prompt: React.FC = () => {
 
 
 
-            Agregar guía de comportamiento
+            Agregar regla de comportamiento
 
 
 
@@ -1999,6 +2301,10 @@ const Prompt: React.FC = () => {
 
 
       {userRole === 'admin' && (
+
+
+
+        <>
 
 
 
@@ -2070,7 +2376,7 @@ const Prompt: React.FC = () => {
 
 
 
-                        Guía técnica #{index + 1}
+                        Regla técnica #{index + 1}
 
 
 
@@ -2290,6 +2596,678 @@ const Prompt: React.FC = () => {
 
 
 
+        <GradientSection
+
+
+
+          tone="warm"
+
+
+
+          eyebrow="Solo administradores"
+
+
+
+          title="Prompt negativo"
+
+
+
+          description="Define lo que el asistente no debe hacer o decir para mantener el foco."
+
+
+
+        >
+
+
+
+          <label className="flex flex-col gap-2">
+
+
+
+            <span className="text-sm font-medium text-brand-dark/90">Bloque negativo</span>
+
+
+
+            <ExpandableTextarea
+
+
+
+              value={promptData.negativePrompt}
+
+
+
+              onChange={(event) => handleNegativePromptChange(event.target.value)}
+
+
+
+              readOnly={userRole !== 'admin'}
+
+
+
+              minRows={4}
+
+
+
+              maxRows={14}
+
+
+
+              className="w-full rounded-2xl border border-brand-warm/50 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/30"
+
+
+
+              placeholder="Define las indicaciones que el asistente debe evitar."
+
+
+
+            />
+
+
+
+          </label>
+
+
+
+        </GradientSection>
+
+
+
+        <GradientSection
+
+
+
+          tone="warm"
+
+
+
+          eyebrow="Solo administradores"
+
+
+
+          title="Herramientas / funciones"
+
+
+
+          description="Documenta las funciones disponibles y sus parámetros para guiar al asistente."
+
+
+
+        >
+
+
+
+          <div className="space-y-4">
+
+
+
+            <div className="flex flex-wrap items-start justify-between gap-3">
+
+
+
+              <div className="space-y-1">
+
+
+
+                <span className="text-sm font-medium text-brand-dark/90">Listado de tools</span>
+
+
+
+                <p className="text-xs text-brand-muted">
+
+
+
+                  Este bloque se muestra solo a administradores para documentar las funciones disponibles.
+
+
+
+                </p>
+
+
+
+              </div>
+
+
+
+              {userRole === 'admin' && (
+
+
+
+                <button
+
+
+
+                  type="button"
+
+
+
+                  onClick={handleAddToolFunction}
+
+
+
+                  className="rounded-full border border-brand-warm/60 px-4 py-2 text-xs font-semibold text-brand-warm transition hover:border-brand-warm/80 hover:bg-brand-warm/15"
+
+
+
+                >
+
+
+
+                  Agregar tool
+
+
+
+                </button>
+
+
+
+              )}
+
+
+
+            </div>
+
+
+
+            {hasStructuredTools ? (
+
+
+
+              <div className="space-y-3">
+
+
+
+                {toolFunctions.map((tool, index) => (
+
+
+
+                  <article
+
+
+
+                    key={tool.id}
+
+
+
+                    className="rounded-2xl border border-brand-warm/50 bg-white/95 p-4 shadow-sm"
+
+
+
+                  >
+
+
+
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+
+
+
+                      <div className="space-y-1">
+
+
+
+                        <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/80">
+
+
+
+                          Tool #{index + 1}
+
+
+
+                        </p>
+
+
+
+                        <input
+
+
+
+                          type="text"
+
+
+
+                          value={tool.name}
+
+
+
+                          onChange={(event) =>
+
+
+
+                            handleToolFieldChange(tool.id, 'name', event.target.value)
+
+
+
+                          }
+
+
+
+                          readOnly={userRole !== 'admin'}
+
+
+
+                          className="w-full rounded-xl border border-brand-warm/50 bg-white px-3 py-2 text-sm text-brand-dark shadow-inner transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/30 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                          placeholder='Nombre de la función (ej: "getCategories")'
+
+
+
+                        />
+
+
+
+                      </div>
+
+
+
+                      {userRole === 'admin' && (
+
+
+
+                        <button
+
+
+
+                          type="button"
+
+
+
+                          onClick={() => handleRemoveToolFunction(tool.id)}
+
+
+
+                          className="text-xs font-semibold text-brand-warm underline-offset-4 hover:underline"
+
+
+
+                        >
+
+
+
+                          Quitar
+
+
+
+                        </button>
+
+
+
+                      )}
+
+
+
+                    </div>
+
+
+
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+
+
+
+                      <label className="flex flex-col gap-2">
+
+
+
+                        <span className="text-xs font-semibold uppercase tracking-wide text-brand-dark/70">
+
+
+
+                          &lt;when&gt; Cuándo usarla
+
+
+
+                        </span>
+
+
+
+                        <ExpandableTextarea
+
+
+
+                          value={tool.when}
+
+
+
+                          onChange={(event) =>
+
+
+
+                            handleToolFieldChange(tool.id, 'when', event.target.value)
+
+
+
+                          }
+
+
+
+                          readOnly={userRole !== 'admin'}
+
+
+
+                          minRows={3}
+
+
+
+                          className="w-full rounded-2xl border border-brand-warm/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/25 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                          placeholder="Describe en qué situaciones se debe llamar esta función."
+
+
+
+                        />
+
+
+
+                      </label>
+
+
+
+                      <label className="flex flex-col gap-2">
+
+
+
+                        <span className="text-xs font-semibold uppercase tracking-wide text-brand-dark/70">
+
+
+
+                          &lt;notes&gt; Detalles clave
+
+
+
+                        </span>
+
+
+
+                        <ExpandableTextarea
+
+
+
+                          value={tool.notes}
+
+
+
+                          onChange={(event) =>
+
+
+
+                            handleToolFieldChange(tool.id, 'notes', event.target.value)
+
+
+
+                          }
+
+
+
+                          readOnly={userRole !== 'admin'}
+
+
+
+                          minRows={3}
+
+
+
+                          className="w-full rounded-2xl border border-brand-warm/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/25 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                          placeholder="Notas finales (ej: Listar nombres sin IDs.)"
+
+
+
+                        />
+
+
+
+                      </label>
+
+
+
+                    </div>
+
+
+
+                    <label className="mt-3 flex flex-col gap-2">
+
+
+
+                      <span className="text-xs font-semibold uppercase tracking-wide text-brand-dark/70">
+
+
+
+                        &lt;args&gt; Esquema de parámetros
+
+
+
+                      </span>
+
+
+
+                      <textarea
+
+
+
+                        value={tool.args}
+
+
+
+                        onChange={(event) =>
+
+
+
+                          handleToolFieldChange(tool.id, 'args', event.target.value)
+
+
+
+                        }
+
+
+
+                        readOnly={userRole !== 'admin'}
+
+
+
+                        spellCheck={false}
+
+
+
+                        className="min-h-[140px] w-full rounded-2xl border border-brand-warm/60 bg-amber-50/90 px-4 py-3 font-mono text-xs leading-relaxed text-slate-900 transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/30 disabled:cursor-not-allowed disabled:border-brand-border disabled:bg-brand-background disabled:text-brand-muted"
+
+
+
+                        placeholder="Pega solo el contenido de la etiqueta <args> con el esquema en JSON."
+
+
+
+                      />
+
+
+
+                    </label>
+
+
+
+                  </article>
+
+
+
+                ))}
+
+
+
+                {userRole === 'admin' && (
+
+
+
+                  <div className="flex justify-end">
+
+
+
+                    <button
+
+
+
+                      type="button"
+
+
+
+                      onClick={handleAddToolFunction}
+
+
+
+                      className="inline-flex items-center gap-2 rounded-full border border-brand-warm/60 px-4 py-2 text-xs font-semibold text-brand-warm transition hover:border-brand-warm/80 hover:bg-brand-warm/15"
+
+
+
+                    >
+
+
+
+                      Agregar otra tool
+
+
+
+                    </button>
+
+
+
+                  </div>
+
+
+
+                )}
+
+
+
+                {toolsExtraContent.trim() ? (
+
+
+
+                  <label className="flex flex-col gap-2 rounded-2xl border border-dashed border-brand-warm/50 bg-brand-warm/5 p-4">
+
+
+
+                    <span className="text-xs font-semibold uppercase tracking-wide text-brand-warm">
+
+
+
+                      Contenido adicional sin etiquetar
+
+
+
+                    </span>
+
+
+
+                    <ExpandableTextarea
+
+
+
+                      value={toolsExtraContent}
+
+
+
+                      onChange={(event) => handleToolsExtraChange(event.target.value)}
+
+
+
+                      readOnly={userRole !== 'admin'}
+
+
+
+                      minRows={3}
+
+
+
+                      className="w-full rounded-2xl border border-brand-warm/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/25 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                      placeholder="Texto adicional que acompaña a las funciones."
+
+
+
+                    />
+
+
+
+                  </label>
+
+
+
+                ) : null}
+
+
+
+              </div>
+
+
+
+            ) : (
+
+
+
+              <label className="flex flex-col gap-2">
+
+
+
+                <span className="text-sm font-medium text-brand-dark/90">Editar en texto plano</span>
+
+
+
+                <ExpandableTextarea
+
+
+
+                  value={promptData.tools}
+
+
+
+                  onChange={(event) => handleToolsChange(event.target.value)}
+
+
+
+                  readOnly={userRole !== 'admin'}
+
+
+
+                  minRows={8}
+
+
+
+                  className="w-full rounded-2xl border border-brand-warm/40 bg-white/90 px-4 py-3 text-sm leading-relaxed text-brand-dark shadow-sm transition focus:border-brand-warm focus:outline-none focus:ring-2 focus:ring-brand-warm/25 disabled:cursor-not-allowed disabled:bg-brand-background"
+
+
+
+                  placeholder="Pega el bloque de tools en XML. Las etiquetas <function>, <when> y <notes> se mostrarán en tarjetas, y solo <args> conservará el estilo de código."
+
+
+
+                />
+
+
+
+              </label>
+
+
+
+            )}
+
+
+
+          </div>
+
+
+
+        </GradientSection>
+
+
+
+        </>
+
+
+
       )}
 
 
@@ -2480,19 +3458,36 @@ const Prompt: React.FC = () => {
       {isSummaryModalOpen && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-slate-50 p-6 shadow-xl">
-            <h3 className="text-base font-semibold text-brand-dark">Resumen del cambio</h3>
+            <h3 className="text-base font-semibold text-brand-dark">Registro de cambios</h3>
             <p className="mt-2 text-xs text-brand-dark/70">
-              Describe brevemente qué cambiaste en esta nueva versión.
+              Selecciona el tipo de cambio y describe brevemente que modificaste antes de guardar.
             </p>
-            <textarea
-              rows={4}
-              className="mt-4 w-full rounded-lg border border-brand-primary/40 bg-white p-3 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-              value={summaryDraft}
-              onChange={(event) => setSummaryDraft(event.target.value)}
-            />
-            {summaryError && (
-              <p className="mt-2 text-xs text-rose-600">{summaryError}</p>
-            )}
+            <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark">
+                Tipo de cambio
+                <select
+                  value={changeType}
+                  onChange={(event) => setChangeType(event.target.value)}
+                  className="mt-1 rounded-lg border border-brand-primary/40 bg-white px-3 py-2 text-xs text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                >
+                  {changeTypeOptions.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="sm:col-span-2 flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark">
+                Detalle del cambio (opcional)
+                <textarea
+                  rows={2}
+                  value={changeDetail}
+                  onChange={(event) => setChangeDetail(event.target.value)}
+                  placeholder="Se elimino/agrega una regla de comportamiento"
+                  className="mt-1 rounded-lg border border-brand-primary/40 bg-white px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+                />
+              </label>
+            </div>
             <div className="mt-4 flex justify-end gap-3">
               <button
                 type="button"
@@ -2515,181 +3510,20 @@ const Prompt: React.FC = () => {
 
       {hasChanges && (
 
-
-
-        <>
-
-
-
-          <div className="mb-6 rounded-2xl border border-dashed border-brand-primary/40 bg-white/90 p-4 text-sm text-brand-dark shadow-lg">
-
-
-
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand-muted">Registro de cambios</p>
-
-
-
-            <p className="mt-1 text-xs text-brand-dark/80">Selecciona el tipo de cambio y describe brevemente qué modificaste antes de guardar.</p>
-
-
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-
-
-
-              <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark">
-
-
-
-                Tipo de cambio
-
-
-
-                <select
-
-
-
-                  value={changeType}
-
-
-
-                  onChange={(event) => setChangeType(event.target.value)}
-
-
-
-                  className="mt-1 rounded-lg border border-brand-primary/40 bg-white px-3 py-2 text-xs text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-
-
-
-                >
-
-
-
-                  {changeTypeOptions.map(([value, label]) => (
-
-
-
-                    <option key={value} value={value}>
-
-
-
-                      {label}
-
-
-
-                    </option>
-
-
-
-                  ))}
-
-
-
-                </select>
-
-
-
-              </label>
-
-
-
-              <label className="sm:col-span-2 flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark">
-
-
-
-                Detalle del cambio (opcional)
-
-
-
-                <textarea
-
-
-
-                  rows={2}
-
-
-
-                  value={changeDetail}
-
-
-
-                  onChange={(event) => setChangeDetail(event.target.value)}
-
-
-
-                  placeholder="Se eliminó/agrega una guía de comportamiento"
-
-
-
-                  className="mt-1 rounded-lg border border-brand-primary/40 bg-white px-3 py-2 text-sm text-brand-dark focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-
-
-
-                />
-
-
-
-              </label>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <div className="pointer-events-none fixed bottom-6 right-6 z-20 flex justify-end">
-
-
-
-            <button
-
-
-
-              type="button"
-
-
-
-              onClick={handleSave}
-
-
-
-              disabled={isSaving}
-
-
-
-              className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-brand-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-brand-primary/40 disabled:cursor-not-allowed disabled:bg-brand-disabled"
-
-
-
-            >
-
-
-
-              {isSaving && <Spinner />}
-
-
-
-              {isSaving ? 'Guardando...' : 'Guardar cambios'}
-
-
-
-            </button>
-
-
-
-          </div>
-
-
-
-        </>
-
-
+        <div className="pointer-events-none fixed bottom-6 right-6 z-20 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-brand-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-brand-primary/40 disabled:cursor-not-allowed disabled:bg-brand-disabled"
+          >
+            {isSaving && <Spinner />}
+            {isSaving ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
 
       )}
+
 
 
 

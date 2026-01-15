@@ -32,6 +32,8 @@ export interface PromptData {
   purpose: string;
   coreRules: RuleItem[];
   behaviorRules: RuleItem[];
+  negativePrompt: string;
+  tools: string;
   company: CompanyInfo;
   branches: BranchInfo[];
   examples: ExampleItem[];
@@ -44,6 +46,8 @@ export const createEmptyPromptData = (): PromptData => ({
   purpose: '',
   coreRules: [],
   behaviorRules: [],
+  negativePrompt: '',
+  tools: '',
   company: {
     acerca: '',
     servicios: []
@@ -51,6 +55,20 @@ export const createEmptyPromptData = (): PromptData => ({
   branches: [],
   examples: []
 });
+
+const stripSharedIndent = (value: string): string => {
+  const lines = value.split('\n');
+  const nonEmpty = lines.filter((line) => line.trim().length > 0);
+  if (!nonEmpty.length) return value.trim();
+  const minIndent = nonEmpty.reduce((min, line) => {
+    const current = (line.match(/^[ \t]*/) || [''])[0].length;
+    return Math.min(min, current);
+  }, Number.POSITIVE_INFINITY);
+  return lines
+    .map((line) => line.slice(minIndent))
+    .join('\n')
+    .trim();
+};
 
 export const slugify = (value: string, fallback: string): string => {
   const normalized = value
@@ -117,7 +135,7 @@ const parseRuleSection = (content: string | undefined): RuleItem[] => {
   const matchedRules = content.match(/<rule>([\s\S]*?)<\/rule>/g);
   if (matchedRules && matchedRules.length > 0) {
     return matchedRules
-      .map((rule) => rule.replace(/<rule>([\s\S]*?)<\/rule>/, '$1').trim())
+      .map((rule) => stripSharedIndent(rule.replace(/<rule>([\s\S]*?)<\/rule>/, '$1')))
       .filter(Boolean)
       .map((texto) => ({ id: createId(), texto }));
   }
@@ -156,18 +174,25 @@ const parseNameFromTag = (tag: string): string => {
   return withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
 };
 
+const indentBlock = (value: string, indent: string): string => {
+  return value
+    .split('\n')
+    .map((line) => `${indent}${line}`)
+    .join('\n');
+};
+
 export const parseXMLPrompt = (xmlString: string): PromptData => {
   const data: PromptData = createEmptyPromptData();
 
   try {
     const roleMatch = xmlString.match(/<role>([\s\S]*?)<\/role>/);
     if (roleMatch) {
-      data.role = roleMatch[1].trim();
+      data.role = stripSharedIndent(roleMatch[1]);
     }
 
     const purposeMatch = xmlString.match(/<purpose>([\s\S]*?)<\/purpose>/);
     if (purposeMatch) {
-      data.purpose = purposeMatch[1].trim();
+      data.purpose = stripSharedIndent(purposeMatch[1]);
     }
 
     const coreRulesMatch = xmlString.match(/<core_rules>([\s\S]*?)<\/core_rules>/);
@@ -185,10 +210,22 @@ export const parseXMLPrompt = (xmlString: string): PromptData => {
       data.behaviorRules = parseRuleSection(behaviorRulesMatch[1]);
     }
 
+    const negativePromptMatch = xmlString.match(/<negative_prompt>([\s\S]*?)<\/negative_prompt>/);
+    if (negativePromptMatch) {
+      data.negativePrompt = stripSharedIndent(negativePromptMatch[1]);
+    }
+
+    const toolsMatch = xmlString.match(/<tools>([\s\S]*?)<\/tools>/);
+    if (toolsMatch) {
+      data.tools = stripSharedIndent(toolsMatch[1]);
+    }
+
     const companyMatch = xmlString.match(/<company>([\s\S]*?)<\/company>/);
     if (companyMatch) {
       const companyContent = companyMatch[1];
-      const about = companyContent.match(/<about>([\s\S]*?)<\/about>/)?.[1]?.trim() || '';
+      const about = stripSharedIndent(
+        companyContent.match(/<about>([\s\S]*?)<\/about>/)?.[1] || ''
+      );
       data.company.acerca = about;
 
       const servicesMatch = companyContent.match(/<services>([\s\S]*?)<\/services>/);
@@ -413,8 +450,12 @@ export const parseXMLPrompt = (xmlString: string): PromptData => {
       const exampleEntries = examplesMatch[1].match(/<example>([\s\S]*?)<\/example>/g) || [];
       data.examples = exampleEntries
         .map((entry) => {
-          const question = entry.match(/<question>([\s\S]*?)<\/question>/)?.[1]?.trim() || '';
-          const answer = entry.match(/<answer>([\s\S]*?)<\/answer>/)?.[1]?.trim() || '';
+          const question = stripSharedIndent(
+            entry.match(/<question>([\s\S]*?)<\/question>/)?.[1] || ''
+          );
+          const answer = stripSharedIndent(
+            entry.match(/<answer>([\s\S]*?)<\/answer>/)?.[1] || ''
+          );
           if (!question && !answer) {
             return null;
           }
@@ -460,6 +501,20 @@ export const generateXMLPrompt = (data: PromptData): string => {
       xmlString += `    <rule>${rule}</rule>\n`;
     });
     xmlString += '  </behavior_rules>\n';
+  }
+
+  const negativePrompt = data.negativePrompt.trim();
+  if (negativePrompt) {
+    xmlString += '  <negative_prompt>\n';
+    xmlString += `${indentBlock(negativePrompt, '    ')}\n`;
+    xmlString += '  </negative_prompt>\n';
+  }
+
+  const tools = data.tools.trim();
+  if (tools) {
+    xmlString += '  <tools>\n';
+    xmlString += `${indentBlock(tools, '    ')}\n`;
+    xmlString += '  </tools>\n';
   }
 
   const detailedLocations = data.branches.filter((branch) => {
