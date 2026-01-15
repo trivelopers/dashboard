@@ -101,4 +101,56 @@ api.interceptors.response.use(
   },
 );
 
+// Tipos para respuestas de imágenes
+export interface UploadImageResponse {
+  url: string;
+  key: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+}
+
+export interface RespondToContactPayload {
+  message?: string;
+  imageUrl?: string;
+  imageKey?: string;
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+}
+
+/**
+ * Sube una imagen para enviar a un contacto
+ */
+export const uploadContactImage = async (
+  contactId: string,
+  file: File
+): Promise<UploadImageResponse> => {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const response = await api.post<UploadImageResponse>(
+    `/dashboard/contacts/${contactId}/upload-image`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Envía una respuesta a un contacto (con texto y/o imagen)
+ */
+export const respondToContact = async (
+  contactId: string,
+  payload: RespondToContactPayload
+) => {
+  const response = await api.post(`/dashboard/contacts/${contactId}/respond`, payload);
+  return response.data;
+};
+
 export default api;

@@ -3,12 +3,13 @@ import React from 'react';
 interface GradientSectionProps {
   eyebrow?: string;
   title?: string;
-  description?: string;
+  description?: React.ReactNode;
   actions?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
   contentClassName?: string;
   titleClassName?: string;
+  headerClassName?: string;
   as?: keyof JSX.IntrinsicElements;
   tone?: 'primary' | 'warm';
 }
@@ -22,6 +23,7 @@ const GradientSection: React.FC<GradientSectionProps> = ({
   className = '',
   contentClassName = '',
   titleClassName = '',
+  headerClassName = '',
   as = 'h2',
   tone = 'primary'
 }) => {
@@ -61,7 +63,7 @@ const GradientSection: React.FC<GradientSectionProps> = ({
       />
       <div className={contentClasses.join(' ')}>
         {hasHeaderContent && (
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className={`flex flex-col gap-4 lg:flex-row lg:justify-between ${headerClassName || 'lg:items-center'}`}>
             <div className="max-w-3xl space-y-4">
               {eyebrow && (
                 <p
@@ -78,9 +80,9 @@ const GradientSection: React.FC<GradientSectionProps> = ({
                 </TitleTag>
               )}
               {description && (
-                <p className="text-sm leading-relaxed text-brand-muted">
+                <div className="text-sm leading-relaxed text-brand-muted">
                   {description}
-                </p>
+                </div>
               )}
             </div>
             {actions && <div className="flex flex-wrap items-center gap-3">{actions}</div>}
