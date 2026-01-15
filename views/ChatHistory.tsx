@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent, useMemo } from 'react';
+import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Message, Role } from '../types';
@@ -29,10 +29,10 @@ const formatApiMessage = (message: any): Message | null => {
     typeof message.sender === 'string'
       ? message.sender.toLowerCase()
       : typeof message.role === 'string'
-      ? message.role.toLowerCase()
-      : typeof message.from === 'string'
-      ? message.from.toLowerCase()
-      : null;
+        ? message.role.toLowerCase()
+        : typeof message.from === 'string'
+          ? message.from.toLowerCase()
+          : null;
 
   let role: Message['role'] = 'assistant';
   if (rawSender === 'user' || rawSender === 'contact') {
@@ -224,6 +224,7 @@ const ChatHistory: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [sendWarning, setSendWarning] = useState<string | null>(null);
+  const [contactName, setContactName] = useState<string | null>(null);
   const [contactPhone, setContactPhone] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
@@ -236,54 +237,69 @@ const ChatHistory: React.FC = () => {
   // ✅ Todos los roles pueden responder
   const canRespond = true;
 
-  useEffect(() => {
-    const fetchChatHistory = async () => {
-      if (contactId) {
-        try {
-          setIsLoading(true);
-          const [messagesResult, contactResult] = await Promise.allSettled([
-            api.get(`/dashboard/contacts/${contactId}/messages`),
-            api.get(`/dashboard/contacts/${contactId}`),
-          ]);
+  const fetchChatHistory = useCallback(async (silent = false) => {
+    if (contactId) {
+      try {
+        if (!silent) setIsLoading(true);
+        const [messagesResult, contactResult] = await Promise.allSettled([
+          api.get(`/dashboard/contacts/${contactId}/messages`),
+          api.get(`/dashboard/contacts/${contactId}`),
+        ]);
 
-          if (messagesResult.status === 'fulfilled') {
-            const apiMessages = messagesResult.value?.data?.messages || [];
-            const formattedMessages: Message[] = apiMessages
-              .map(formatApiMessage)
-              .filter((message): message is Message => Boolean(message))
-              .sort((a, b) => {
-                const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-                const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-                return timeA - timeB;
-              });
-            setMessages(formattedMessages);
-          } else {
-            console.error('Error fetching chat history:', messagesResult.reason);
-            setMessages([]);
-          }
-
-          if (contactResult.status === 'fulfilled') {
-            const contactData = contactResult.value?.data?.contact;
-            setContactPhone(resolveContactPhone(contactData));
-          } else {
-            console.error('Error fetching contact details:', contactResult.reason);
-            setContactPhone(null);
-          }
-        } catch (error) {
-          console.error('Error fetching chat history:', error);
+        if (messagesResult.status === 'fulfilled') {
+          const apiMessages = messagesResult.value?.data?.messages || [];
+          const formattedMessages: Message[] = apiMessages
+            .map(formatApiMessage)
+            .filter((message): message is Message => Boolean(message))
+            .sort((a, b) => {
+              const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+              const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+              return timeA - timeB;
+            });
+          setMessages(formattedMessages);
+        } else {
+          console.error('Error fetching chat history:', messagesResult.reason);
           setMessages([]);
-          setContactPhone(null);
-        } finally {
-          setIsLoading(false);
         }
-      } else {
+
+        if (contactResult.status === 'fulfilled') {
+          const contactData = contactResult.value?.data?.contact;
+          setContactPhone(resolveContactPhone(contactData));
+          // Resolver nombre del contacto
+          const name = contactData.name ||
+            (contactData.firstName && contactData.lastName ? `${contactData.firstName} ${contactData.lastName}` : null) ||
+            contactData.username ||
+            'Sin nombre';
+          setContactName(name);
+        } else {
+          console.error('Error fetching contact details:', contactResult.reason);
+          setContactPhone(null);
+          setContactName(null);
+        }
+      } catch (error) {
+        console.error('Error fetching chat history:', error);
         setMessages([]);
         setContactPhone(null);
+        setContactName(null);
+      } finally {
+        if (!silent) setIsLoading(false);
       }
-    };
-
-    fetchChatHistory();
+    } else {
+      setMessages([]);
+      setContactPhone(null);
+      setContactName(null);
+    }
   }, [contactId]);
+
+  useEffect(() => {
+    fetchChatHistory();
+
+    const intervalId = setInterval(() => {
+      fetchChatHistory(true);
+    }, 10000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchChatHistory]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -412,35 +428,37 @@ const ChatHistory: React.FC = () => {
 
   const handleMessageKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (
-      event.key === 'Enter' &&
-      !event.shiftKey &&
-      !event.ctrlKey &&
-      !event.altKey &&
-      !event.metaKey &&
-      !(event.nativeEvent as any).isComposing &&
-      newMessage.trim() &&
-      !isSending &&
-      !isManualReplyBlocked
+      event.key === 'Enter'
+      && !event.shiftKey
+      && !event.ctrlKey
+      && !event.altKey
+      && !event.metaKey
+      && !(event.nativeEvent as any).isComposing
+      && newMessage.trim()
+      && !isSending
+      && !isManualReplyBlocked
     ) {
       handleSendMessage(event);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <Spinner />
-          <p className="mt-2 text-brand-muted">{t('chatHistory.loading')}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <GradientSection
       title={t('chatHistory.title')}
-      description={`ID de contacto: ${contactId}`}
+      titleClassName="text-2xl sm:text-3xl"
+      headerClassName="lg:items-start"
+      description={
+        <div className="flex flex-col gap-1 mt-2">
+          <p>
+            <span className="font-medium text-lg text-brand-dark">Nombre del contacto:</span>{' '}
+            <span className="font-bold text-xl text-brand-dark">{contactName || 'Desconocido'}</span>
+          </p>
+          <p>
+            <span className="font-medium">Numero de telefono:</span>{' '}
+            {contactPhone || 'No disponible'}
+          </p>
+        </div>
+      }
       actions={
         <Link
           to="/contacts"
@@ -450,132 +468,140 @@ const ChatHistory: React.FC = () => {
           {t('chatHistory.backToContacts', 'Volver a contactos')}
         </Link>
       }
-      contentClassName="space-y-4"
+      contentClassName="space-y-6"
     >
-      <div className="flex h-[calc(100vh-12rem)] flex-col rounded-2xl border border-brand-border/60 bg-white/85 shadow-brand-soft backdrop-blur">
-        <div className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-6">
-          {messages.length > 0 ? (
-            messages.map((msg) => {
-              const isUserMessage = msg.role === 'user';
-              const isAssistant = msg.role === 'assistant';
-              const labelText = isAssistant
-                ? t('chatHistory.botLabel', 'Bot')
-                : t('chatHistory.contactLabel', 'Contacto');
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <Spinner />
+            <p className="mt-2 text-brand-muted">{t('chatHistory.loading')}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex h-[calc(100vh-12rem)] flex-col rounded-2xl border border-brand-border/60 bg-white/85 shadow-brand-soft backdrop-blur">
+          <div className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-6">
+            {messages.length > 0 ? (
+              messages.map((msg) => {
+                const isUserMessage = msg.role === 'user';
+                const isAssistant = msg.role === 'assistant';
+                const labelText = isAssistant
+                  ? t('chatHistory.botLabel', 'Bot')
+                  : t('chatHistory.contactLabel', 'Contacto');
 
-              const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
-              const formattedTime = timestamp
-                ? `${timestamp.toLocaleDateString()} ${timestamp.toLocaleTimeString([], {
+                const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
+                const formattedTime = timestamp
+                  ? `${timestamp.toLocaleDateString()} ${timestamp.toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}`
-                : '--:--';
+                  : '--:--';
 
-              return (
-                <div key={msg.id} className={`flex ${isUserMessage ? 'justify-start' : 'justify-end'}`}>
-                  <div
-                    className={`max-w-xl space-y-1 rounded-xl px-4 py-3 shadow-sm ${
-                      isUserMessage
+                return (
+                  <div key={msg.id} className={`flex ${isUserMessage ? 'justify-start' : 'justify-end'}`}>
+                    <div
+                      className={`max-w-xl space-y-1 rounded-xl px-4 py-3 shadow-sm ${isUserMessage
                         ? 'bg-brand-primary text-white'
                         : 'border border-brand-border/50 bg-white text-brand-dark'
-                    }`}
-                  >
-                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
-                      {labelText}
+                        }`}
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
+                        {labelText}
+                      </p>
+                      {/* Renderizar imagen si existe */}
+                      {msg.type === 'image' && msg.mediaUrl ? (
+                        <ChatImageMessage
+                          url={msg.mediaUrl}
+                          fileName={msg.fileName || undefined}
+                          text={msg.text || undefined}
+                        />
+                      ) : (
+                        <p className="text-sm leading-relaxed">{renderFormattedText(msg.text)}</p>
+                      )}
+                      <p className="mt-1 text-right text-xs text-brand-muted">{formattedTime}</p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-center text-brand-muted">{t('chatHistory.noMessages')}</p>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          <div className="border-t border-brand-border/60 bg-white/90 px-6 py-4">
+            {isManualReplyBlocked ? (
+              <div className="rounded-xl bg-yellow-50 p-4 text-gray-700">
+                <div className="flex items-start gap-3">
+                  <ExclamationTriangleIcon className="mt-1 h-6 w-6 flex-shrink-0 text-amber-500" />
+                  <div className="space-y-3 text-sm leading-relaxed">
+                    <p className="font-medium">
+                      ⚠️ No podés responder desde el sistema porque pasaron más de 24 horas desde el último mensaje del cliente.
                     </p>
-                    {/* Renderizar imagen si existe */}
-                    {msg.type === 'image' && msg.mediaUrl ? (
-                      <ChatImageMessage
-                        url={msg.mediaUrl}
-                        fileName={msg.fileName || undefined}
-                        text={msg.text || undefined}
-                      />
+                    <p>
+                      WhatsApp solo permite contestar dentro de ese plazo. Si necesitás contactarlo igual, podés hacerlo directamente desde WhatsApp:
+                    </p>
+                    {whatsappLink ? (
+                      <a
+                        href={whatsappLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 font-semibold text-brand-primary transition hover:text-brand-primary-hover"
+                      >
+                        <span aria-hidden="true">👉</span>
+                        Abrir chat en WhatsApp
+                      </a>
                     ) : (
-                      <p className="text-sm leading-relaxed">{renderFormattedText(msg.text)}</p>
+                      <span className="inline-flex items-center gap-2 font-semibold text-brand-muted">
+                        <span aria-hidden="true">👉</span>
+                        Abrir chat en WhatsApp
+                      </span>
                     )}
-                    <p className="mt-1 text-right text-xs text-brand-muted">{formattedTime}</p>
                   </div>
                 </div>
-              );
-            })
-          ) : (
-            <p className="text-center text-brand-muted">{t('chatHistory.noMessages')}</p>
-          )}
-          <div ref={chatEndRef} />
-        </div>
-
-        <div className="border-t border-brand-border/60 bg-white/90 px-6 py-4">
-          {isManualReplyBlocked ? (
-            <div className="rounded-xl bg-yellow-50 p-4 text-gray-700">
-              <div className="flex items-start gap-3">
-                <ExclamationTriangleIcon className="mt-1 h-6 w-6 flex-shrink-0 text-amber-500" />
-                <div className="space-y-3 text-sm leading-relaxed">
-                  <p className="font-medium">
-                    ⚠️ No podés responder desde el sistema porque pasaron más de 24 horas desde el último mensaje del cliente.
-                  </p>
-                  <p>
-                    WhatsApp solo permite contestar dentro de ese plazo. Si necesitás contactarlo igual, podés hacerlo directamente desde WhatsApp:
-                  </p>
-                  {whatsappLink ? (
-                    <a
-                      href={whatsappLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 font-semibold text-brand-primary transition hover:text-brand-primary-hover"
-                    >
-                      <span aria-hidden="true">👉</span>
-                      Abrir chat en WhatsApp
-                    </a>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 font-semibold text-brand-muted">
-                      <span aria-hidden="true">👉</span>
-                      Abrir chat en WhatsApp
-                    </span>
-                  )}
-                </div>
               </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSendMessage}>
-              <label
-                htmlFor="manual-response"
-                className="mb-2 block text-xs font-semibold uppercase tracking-wide text-brand-muted"
-              >
-                {t('chatHistory.reply', 'Responder manualmente')}
-              </label>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                {/* Botón para adjuntar imagen */}
-                <ImageUploadButton
-                  onSelect={handleImageSelect}
-                  disabled={isManualReplyBlocked || isSending}
-                  isUploading={isUploading}
-                />
-                <textarea
-                  id="manual-response"
-                  value={newMessage}
-                  onChange={(event) => setNewMessage(event.target.value)}
-                  onKeyDown={handleMessageKeyDown}
-                  placeholder={t('chatHistory.writeMessage', 'Escribe tu mensaje...')}
-                  className="min-h-[3rem] flex-1 resize-none rounded-xl border border-brand-border/60 bg-white/80 px-4 py-3 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
-                  rows={2}
-                />
-                <button
-                  type="submit"
-                  disabled={isSending || !newMessage.trim()}
-                  className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-brand-border disabled:text-brand-muted"
+            ) : (
+              <form onSubmit={handleSendMessage}>
+                <label
+                  htmlFor="manual-response"
+                  className="mb-2 block text-xs font-semibold uppercase tracking-wide text-brand-muted"
                 >
-                  {isSending
-                    ? t('chatHistory.sending', 'Enviando...')
-                    : t('chatHistory.send', 'Enviar')}
-                </button>
-              </div>
-              {sendError && <p className="mt-2 text-sm text-red-500">{sendError}</p>}
-              {!sendError && sendWarning && (
-                <p className="mt-2 text-sm text-amber-600">{sendWarning}</p>
-              )}
-            </form>
-          )}
+                  {t('chatHistory.reply', 'Responder manualmente')}
+                </label>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                  {/* Botón para adjuntar imagen */}
+                  <ImageUploadButton
+                    onSelect={handleImageSelect}
+                    disabled={isManualReplyBlocked || isSending}
+                    isUploading={isUploading}
+                  />
+                  <textarea
+                    id="manual-response"
+                    value={newMessage}
+                    onChange={(event) => setNewMessage(event.target.value)}
+                    onKeyDown={handleMessageKeyDown}
+                    placeholder={t('chatHistory.writeMessage', 'Escribe tu mensaje...')}
+                    className="min-h-[3rem] flex-1 resize-none rounded-xl border border-brand-border/60 bg-white/80 px-4 py-3 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                    rows={2}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSending || !newMessage.trim()}
+                    className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-brand-border disabled:text-brand-muted"
+                  >
+                    {isSending
+                      ? t('chatHistory.sending', 'Enviando...')
+                      : t('chatHistory.send', 'Enviar')}
+                  </button>
+                </div>
+                {sendError && <p className="mt-2 text-sm text-red-500">{sendError}</p>}
+                {!sendError && sendWarning && (
+                  <p className="mt-2 text-sm text-amber-600">{sendWarning}</p>
+                )}
+              </form>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modal de preview de imagen */}
       {selectedImage && imagePreview && (
