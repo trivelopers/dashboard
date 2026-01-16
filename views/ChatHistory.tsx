@@ -302,7 +302,7 @@ const ChatHistory: React.FC = () => {
   }, [fetchChatHistory]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [messages]);
 
   const lastMessageDate = useMemo(() => {
