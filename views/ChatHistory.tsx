@@ -9,7 +9,8 @@ import ImageUploadButton from '../components/ImageUploadButton';
 import ImagePreviewModal from '../components/ImagePreviewModal';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
-import api, { uploadContactImage } from '../services/api';
+import { UserIcon, HandRaisedIcon } from '@heroicons/react/24/outline'; // HandRaisedIcon for manual attention
+import api, { uploadContactImage, updateContactRequireAdmin } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 
 const formatApiMessage = (message: any): Message | null => {
@@ -229,6 +230,7 @@ const ChatHistory: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isUserAtBottomRef = useRef(true);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const [requireAdmin, setRequireAdmin] = useState(false); // New state for manual attention
 
   const { user } = useAuth();
 
@@ -274,6 +276,7 @@ const ChatHistory: React.FC = () => {
             contactData.username ||
             'Sin nombre';
           setContactName(name);
+          setRequireAdmin(Boolean(contactData.requireAdmin)); // Set initial state
         } else {
           console.error('Error fetching contact details:', contactResult.reason);
           setContactPhone(null);
@@ -468,6 +471,21 @@ const ChatHistory: React.FC = () => {
     }
   };
 
+  const handleToggleRequireAdmin = async () => {
+    if (!contactId) return;
+    try {
+      const newValue = !requireAdmin;
+      setRequireAdmin(newValue); // Optimistic update
+
+      await updateContactRequireAdmin(contactId, newValue);
+
+    } catch (error) {
+      console.error('Error toggling manual attention:', error);
+      setRequireAdmin(!requireAdmin); // Revert on error
+      // Ideally show a toast notification here
+    }
+  };
+
   return (
     <GradientSection
       title={t('chatHistory.title')}
@@ -489,7 +507,7 @@ const ChatHistory: React.FC = () => {
         </div>
       }
       actions={
-        <div className="px-4">
+        <div className="flex items-center gap-2 px-4">
           <Link
             to="/contacts"
             className="inline-flex items-center gap-2 rounded-full border border-brand-border/60 bg-white/60 px-3 py-1 text-xs font-semibold text-brand-dark transition hover:border-brand-primary/60 hover:text-brand-primary"
@@ -497,146 +515,160 @@ const ChatHistory: React.FC = () => {
             <ArrowLeftIcon className="h-3 w-3" />
             {t('chatHistory.backToContacts', 'Volver')}
           </Link>
+
+          <button
+            onClick={handleToggleRequireAdmin}
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition ${requireAdmin
+              ? 'bg-brand-primary text-white border-brand-primary hover:bg-brand-primary/90'
+              : 'bg-white/60 text-brand-dark border-brand-border/60 hover:border-brand-primary/60 hover:text-brand-primary'
+              }`}
+          >
+            <HandRaisedIcon className="h-3 w-3" />
+            {requireAdmin ? 'Atención Manual: ON' : 'Atención Manual'}
+          </button>
         </div>
       }
     >
-      {isLoading ? (
-        <div className="flex justify-center items-center h-full">
-          <div className="text-center">
-            <Spinner />
-            <p className="mt-2 text-brand-muted">{t('chatHistory.loading')}</p>
+      {
+        isLoading ? (
+          <div className="flex justify-center items-center h-full" >
+            <div className="text-center">
+              <Spinner />
+              <p className="mt-2 text-brand-muted">{t('chatHistory.loading')}</p>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="flex flex-1 flex-col min-h-0 bg-white/85 backdrop-blur">
-          <div
-            ref={scrollContainerRef}
-            onScroll={handleScroll}
-            className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-4"
-          >
-            {messages.length > 0 ? (
-              messages.map((msg) => {
-                const isUserMessage = msg.role === 'user';
-                const isAssistant = msg.role === 'assistant';
-                const labelText = isAssistant
-                  ? t('chatHistory.botLabel', 'Bot')
-                  : t('chatHistory.contactLabel', 'Contacto');
+        ) : (
+          <div className="flex flex-1 flex-col min-h-0 bg-white/85 backdrop-blur">
+            <div
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-4"
+            >
+              {messages.length > 0 ? (
+                messages.map((msg) => {
+                  const isUserMessage = msg.role === 'user';
+                  const isAssistant = msg.role === 'assistant';
+                  const labelText = isAssistant
+                    ? t('chatHistory.botLabel', 'Bot')
+                    : t('chatHistory.contactLabel', 'Contacto');
 
-                const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
-                const formattedTime = timestamp
-                  ? `${timestamp.toLocaleDateString()} ${timestamp.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}`
-                  : '--:--';
+                  const timestamp = msg.timestamp ? new Date(msg.timestamp) : null;
+                  const formattedTime = timestamp
+                    ? `${timestamp.toLocaleDateString()} ${timestamp.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}`
+                    : '--:--';
 
-                return (
-                  <div key={msg.id} className={`flex ${isUserMessage ? 'justify-start' : 'justify-end'}`}>
-                    <div
-                      className={`max-w-xl space-y-1 rounded-xl px-4 py-2 shadow-sm ${isUserMessage
-                        ? 'bg-brand-primary text-white'
-                        : 'border border-brand-border/50 bg-white text-brand-dark'
-                        }`}
-                    >
-                      <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
-                        {labelText}
+                  return (
+                    <div key={msg.id} className={`flex ${isUserMessage ? 'justify-start' : 'justify-end'}`}>
+                      <div
+                        className={`max-w-xl space-y-1 rounded-xl px-4 py-2 shadow-sm ${isUserMessage
+                          ? 'bg-brand-primary text-white'
+                          : 'border border-brand-border/50 bg-white text-brand-dark'
+                          }`}
+                      >
+                        <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
+                          {labelText}
+                        </p>
+                        {/* Renderizar imagen si existe */}
+                        {msg.type === 'image' && msg.mediaUrl ? (
+                          <ChatImageMessage
+                            url={msg.mediaUrl}
+                            fileName={msg.fileName || undefined}
+                            text={msg.text || undefined}
+                          />
+                        ) : (
+                          <p className="text-sm leading-relaxed">{renderFormattedText(msg.text)}</p>
+                        )}
+                        <p className="mt-1 text-right text-[10px] opacity-70">{formattedTime}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-center text-brand-muted">{t('chatHistory.noMessages')}</p>
+              )}
+
+            </div>
+
+            <div className="border-t border-brand-border/60 bg-white/90 px-4 py-3">
+              {isManualReplyBlocked ? (
+                <div className="rounded-xl bg-yellow-50 p-3 text-gray-700">
+                  <div className="flex items-center gap-3">
+                    <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                    <div className="flex-1 text-xs sm:text-sm">
+                      <p className="font-medium">
+                        ⚠️ Pasaron más de 24hs.
                       </p>
-                      {/* Renderizar imagen si existe */}
-                      {msg.type === 'image' && msg.mediaUrl ? (
-                        <ChatImageMessage
-                          url={msg.mediaUrl}
-                          fileName={msg.fileName || undefined}
-                          text={msg.text || undefined}
-                        />
-                      ) : (
-                        <p className="text-sm leading-relaxed">{renderFormattedText(msg.text)}</p>
-                      )}
-                      <p className="mt-1 text-right text-[10px] opacity-70">{formattedTime}</p>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <p className="text-center text-brand-muted">{t('chatHistory.noMessages')}</p>
-            )}
-
-          </div>
-
-          <div className="border-t border-brand-border/60 bg-white/90 px-4 py-3">
-            {isManualReplyBlocked ? (
-              <div className="rounded-xl bg-yellow-50 p-3 text-gray-700">
-                <div className="flex items-center gap-3">
-                  <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0 text-amber-500" />
-                  <div className="flex-1 text-xs sm:text-sm">
-                    <p className="font-medium">
-                      ⚠️ Pasaron más de 24hs.
-                    </p>
-                    <div className="mt-1">
-                      {whatsappLink ? (
-                        <a
-                          href={whatsappLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-semibold text-brand-primary hover:text-brand-primary-hover"
-                        >
-                          Chat en WhatsApp <span aria-hidden="true">↗</span>
-                        </a>
-                      ) : (
-                        <span className="text-brand-muted">Ir a WhatsApp</span>
-                      )}
+                      <div className="mt-1">
+                        {whatsappLink ? (
+                          <a
+                            href={whatsappLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-semibold text-brand-primary hover:text-brand-primary-hover"
+                          >
+                            Chat en WhatsApp <span aria-hidden="true">↗</span>
+                          </a>
+                        ) : (
+                          <span className="text-brand-muted">Ir a WhatsApp</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <form onSubmit={handleSendMessage}>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                  {/* Botón para adjuntar imagen */}
-                  <ImageUploadButton
-                    onSelect={handleImageSelect}
-                    disabled={isManualReplyBlocked || isSending}
-                    isUploading={isUploading}
-                  />
-                  <textarea
-                    id="manual-response"
-                    value={newMessage}
-                    onChange={(event) => setNewMessage(event.target.value)}
-                    onKeyDown={handleMessageKeyDown}
-                    placeholder={t('chatHistory.writeMessage', 'Escribe tu mensaje...')}
-                    className="min-h-[2.5rem] flex-1 resize-none rounded-xl border border-brand-border/60 bg-white/80 px-3 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
-                    rows={1}
-                  />
-                  <button
-                    type="submit"
-                    disabled={isSending || !newMessage.trim()}
-                    className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-brand-border disabled:text-brand-muted"
-                  >
-                    {isSending
-                      ? t('chatHistory.sending', '...')
-                      : t('chatHistory.send', 'Enviar')}
-                  </button>
-                </div>
-                {sendError && <p className="mt-1 text-xs text-red-500">{sendError}</p>}
-                {!sendError && sendWarning && (
-                  <p className="mt-1 text-xs text-amber-600">{sendWarning}</p>
-                )}
-              </form>
-            )}
+              ) : (
+                <form onSubmit={handleSendMessage}>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                    {/* Botón para adjuntar imagen */}
+                    <ImageUploadButton
+                      onSelect={handleImageSelect}
+                      disabled={isManualReplyBlocked || isSending}
+                      isUploading={isUploading}
+                    />
+                    <textarea
+                      id="manual-response"
+                      value={newMessage}
+                      onChange={(event) => setNewMessage(event.target.value)}
+                      onKeyDown={handleMessageKeyDown}
+                      placeholder={t('chatHistory.writeMessage', 'Escribe tu mensaje...')}
+                      className="min-h-[2.5rem] flex-1 resize-none rounded-xl border border-brand-border/60 bg-white/80 px-3 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                      rows={1}
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSending || !newMessage.trim()}
+                      className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-brand-border disabled:text-brand-muted"
+                    >
+                      {isSending
+                        ? t('chatHistory.sending', '...')
+                        : t('chatHistory.send', 'Enviar')}
+                    </button>
+                  </div>
+                  {sendError && <p className="mt-1 text-xs text-red-500">{sendError}</p>}
+                  {!sendError && sendWarning && (
+                    <p className="mt-1 text-xs text-amber-600">{sendWarning}</p>
+                  )}
+                </form>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Modal de preview de imagen */}
-      {selectedImage && imagePreview && (
-        <ImagePreviewModal
-          file={selectedImage}
-          previewUrl={imagePreview}
-          onConfirm={handleSendImage}
-          onCancel={handleCancelImage}
-          isUploading={isUploading}
-        />
-      )}
-    </GradientSection>
+      {
+        selectedImage && imagePreview && (
+          <ImagePreviewModal
+            file={selectedImage}
+            previewUrl={imagePreview}
+            onConfirm={handleSendImage}
+            onCancel={handleCancelImage}
+            isUploading={isUploading}
+          />
+        )
+      }
+    </GradientSection >
   );
 };
 

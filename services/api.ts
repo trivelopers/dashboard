@@ -153,4 +153,17 @@ export const respondToContact = async (
   return response.data;
 };
 
+/**
+ * Actualiza el estado de atención manual (requireAdmin)
+ */
+export const updateContactRequireAdmin = async (
+  contactId: string,
+  requireAdmin: boolean
+) => {
+  const response = await api.put(`/dashboard/contacts/${contactId}/require-admin`, {
+    requireAdmin,
+  });
+  return response.data;
+};
+
 export default api;
