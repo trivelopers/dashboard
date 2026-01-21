@@ -226,7 +226,10 @@ const ChatHistory: React.FC = () => {
   const [sendWarning, setSendWarning] = useState<string | null>(null);
   const [contactName, setContactName] = useState<string | null>(null);
   const [contactPhone, setContactPhone] = useState<string | null>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isUserAtBottomRef = useRef(true);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+
   const { user } = useAuth();
 
   // Estados para manejo de imágenes
@@ -301,9 +304,32 @@ const ChatHistory: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [fetchChatHistory]);
 
+  // Detectar si el usuario está al final del scroll
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+      // Consideramos que está al final si está a menos de 50px del borde inferior
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+      isUserAtBottomRef.current = isAtBottom;
+    }
+  };
+
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [messages]);
+    // Si es la primera carga o el usuario estaba abajo, hacer scroll al fondo
+    if (messages.length > 0) {
+      if (!initialLoadDone || isUserAtBottomRef.current) {
+        // Usamos setTimeout para asegurar que el DOM se haya actualizado
+        setTimeout(() => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+          }
+        }, 0);
+      }
+      if (!initialLoadDone) {
+        setInitialLoadDone(true);
+      }
+    }
+  }, [messages, initialLoadDone]);
 
   const lastMessageDate = useMemo(() => {
     const contactMessages = messages.filter(
@@ -483,7 +509,11 @@ const ChatHistory: React.FC = () => {
         </div>
       ) : (
         <div className="flex flex-1 flex-col min-h-0 bg-white/85 backdrop-blur">
-          <div className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-4">
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-4"
+          >
             {messages.length > 0 ? (
               messages.map((msg) => {
                 const isUserMessage = msg.role === 'user';
@@ -529,7 +559,7 @@ const ChatHistory: React.FC = () => {
             ) : (
               <p className="text-center text-brand-muted">{t('chatHistory.noMessages')}</p>
             )}
-            <div ref={chatEndRef} />
+
           </div>
 
           <div className="border-t border-brand-border/60 bg-white/90 px-4 py-3">

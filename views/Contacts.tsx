@@ -205,17 +205,35 @@ const resolvePlatformLabel = (contact: ExtendedContact): string => {
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 };
 
+const formatInteractionDate = (date: Date | null): string => {
+  if (!date) return '-';
+
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInHours = diffInMs / (1000 * 60 * 60);
+
+  if (diffInHours < 25) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+};
+
 const Contacts: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [contacts, setContacts] = useState<ExtendedContact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('');
-  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'interaction-desc' | 'interaction-asc'>('interaction-desc');
+
+  const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'name' | 'phone' | 'platform' | 'requireAdmin'; direction: 'asc' | 'desc' }>({
+    key: 'date',
+    direction: 'desc',
+  });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
   const [draftPhone, setDraftPhone] = useState('');
-  
+
   const canEdit = user?.role === Role.ADMIN || user?.role === Role.EDITOR;
 
   const fetchContacts = async () => {
@@ -239,13 +257,13 @@ const Contacts: React.FC = () => {
     const originalContacts = [...contacts];
     // Optimistic UI update
     setContacts(prev => prev.map(c => c.id === contactId ? { ...c, requireAdmin: !currentValue } : c));
-    
+
     try {
-        await api.put(`/dashboard/contacts/${contactId}/require-admin`, { requireAdmin: !currentValue });
+      await api.put(`/dashboard/contacts/${contactId}/require-admin`, { requireAdmin: !currentValue });
     } catch (error) {
-        console.error("Failed to update contact", error);
-        // Revert on failure
-        setContacts(originalContacts);
+      console.error("Failed to update contact", error);
+      // Revert on failure
+      setContacts(originalContacts);
     }
   };
 
@@ -257,53 +275,58 @@ const Contacts: React.FC = () => {
   }, [contacts]);
 
   const sortedContacts = useMemo(() => {
-    const compareByName = (a: EnrichedContact, b: EnrichedContact) => {
-      const nameA = (a.name || a.username || a.userName || '').toLocaleLowerCase();
-      const nameB = (b.name || b.username || b.userName || '').toLocaleLowerCase();
-      return nameA.localeCompare(nameB);
-    };
-
-    const compareByInteraction = (a: EnrichedContact, b: EnrichedContact, direction: 'asc' | 'desc') => {
-      const timeA = a.lastInteractionDate ? a.lastInteractionDate.getTime() : null;
-      const timeB = b.lastInteractionDate ? b.lastInteractionDate.getTime() : null;
-
-      if (timeA === null && timeB === null) {
-        return 0;
-      }
-      if (timeA === null) {
-        return 1;
-      }
-      if (timeB === null) {
-        return -1;
-      }
-
-      return direction === 'desc' ? timeB - timeA : timeA - timeB;
-    };
-
     return [...enrichedContacts].sort((a, b) => {
+      // Priority 1: Require Admin (Always on top)
       const needsAdminA = a.requireAdmin ? 1 : 0;
       const needsAdminB = b.requireAdmin ? 1 : 0;
       if (needsAdminA !== needsAdminB) {
         return needsAdminB - needsAdminA;
       }
 
-      if (sortBy === 'name-desc') {
-        return compareByName(b, a);
+      // Priority 2: Selected Sort
+      let comparison = 0;
+
+      if (sortConfig.key === 'date') {
+        const timeA = a.lastInteractionDate ? a.lastInteractionDate.getTime() : 0;
+        const timeB = b.lastInteractionDate ? b.lastInteractionDate.getTime() : 0;
+        comparison = timeA - timeB;
+      } else if (sortConfig.key === 'name') {
+        const nameA = (a.name || a.username || a.userName || '').toLowerCase();
+        const nameB = (b.name || b.username || b.userName || '').toLowerCase();
+        comparison = nameA.localeCompare(nameB);
+      } else if (sortConfig.key === 'phone') {
+        const phoneA = resolveContactPhone(a);
+        const phoneB = resolveContactPhone(b);
+        comparison = phoneA.localeCompare(phoneB);
+      } else if (sortConfig.key === 'platform') {
+        const platformA = resolvePlatformLabel(a);
+        const platformB = resolvePlatformLabel(b);
+        comparison = platformA.localeCompare(platformB);
+      } else if (sortConfig.key === 'requireAdmin') {
+        // Already handled explicitly above, but if we wanted to sort *within* the non-admin group by this flag (all false), it's 0.
+        // This block is technically redundant given the priority check, but keeps structure clean if we remove separate priority later.
+        comparison = needsAdminA - needsAdminB;
       }
 
-      if (sortBy === 'interaction-desc') {
-        const byInteraction = compareByInteraction(a, b, 'desc');
-        return byInteraction !== 0 ? byInteraction : compareByName(a, b);
-      }
-
-      if (sortBy === 'interaction-asc') {
-        const byInteraction = compareByInteraction(a, b, 'asc');
-        return byInteraction !== 0 ? byInteraction : compareByName(a, b);
-      }
-
-      return compareByName(a, b);
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
-  }, [enrichedContacts, sortBy]);
+  }, [enrichedContacts, sortConfig]);
+
+  const handleSort = (key: 'date' | 'name' | 'phone' | 'platform' | 'requireAdmin') => {
+    setSortConfig((current) => ({
+      key,
+      direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc',
+    }));
+  };
+
+  const SortIcon = ({ active, direction }: { active: boolean; direction: 'asc' | 'desc' }) => {
+    if (!active) return <span className="ml-1 text-brand-muted/40 transition group-hover:text-brand-muted/70">↕</span>;
+    return (
+      <span className="ml-1 text-brand-primary">
+        {direction === 'asc' ? '↑' : '↓'}
+      </span>
+    );
+  };
 
   const resolveContactPhone = (contact: ExtendedContact): string => {
     const phoneKeys = [
@@ -421,10 +444,10 @@ const Contacts: React.FC = () => {
       prev.map((item) =>
         item.id === contact.id
           ? {
-              ...item,
-              name: updatedName,
-              phoneNumber: updatedPhone,
-            }
+            ...item,
+            name: updatedName,
+            phoneNumber: updatedPhone,
+          }
           : item,
       ),
     );
@@ -441,7 +464,7 @@ const Contacts: React.FC = () => {
       setEditingId(contact.id);
     }
   };
-  
+
   const filteredContacts = useMemo(() => {
     const loweredFilter = filter.toLowerCase();
 
@@ -472,22 +495,7 @@ const Contacts: React.FC = () => {
               onChange={(event) => setFilter(event.target.value)}
               className="w-full rounded-full border border-brand-border/60 bg-white px-4 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30 sm:w-64"
             />
-            <div className="w-full sm:w-60">
-              <label htmlFor="contacts-sort" className="sr-only">
-                Ordenar contactos
-              </label>
-              <select
-                id="contacts-sort"
-                value={sortBy}
-                onChange={(event) => setSortBy(event.target.value as typeof sortBy)}
-                className="w-full rounded-full border border-brand-border/60 bg-white px-4 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
-              >
-                <option value="name-asc">Nombre A-Z</option>
-                <option value="name-desc">Nombre Z-A</option>
-                <option value="interaction-desc">Actividad reciente</option>
-                <option value="interaction-asc">Actividad menos reciente</option>
-              </select>
-            </div>
+            <div className="w-full sm:w-60 h-10" />
           </div>
         }
       >
@@ -504,17 +512,48 @@ const Contacts: React.FC = () => {
             <table className="min-w-full divide-y divide-brand-border/80 rounded-2xl bg-white/90 shadow-brand-soft backdrop-blur">
               <thead className="bg-brand-muted text-brand-surface">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                    {t('contacts.name')}
+                  <th
+                    scope="col"
+                    className="group cursor-pointer px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider w-24 whitespace-nowrap hover:bg-brand-muted/80 transition"
+                    onClick={() => handleSort('date')}
+                  >
+                    <div className="flex items-center">
+                      Fecha
+                      <SortIcon active={sortConfig.key === 'date'} direction={sortConfig.direction} />
+                    </div>
+                  </th>
+                  <th
+                    scope="col"
+                    className="group cursor-pointer px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider hover:bg-brand-muted/80 transition"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center">
+                      {t('contacts.name')}
+                      <SortIcon active={sortConfig.key === 'name'} direction={sortConfig.direction} />
+                    </div>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                     {t('contacts.viewConversation', 'Ver conversación')}
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                    {t('contacts.phone')}
+                  <th
+                    scope="col"
+                    className="group cursor-pointer px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider hover:bg-brand-muted/80 transition"
+                    onClick={() => handleSort('phone')}
+                  >
+                    <div className="flex items-center">
+                      {t('contacts.phone')}
+                      <SortIcon active={sortConfig.key === 'phone'} direction={sortConfig.direction} />
+                    </div>
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                    {t('contacts.platform', 'Plataforma')}
+                  <th
+                    scope="col"
+                    className="group cursor-pointer px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider hover:bg-brand-muted/80 transition"
+                    onClick={() => handleSort('platform')}
+                  >
+                    <div className="flex items-center">
+                      {t('contacts.platform', 'Plataforma')}
+                      <SortIcon active={sortConfig.key === 'platform'} direction={sortConfig.direction} />
+                    </div>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                     {t('contacts.requiresAdmin')}
@@ -532,6 +571,9 @@ const Contacts: React.FC = () => {
 
                   return (
                     <tr key={contact.id} className="transition-colors hover:bg-brand-background/50">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-brand-muted w-24">
+                        {formatInteractionDate(contact.lastInteractionDate)}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-dark">
                         {isEditing ? (
                           <input
