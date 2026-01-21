@@ -445,41 +445,45 @@ const ChatHistory: React.FC = () => {
   return (
     <GradientSection
       title={t('chatHistory.title')}
-      titleClassName="text-2xl sm:text-3xl"
-      headerClassName="lg:items-start"
+      titleClassName="text-lg sm:text-xl"
+      headerClassName="lg:items-center py-4 px-4"
+      className="flex flex-col !p-0 !rounded-none !border-0 !shadow-none h-screen w-full"
+      contentClassName="flex-1 flex flex-col min-h-0 space-y-0"
       description={
-        <div className="flex flex-col gap-1 mt-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5 text-xs sm:text-sm px-4">
           <p>
-            <span className="font-medium text-lg text-brand-dark">Nombre del contacto:</span>{' '}
-            <span className="font-bold text-xl text-brand-dark">{contactName || 'Desconocido'}</span>
+            <span className="font-medium text-brand-dark">Nombre:</span>{' '}
+            <span className="font-bold text-brand-dark">{contactName || 'Desconocido'}</span>
           </p>
+          <span className="hidden sm:inline text-brand-muted">•</span>
           <p>
-            <span className="font-medium">Numero de telefono:</span>{' '}
+            <span className="font-medium">Tel:</span>{' '}
             {contactPhone || 'No disponible'}
           </p>
         </div>
       }
       actions={
-        <Link
-          to="/contacts"
-          className="inline-flex items-center gap-2 rounded-full border border-brand-border/60 bg-white/60 px-3 py-1 text-sm font-semibold text-brand-dark transition hover:border-brand-primary/60 hover:text-brand-primary"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
-          {t('chatHistory.backToContacts', 'Volver a contactos')}
-        </Link>
+        <div className="px-4">
+          <Link
+            to="/contacts"
+            className="inline-flex items-center gap-2 rounded-full border border-brand-border/60 bg-white/60 px-3 py-1 text-xs font-semibold text-brand-dark transition hover:border-brand-primary/60 hover:text-brand-primary"
+          >
+            <ArrowLeftIcon className="h-3 w-3" />
+            {t('chatHistory.backToContacts', 'Volver')}
+          </Link>
+        </div>
       }
-      contentClassName="space-y-6"
     >
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
+        <div className="flex justify-center items-center h-full">
           <div className="text-center">
             <Spinner />
             <p className="mt-2 text-brand-muted">{t('chatHistory.loading')}</p>
           </div>
         </div>
       ) : (
-        <div className="flex h-[calc(100vh-12rem)] flex-col rounded-2xl border border-brand-border/60 bg-white/85 shadow-brand-soft backdrop-blur">
-          <div className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-6">
+        <div className="flex flex-1 flex-col min-h-0 bg-white/85 backdrop-blur">
+          <div className="flex-1 space-y-4 overflow-y-auto bg-brand-background/80 p-4">
             {messages.length > 0 ? (
               messages.map((msg) => {
                 const isUserMessage = msg.role === 'user';
@@ -499,12 +503,12 @@ const ChatHistory: React.FC = () => {
                 return (
                   <div key={msg.id} className={`flex ${isUserMessage ? 'justify-start' : 'justify-end'}`}>
                     <div
-                      className={`max-w-xl space-y-1 rounded-xl px-4 py-3 shadow-sm ${isUserMessage
+                      className={`max-w-xl space-y-1 rounded-xl px-4 py-2 shadow-sm ${isUserMessage
                         ? 'bg-brand-primary text-white'
                         : 'border border-brand-border/50 bg-white text-brand-dark'
                         }`}
                     >
-                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
                         {labelText}
                       </p>
                       {/* Renderizar imagen si existe */}
@@ -517,7 +521,7 @@ const ChatHistory: React.FC = () => {
                       ) : (
                         <p className="text-sm leading-relaxed">{renderFormattedText(msg.text)}</p>
                       )}
-                      <p className="mt-1 text-right text-xs text-brand-muted">{formattedTime}</p>
+                      <p className="mt-1 text-right text-[10px] opacity-70">{formattedTime}</p>
                     </div>
                   </div>
                 );
@@ -528,46 +532,35 @@ const ChatHistory: React.FC = () => {
             <div ref={chatEndRef} />
           </div>
 
-          <div className="border-t border-brand-border/60 bg-white/90 px-6 py-4">
+          <div className="border-t border-brand-border/60 bg-white/90 px-4 py-3">
             {isManualReplyBlocked ? (
-              <div className="rounded-xl bg-yellow-50 p-4 text-gray-700">
-                <div className="flex items-start gap-3">
-                  <ExclamationTriangleIcon className="mt-1 h-6 w-6 flex-shrink-0 text-amber-500" />
-                  <div className="space-y-3 text-sm leading-relaxed">
+              <div className="rounded-xl bg-yellow-50 p-3 text-gray-700">
+                <div className="flex items-center gap-3">
+                  <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                  <div className="flex-1 text-xs sm:text-sm">
                     <p className="font-medium">
-                      ⚠️ No podés responder desde el sistema porque pasaron más de 24 horas desde el último mensaje del cliente.
+                      ⚠️ Pasaron más de 24hs.
                     </p>
-                    <p>
-                      WhatsApp solo permite contestar dentro de ese plazo. Si necesitás contactarlo igual, podés hacerlo directamente desde WhatsApp:
-                    </p>
-                    {whatsappLink ? (
-                      <a
-                        href={whatsappLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 font-semibold text-brand-primary transition hover:text-brand-primary-hover"
-                      >
-                        <span aria-hidden="true">👉</span>
-                        Abrir chat en WhatsApp
-                      </a>
-                    ) : (
-                      <span className="inline-flex items-center gap-2 font-semibold text-brand-muted">
-                        <span aria-hidden="true">👉</span>
-                        Abrir chat en WhatsApp
-                      </span>
-                    )}
+                    <div className="mt-1">
+                      {whatsappLink ? (
+                        <a
+                          href={whatsappLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-semibold text-brand-primary hover:text-brand-primary-hover"
+                        >
+                          Chat en WhatsApp <span aria-hidden="true">↗</span>
+                        </a>
+                      ) : (
+                        <span className="text-brand-muted">Ir a WhatsApp</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             ) : (
               <form onSubmit={handleSendMessage}>
-                <label
-                  htmlFor="manual-response"
-                  className="mb-2 block text-xs font-semibold uppercase tracking-wide text-brand-muted"
-                >
-                  {t('chatHistory.reply', 'Responder manualmente')}
-                </label>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                   {/* Botón para adjuntar imagen */}
                   <ImageUploadButton
                     onSelect={handleImageSelect}
@@ -580,22 +573,22 @@ const ChatHistory: React.FC = () => {
                     onChange={(event) => setNewMessage(event.target.value)}
                     onKeyDown={handleMessageKeyDown}
                     placeholder={t('chatHistory.writeMessage', 'Escribe tu mensaje...')}
-                    className="min-h-[3rem] flex-1 resize-none rounded-xl border border-brand-border/60 bg-white/80 px-4 py-3 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
-                    rows={2}
+                    className="min-h-[2.5rem] flex-1 resize-none rounded-xl border border-brand-border/60 bg-white/80 px-3 py-2 text-sm text-brand-dark shadow-sm transition focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                    rows={1}
                   />
                   <button
                     type="submit"
                     disabled={isSending || !newMessage.trim()}
-                    className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-brand-border disabled:text-brand-muted"
+                    className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-brand-border disabled:text-brand-muted"
                   >
                     {isSending
-                      ? t('chatHistory.sending', 'Enviando...')
+                      ? t('chatHistory.sending', '...')
                       : t('chatHistory.send', 'Enviar')}
                   </button>
                 </div>
-                {sendError && <p className="mt-2 text-sm text-red-500">{sendError}</p>}
+                {sendError && <p className="mt-1 text-xs text-red-500">{sendError}</p>}
                 {!sendError && sendWarning && (
-                  <p className="mt-2 text-sm text-amber-600">{sendWarning}</p>
+                  <p className="mt-1 text-xs text-amber-600">{sendWarning}</p>
                 )}
               </form>
             )}
@@ -616,6 +609,5 @@ const ChatHistory: React.FC = () => {
     </GradientSection>
   );
 };
-
 
 export default ChatHistory;
