@@ -1,4 +1,4 @@
-﻿{
+{
   "auth": {
     "login": "Iniciar sesión",
     "email": "Correo electrónico",
@@ -30,7 +30,12 @@
     "help": "Ayuda",
     "logout": "Cerrar sesión",
     "openMenu": "Abrir menu",
-    "closeMenu": "Cerrar menu"
+    "closeMenu": "Cerrar menu",
+    "whatsappConfig": "Config WhatsApp",
+    "whatsappAgents": "Agentes IA",
+    "whatsappFunctions": "Funciones",
+    "whatsappFlows": "Flujos",
+    "whatsappSessions": "Sesiones"
   },
   "integrations": {
     "title": "Integraciones",

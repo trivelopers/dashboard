@@ -20,6 +20,12 @@ import Help from './views/Help';
 import NotFound from './views/NotFound';
 import Profile from './views/Profile';
 import ChangePassword from './views/ChangePassword';
+import WhatsAppConfig from './views/whatsapp/WhatsAppConfig';
+import Agents from './views/whatsapp/Agents';
+import Functions from './views/whatsapp/Functions';
+import Flows from './views/whatsapp/Flows';
+import FlowBuilder from './views/whatsapp/FlowBuilder';
+import Sessions from './views/whatsapp/Sessions';
 import { Role } from './types';
 
 function App() {
@@ -90,6 +96,25 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* WhatsApp Agent Admin */}
+            <Route path="whatsapp/config" element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN]}><WhatsAppConfig /></ProtectedRoute>
+            } />
+            <Route path="whatsapp/agents" element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN]}><Agents /></ProtectedRoute>
+            } />
+            <Route path="whatsapp/functions" element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN]}><Functions /></ProtectedRoute>
+            } />
+            <Route path="whatsapp/flows" element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN]}><Flows /></ProtectedRoute>
+            } />
+            <Route path="whatsapp/flows/:id" element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN]}><FlowBuilder /></ProtectedRoute>
+            } />
+            <Route path="whatsapp/sessions" element={
+              <ProtectedRoute allowedRoles={[Role.ADMIN]}><Sessions /></ProtectedRoute>
+            } />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -31,7 +31,12 @@
     "help": "Help",
     "logout": "Logout",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "whatsappConfig": "WhatsApp Config",
+    "whatsappAgents": "AI Agents",
+    "whatsappFunctions": "Functions",
+    "whatsappFlows": "Flows",
+    "whatsappSessions": "Sessions"
   },
   "integrations": {
     "title": "Integrations",
