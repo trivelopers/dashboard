@@ -21,7 +21,7 @@ api.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const clientId = import.meta.env.VITE_CLIENT_ID;
+    const clientId = import.meta.env.VITE_CHAT_CLIENT_ID;
     if (clientId) {
       config.params = config.params || {};
       config.params.clientId = clientId;
